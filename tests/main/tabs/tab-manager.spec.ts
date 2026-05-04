@@ -56,6 +56,7 @@ describe('TabManager', () => {
   });
 
   it('positions the active view to the main area on resize', async () => {
+    mgr.setActiveWorkspace(WS_A);
     const tab = await mgr.open({ workspaceId: WS_A, padName: 'p', src: 'https://x/p/p' });
     mgr.layout();
     const view = mgr.viewFor(tab.tabId);

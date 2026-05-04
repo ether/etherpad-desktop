@@ -63,10 +63,10 @@ export class TabManager {
     };
     this.tabs.push({ tab, view });
     this.opts.viewHost.add(view);
-    this.activeTabId = tab.tabId;
     if (input.workspaceId === this.activeWorkspaceId) {
       view.setBounds(this.opts.viewHost.mainArea());
       view.setVisible(true);
+      this.activeTabId = tab.tabId;
     } else {
       view.setVisible(false);
     }
