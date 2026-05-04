@@ -36,10 +36,10 @@ export function RemoveWorkspaceDialog(): JSX.Element | null {
         <p>{t.removeWorkspace.body}</p>
         {error && <p role="alert" style={{ color: 'var(--error)' }}>{error}</p>}
         <div style={{ display: 'flex', gap: 8 }}>
-          <button onClick={() => void confirm()} disabled={busy}>
+          <button className="btn-primary" onClick={() => void confirm()} disabled={busy}>
             {t.removeWorkspace.confirm}
           </button>
-          <button onClick={() => dialogActions.closeDialog()}>{t.removeWorkspace.cancel}</button>
+          <button className="btn-secondary" onClick={() => dialogActions.closeDialog()}>{t.removeWorkspace.cancel}</button>
         </div>
       </div>
     </div>
@@ -47,4 +47,4 @@ export function RemoveWorkspaceDialog(): JSX.Element | null {
 }
 
 const overlayStyle: React.CSSProperties = { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'grid', placeItems: 'center', zIndex: 100 };
-const panelStyle: React.CSSProperties = { background: '#fff', padding: 24, borderRadius: 12, width: 420, display: 'flex', flexDirection: 'column', gap: 8 };
+const panelStyle: React.CSSProperties = { background: '#fff', padding: 24, borderRadius: 12, width: 420, display: 'flex', flexDirection: 'column', gap: 8, boxShadow: '0 10px 40px rgba(0,0,0,0.25)' };

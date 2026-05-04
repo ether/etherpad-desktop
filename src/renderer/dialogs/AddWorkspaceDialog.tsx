@@ -4,7 +4,7 @@ import { dialogActions, useShellStore } from '../state/store.js';
 import { t } from '../i18n/index.js';
 import { AppError } from '@shared/types/errors';
 
-const PALETTE = ['#3366cc', '#16a34a', '#dc2626', '#9333ea', '#f59e0b', '#0ea5e9', '#ec4899'];
+const PALETTE = ['#44b492', '#3366cc', '#16a34a', '#dc2626', '#9333ea', '#f59e0b', '#0ea5e9', '#ec4899'];
 
 export function AddWorkspaceDialog({ dismissable }: { dismissable: boolean }): JSX.Element {
   const [name, setName] = useState('');
@@ -62,17 +62,17 @@ export function AddWorkspaceDialog({ dismissable }: { dismissable: boolean }): J
                 aria-label={`Colour ${c}`}
                 aria-pressed={c === color}
                 onClick={() => setColor(c)}
-                style={{ width: 24, height: 24, borderRadius: 12, border: c === color ? '2px solid #111' : '1px solid #ccc', background: c }}
+                style={{ width: 24, height: 24, borderRadius: 12, border: c === color ? '2px solid var(--color-secondary-dark)' : '1px solid var(--tab-border)', background: c }}
               />
             ))}
           </div>
         </fieldset>
         {error && <p role="alert" style={{ color: 'var(--error)' }}>{error}</p>}
         <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
-          <button onClick={() => void submit()} disabled={busy || !name || !serverUrl}>
+          <button className="btn-primary" onClick={() => void submit()} disabled={busy || !name || !serverUrl}>
             {busy ? t.addWorkspace.probing : t.addWorkspace.submit}
           </button>
-          {dismissable && <button onClick={() => dialogActions.closeDialog()}>{t.addWorkspace.cancel}</button>}
+          {dismissable && <button className="btn-secondary" onClick={() => dialogActions.closeDialog()}>{t.addWorkspace.cancel}</button>}
         </div>
       </div>
     </div>
@@ -95,4 +95,5 @@ const panelStyle: React.CSSProperties = {
   display: 'flex',
   flexDirection: 'column',
   gap: 8,
+  boxShadow: '0 10px 40px rgba(0,0,0,0.25)',
 };

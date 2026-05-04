@@ -14,14 +14,14 @@ export function TabErrorOverlay(): JSX.Element | null {
   const message = tab.state === 'crashed' ? t.tabError.crashed : `${tab.errorMessage ?? t.tabError.cantReach.replace('{{url}}', ws?.serverUrl ?? '')}`;
 
   return (
-    <div role="alert" style={{ position: 'absolute', inset: 0, background: '#fef2f2', display: 'grid', placeItems: 'center', padding: 32 }}>
+    <div role="alert" style={{ position: 'absolute', inset: 0, background: 'rgba(239,68,68,0.06)', display: 'grid', placeItems: 'center', padding: 32 }}>
       <div style={{ textAlign: 'center', maxWidth: 480 }}>
         <p style={{ color: 'var(--error)', fontWeight: 600 }}>{message}</p>
         <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
-          <button onClick={() => void ipc.tab.reload({ tabId: tab.tabId })}>
+          <button className="btn-primary" onClick={() => void ipc.tab.reload({ tabId: tab.tabId })}>
             {tab.state === 'crashed' ? t.tabError.reload : t.tabError.retry}
           </button>
-          <button onClick={() => void ipc.tab.close({ tabId: tab.tabId })}>{t.tabError.closeTab}</button>
+          <button className="btn-secondary" onClick={() => void ipc.tab.close({ tabId: tab.tabId })}>{t.tabError.closeTab}</button>
         </div>
       </div>
     </div>

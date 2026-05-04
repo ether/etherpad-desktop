@@ -26,8 +26,8 @@ export function HttpAuthDialog(): JSX.Element {
         <label>{t.httpAuth.username}<input value={u} onChange={(e) => setU(e.target.value)} autoFocus /></label>
         <label>{t.httpAuth.password}<input type="password" value={p} onChange={(e) => setP(e.target.value)} /></label>
         <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-          <button onClick={() => void submit(false)} disabled={!u}>{t.httpAuth.submit}</button>
-          <button onClick={() => void submit(true)}>{t.httpAuth.cancel}</button>
+          <button className="btn-primary" onClick={() => void submit(false)} disabled={!u}>{t.httpAuth.submit}</button>
+          <button className="btn-secondary" onClick={() => void submit(true)}>{t.httpAuth.cancel}</button>
         </div>
       </div>
     </div>
@@ -35,4 +35,4 @@ export function HttpAuthDialog(): JSX.Element {
 }
 
 const overlayStyle: React.CSSProperties = { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'grid', placeItems: 'center', zIndex: 100 };
-const panelStyle: React.CSSProperties = { background: '#fff', padding: 24, borderRadius: 12, width: 420, display: 'flex', flexDirection: 'column', gap: 8 };
+const panelStyle: React.CSSProperties = { background: '#fff', padding: 24, borderRadius: 12, width: 420, display: 'flex', flexDirection: 'column', gap: 8, boxShadow: '0 10px 40px rgba(0,0,0,0.25)' };

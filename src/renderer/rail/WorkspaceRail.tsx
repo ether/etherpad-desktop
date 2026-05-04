@@ -33,7 +33,8 @@ export function WorkspaceRail(): JSX.Element {
               width: 44,
               height: 44,
               borderRadius: 12,
-              border: active === id ? '2px solid var(--accent)' : '1px solid transparent',
+              border: '1px solid transparent',
+              boxShadow: active === id ? '0 0 0 2px var(--accent)' : 'none',
               background: ws.color,
               color: '#fff',
               fontWeight: 600,
@@ -46,7 +47,7 @@ export function WorkspaceRail(): JSX.Element {
       <button
         aria-label={t.rail.add}
         onClick={() => dialogActions.openDialog('addWorkspace')}
-        style={{ width: 44, height: 44, borderRadius: 12, border: '1px dashed #6b7280', background: 'transparent', color: '#9ca3af' }}
+        style={{ width: 44, height: 44, borderRadius: 12, border: '1px dashed var(--text-muted)', background: 'transparent', color: 'var(--rail-fg)', opacity: 0.6 }}
       >
         +
       </button>
@@ -54,7 +55,7 @@ export function WorkspaceRail(): JSX.Element {
       <button
         aria-label={t.rail.settings}
         onClick={() => dialogActions.openDialog('settings')}
-        style={{ width: 44, height: 44, borderRadius: 12, border: 'none', background: 'transparent', color: '#9ca3af' }}
+        style={{ width: 44, height: 44, borderRadius: 12, border: 'none', background: 'transparent', color: 'var(--rail-fg)', opacity: 0.6 }}
       >
         ⚙
       </button>

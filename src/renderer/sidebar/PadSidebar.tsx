@@ -31,7 +31,7 @@ export function PadSidebar(): JSX.Element {
 
       {pinned.length > 0 && (
         <section>
-          <h3 style={{ fontSize: 12, color: '#6b7280', marginTop: 16 }}>{t.sidebar.pinned}</h3>
+          <h3 style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 16 }}>{t.sidebar.pinned}</h3>
           <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
             {pinned.map((e) => (
               <li key={e.padName}>
@@ -45,7 +45,7 @@ export function PadSidebar(): JSX.Element {
       )}
 
       <section>
-        <h3 style={{ fontSize: 12, color: '#6b7280', marginTop: 16 }}>{t.sidebar.recent}</h3>
+        <h3 style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 16 }}>{t.sidebar.recent}</h3>
         <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
           {recent.map((e) => (
             <li key={e.padName}>

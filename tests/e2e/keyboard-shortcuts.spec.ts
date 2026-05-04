@@ -117,10 +117,10 @@ test('Ctrl+W equivalent — close tab via IPC removes the tab', async () => {
   }
 });
 
-test('Ctrl+R equivalent — menu.reload does not crash the app', async () => {
-  // menu.reload triggers ipcRef.current.broadcastShell('menu.reload')
-  // which the renderer currently ignores (no handler for 'menu.reload' in App.tsx).
-  // We verify the broadcast completes without error and the app remains alive.
+test('Ctrl+R equivalent — menu.reload reloads the active pad', async () => {
+  // menu.reload triggers broadcastShell('menu.reload') → renderer's
+  // onMenuShellMessage handler calls ipc.tab.reload({ tabId: activeTabId }).
+  // We verify the tab survives the reload (no crash, tab still present).
   const h = await launchApp();
   try {
     await setupOneWorkspace(h, 'KbdR');
@@ -129,7 +129,7 @@ test('Ctrl+R equivalent — menu.reload does not crash the app', async () => {
     // Trigger menu.reload via the same broadcast path
     await triggerMenuAction(h, 'menu.reload');
 
-    // App must still be alive and responsive
+    // App must still be alive, tab must remain, no error state
     await expect(h.shell.getByRole('tab', { name: /pad-r/ })).toBeVisible();
   } finally {
     await h.close();

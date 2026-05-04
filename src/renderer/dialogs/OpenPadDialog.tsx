@@ -31,7 +31,7 @@ export function OpenPadDialog(): JSX.Element {
           <input value={name} onChange={(e) => setName(e.target.value)} autoFocus />
         </label>
         {matches.length > 0 && (
-          <ul role="listbox" style={{ listStyle: 'none', padding: 0, margin: 0, border: '1px solid #d1d5db' }}>
+          <ul role="listbox" style={{ listStyle: 'none', padding: 0, margin: 0, border: '1px solid var(--tab-border)' }}>
             {matches.map((m) => (
               <li key={m.padName} role="option" aria-selected={false}>
                 <button type="button" onClick={() => void submit(m.padName)} style={{ width: '100%', textAlign: 'left', padding: 4 }}>
@@ -46,10 +46,10 @@ export function OpenPadDialog(): JSX.Element {
           {t.openPad.create}
         </label>
         <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-          <button onClick={() => void submit()} disabled={!name}>
+          <button className="btn-primary" onClick={() => void submit()} disabled={!name}>
             {t.openPad.submit}
           </button>
-          <button onClick={() => dialogActions.closeDialog()}>{t.addWorkspace.cancel}</button>
+          <button className="btn-secondary" onClick={() => dialogActions.closeDialog()}>{t.addWorkspace.cancel}</button>
         </div>
       </div>
     </div>
@@ -72,4 +72,5 @@ const panelStyle: React.CSSProperties = {
   display: 'flex',
   flexDirection: 'column',
   gap: 8,
+  boxShadow: '0 10px 40px rgba(0,0,0,0.25)',
 };

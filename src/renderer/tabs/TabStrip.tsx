@@ -12,7 +12,7 @@ export function TabStrip(): JSX.Element {
   return (
     <div
       role="tablist"
-      style={{ display: 'flex', height: 40, background: '#e5e7eb', alignItems: 'flex-end', borderBottom: '1px solid #d1d5db' }}
+      style={{ display: 'flex', height: 40, background: 'var(--tab-border)', alignItems: 'flex-end', borderBottom: '1px solid var(--tab-border)' }}
     >
       {tabs.map((tab) => (
         <div
@@ -25,9 +25,10 @@ export function TabStrip(): JSX.Element {
             gap: 8,
             padding: '0 12px',
             height: 36,
-            background: tab.tabId === activeTabId ? 'var(--tab-bg)' : '#f3f4f6',
-            border: '1px solid #d1d5db',
+            background: tab.tabId === activeTabId ? 'var(--tab-bg-active)' : 'var(--tab-bg-inactive)',
+            border: '1px solid var(--tab-border)',
             borderBottom: 'none',
+            boxShadow: tab.tabId === activeTabId ? 'inset 0 -2px 0 var(--accent)' : 'none',
             marginRight: 4,
             cursor: 'pointer',
             maxWidth: 240,
@@ -44,7 +45,7 @@ export function TabStrip(): JSX.Element {
           <button
             aria-label={t.tabStrip.close}
             onClick={() => void ipc.tab.close({ tabId: tab.tabId })}
-            style={{ border: 'none', background: 'transparent', color: '#6b7280' }}
+            style={{ border: 'none', background: 'transparent', color: 'var(--text-muted)' }}
           >
             ✕
           </button>
