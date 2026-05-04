@@ -1,6 +1,7 @@
 import { wrapHandler } from './dispatcher.js';
 import type { WorkspaceStore } from '../workspaces/workspace-store.js';
 import type { PadHistoryStore } from '../pads/pad-history-store.js';
+import type { EmbeddedServerController } from '../embedded/embedded-server.js';
 import {
   workspaceAddPayload,
   workspaceUpdatePayload,
@@ -12,6 +13,7 @@ import {
   NotAnEtherpadServerError,
   ServerUnreachableError,
   WorkspaceNotFoundError,
+  UrlValidationError,
 } from '@shared/types/errors';
 
 export type WorkspaceHandlerDeps = {
@@ -22,6 +24,7 @@ export type WorkspaceHandlerDeps = {
   probeIsEtherpad: (serverUrl: string) => Promise<boolean>;
   emitWorkspacesChanged: () => void;
   emitPadHistoryChanged: () => void;
+  embeddedServer?: EmbeddedServerController;
 };
 
 export function workspaceHandlers(deps: WorkspaceHandlerDeps) {
@@ -31,6 +34,24 @@ export function workspaceHandlers(deps: WorkspaceHandlerDeps) {
       order: deps.workspaces.order(),
     })),
     add: wrapHandler('workspace.add', workspaceAddPayload, async (input) => {
+      if (input.kind === 'embedded') {
+        if (!deps.embeddedServer) {
+          throw new Error('embedded server not available');
+        }
+        const url = await deps.embeddedServer.start();
+        const ws = deps.workspaces.add({
+          name: input.name,
+          serverUrl: url,
+          color: input.color,
+          kind: 'embedded',
+        });
+        deps.emitWorkspacesChanged();
+        return ws;
+      }
+      // Remote workspace flow
+      if (!input.serverUrl) {
+        throw new UrlValidationError('serverUrl is required for remote workspaces');
+      }
       let ok: boolean;
       try {
         ok = await deps.probeIsEtherpad(input.serverUrl);
@@ -38,7 +59,7 @@ export function workspaceHandlers(deps: WorkspaceHandlerDeps) {
         throw new ServerUnreachableError(input.serverUrl);
       }
       if (!ok) throw new NotAnEtherpadServerError(input.serverUrl);
-      const ws = deps.workspaces.add(input);
+      const ws = deps.workspaces.add({ name: input.name, serverUrl: input.serverUrl, color: input.color });
       deps.emitWorkspacesChanged();
       return ws;
     }),

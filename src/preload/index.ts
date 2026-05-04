@@ -19,7 +19,7 @@ const api = {
   },
   workspace: {
     list: () => invoke(CH.WORKSPACE_LIST),
-    add: (input: { name: string; serverUrl: string; color: string }) => invoke(CH.WORKSPACE_ADD, input),
+    add: (input: { name: string; serverUrl?: string; color: string; kind?: 'remote' | 'embedded' }) => invoke(CH.WORKSPACE_ADD, input),
     update: (input: { id: string; name?: string; serverUrl?: string; color?: string }) =>
       invoke(CH.WORKSPACE_UPDATE, input),
     remove: (input: { id: string }) => invoke(CH.WORKSPACE_REMOVE, input),

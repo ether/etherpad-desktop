@@ -1,11 +1,11 @@
 import { randomUUID } from 'node:crypto';
 import { VersionedStore } from '../storage/versioned-store.js';
 import { workspacesFileSchema } from '@shared/validation/workspace';
-import type { Workspace, WorkspacesFile } from '@shared/types/workspace';
+import type { Workspace, WorkspacesFile, WorkspaceKind } from '@shared/types/workspace';
 import { WorkspaceNotFoundError, UrlValidationError } from '@shared/types/errors';
 import { normalizeServerUrl } from '@shared/url';
 
-export type WorkspaceAddInput = { name: string; serverUrl: string; color: string };
+export type WorkspaceAddInput = { name: string; serverUrl: string; color: string; kind?: WorkspaceKind };
 export type WorkspaceUpdateInput = {
   id: string;
   name?: string;
@@ -53,6 +53,7 @@ export class WorkspaceStore {
       serverUrl,
       color: input.color,
       createdAt: Date.now(),
+      ...(input.kind !== undefined ? { kind: input.kind } : {}),
     };
     this.state = {
       ...this.state,

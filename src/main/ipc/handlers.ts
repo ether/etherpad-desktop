@@ -75,6 +75,7 @@ export function registerIpc(ctx: AppContext): IpcRegistration {
     probeIsEtherpad,
     emitWorkspacesChanged,
     emitPadHistoryChanged,
+    ...(ctx.embeddedServer !== undefined ? { embeddedServer: ctx.embeddedServer } : {}),
   });
 
   const openInActiveWindow = async (input: { workspaceId: string; padName: string; src: string }) => {

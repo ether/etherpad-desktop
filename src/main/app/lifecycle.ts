@@ -16,6 +16,8 @@ import { registerIpc } from '../ipc/handlers.js';
 import { serializeWindowsForQuit } from './quit-state.js';
 import { createUpdater } from './updater.js';
 import type { UpdaterController } from './updater.js';
+import { createEmbeddedServer } from '../embedded/embedded-server.js';
+import type { EmbeddedServerController } from '../embedded/embedded-server.js';
 import { CH } from '@shared/ipc/channel-names.js';
 
 export type AppContext = {
@@ -38,6 +40,8 @@ export type AppContext = {
   onMenuStateMayHaveChanged?: () => void;
   /** Auto-updater controller — undefined until boot() completes wiring. */
   updater?: UpdaterController;
+  /** Embedded Etherpad server controller — present when any workspace has kind: 'embedded'. */
+  embeddedServer?: EmbeddedServerController;
 };
 
 export async function boot(): Promise<void> {
@@ -121,6 +125,20 @@ export async function boot(): Promise<void> {
     },
   });
 
+  const embeddedServer = createEmbeddedServer({
+    log,
+    userDataDir: userData,
+  });
+
+  // If any persisted workspace is `kind: 'embedded'`, eagerly start the
+  // server so it's ready when the user clicks one. Otherwise stay idle.
+  const hasEmbedded = workspaces.list().some((w) => w.kind === 'embedded');
+  if (hasEmbedded) {
+    void embeddedServer.start().catch((e) => {
+      log.warn('failed to start embedded server on boot', { message: (e as Error).message });
+    });
+  }
+
   const ctx: AppContext = {
     windowManager,
     workspaces,
@@ -131,6 +149,7 @@ export async function boot(): Promise<void> {
     preloadPath,
     rendererUrl,
     rendererFile,
+    embeddedServer,
   };
 
   const tray = setupTray({
@@ -238,6 +257,8 @@ export async function boot(): Promise<void> {
     allowQuit = true;
     tray.destroy();
     updater.stop();
+    // Best-effort — don't await; quit shouldn't block on server shutdown.
+    void embeddedServer.stop().catch(() => { /* ignore */ });
     try {
       if (!settings.get().rememberOpenTabsOnQuit) {
         windowState.save({ schemaVersion: 1, windows: [] });
