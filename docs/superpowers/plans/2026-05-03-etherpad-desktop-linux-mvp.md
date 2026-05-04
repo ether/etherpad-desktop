@@ -369,6 +369,8 @@ git commit -m "chore: initialise package.json and ignore files"
 
 - [ ] **Step 3: Create `tsconfig.main.json`**
 
+`baseUrl: "."` is required because `paths` uses non-relative patterns (`src/shared/*`); TS5090 errors out at parse time otherwise.
+
 ```json
 {
   "extends": "./tsconfig.base.json",
@@ -379,6 +381,7 @@ git commit -m "chore: initialise package.json and ignore files"
     "types": ["node"],
     "composite": true,
     "noEmit": true,
+    "baseUrl": ".",
     "paths": {
       "@shared/*": ["src/shared/*"]
     }
@@ -400,6 +403,7 @@ git commit -m "chore: initialise package.json and ignore files"
     "types": ["node"],
     "composite": true,
     "noEmit": true,
+    "baseUrl": ".",
     "paths": {
       "@shared/*": ["src/shared/*"]
     }
@@ -422,6 +426,7 @@ git commit -m "chore: initialise package.json and ignore files"
     "types": ["vite/client"],
     "composite": true,
     "noEmit": true,
+    "baseUrl": ".",
     "paths": {
       "@shared/*": ["src/shared/*"]
     }
