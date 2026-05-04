@@ -16,8 +16,11 @@ export { CH } from './channel-names.js';
 // --- Payload schemas ---
 export const workspaceAddPayload = z.object({
   name: z.string().min(1).max(80),
-  serverUrl: z.string().url(),
+  // serverUrl is omitted when kind === 'embedded' (the embedded server
+  // assigns its own URL).
+  serverUrl: z.string().url().optional(),
   color: z.string().regex(/^#[0-9a-fA-F]{6}$/),
+  kind: z.enum(['remote', 'embedded']).optional(),
 });
 
 export const workspaceUpdatePayload = z.object({

@@ -6,6 +6,7 @@ export const workspaceSchema = z.object({
   serverUrl: z.string().url(),
   color: z.string().regex(/^#[0-9a-fA-F]{6}$/),
   createdAt: z.number().int().nonnegative(),
+  kind: z.enum(['remote', 'embedded']).optional(),
 });
 
 export const workspacesFileSchema = z.object({
