@@ -10,6 +10,7 @@ let dir: string;
 let settings: SettingsStore;
 let emitSettingsChanged: ReturnType<typeof vi.fn>;
 let reloadAllPadsWithLanguage: ReturnType<typeof vi.fn>;
+let onMinimizeToTrayChanged: ReturnType<typeof vi.fn>;
 let h: ReturnType<typeof settingsHandlers>;
 
 beforeEach(() => {
@@ -17,7 +18,8 @@ beforeEach(() => {
   settings = new SettingsStore(join(dir, 's.json'));
   emitSettingsChanged = vi.fn();
   reloadAllPadsWithLanguage = vi.fn();
-  h = settingsHandlers({ settings, emitSettingsChanged, reloadAllPadsWithLanguage });
+  onMinimizeToTrayChanged = vi.fn();
+  h = settingsHandlers({ settings, emitSettingsChanged, reloadAllPadsWithLanguage, onMinimizeToTrayChanged });
 });
 
 afterEach(() => rmSync(dir, { recursive: true, force: true }));
@@ -59,6 +61,17 @@ describe('settings.update', () => {
   it('does NOT call reloadAllPadsWithLanguage when language is unchanged', async () => {
     await h.update(undefined, { defaultZoom: 1.5 });
     expect(reloadAllPadsWithLanguage).not.toHaveBeenCalled();
+  });
+
+  it('calls onMinimizeToTrayChanged when minimizeToTray changes', async () => {
+    await h.update(undefined, { minimizeToTray: true });
+    expect(onMinimizeToTrayChanged).toHaveBeenCalledWith(true);
+  });
+
+  it('does NOT call onMinimizeToTrayChanged when minimizeToTray is unchanged', async () => {
+    // default is false; patching with false again should not fire
+    await h.update(undefined, { minimizeToTray: false });
+    expect(onMinimizeToTrayChanged).not.toHaveBeenCalled();
   });
 
   it('returns InvalidPayloadError for an extra unknown field (strict schema)', async () => {

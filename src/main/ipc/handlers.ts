@@ -165,7 +165,14 @@ export function registerIpc(ctx: AppContext): IpcRegistration {
     emitTabsChanged,
   });
 
-  const setts = settingsHandlers({ settings: ctx.settings, emitSettingsChanged, reloadAllPadsWithLanguage });
+  const setts = settingsHandlers({
+    settings: ctx.settings,
+    emitSettingsChanged,
+    reloadAllPadsWithLanguage,
+    ...(ctx.onMinimizeToTrayChanged !== undefined
+      ? { onMinimizeToTrayChanged: ctx.onMinimizeToTrayChanged }
+      : {}),
+  });
   const state = stateHandlers({ workspaces: ctx.workspaces, settings: ctx.settings });
   const hist = padHistoryHandlers({ padHistory: ctx.padHistory, emit: emitPadHistoryChanged });
 

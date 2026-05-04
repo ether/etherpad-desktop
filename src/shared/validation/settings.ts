@@ -7,6 +7,7 @@ export const settingsSchema = z.object({
   accentColor: z.string().regex(/^#[0-9a-fA-F]{6}$/),
   language: z.string().min(2).max(35),
   rememberOpenTabsOnQuit: z.boolean(),
+  minimizeToTray: z.boolean(),
 });
 
 export const defaultSettings: Settings = {
@@ -15,4 +16,5 @@ export const defaultSettings: Settings = {
   accentColor: '#3366cc',
   language: 'en',
   rememberOpenTabsOnQuit: true,
+  minimizeToTray: false,
 };

@@ -62,6 +62,14 @@ export function SettingsDialog(): React.JSX.Element | null {
           />
           <span className="settings-label" style={{ color: 'var(--text)' }}>{t.settings.rememberTabs}</span>
         </label>
+        <label className="settings-row" style={{ gridTemplateColumns: 'auto 1fr' }}>
+          <input
+            type="checkbox"
+            checked={draft.minimizeToTray}
+            onChange={(e) => setDraft({ ...draft, minimizeToTray: e.target.checked })}
+          />
+          <span className="settings-label" style={{ color: 'var(--text)' }}>{t.settings.minimizeToTray}</span>
+        </label>
         <button onClick={() => void ipc.padHistory.clearAll()}>{t.settings.clearAllHistory}</button>
         <section>
           <h3>Workspaces</h3>

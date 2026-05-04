@@ -23,6 +23,8 @@ export type AppWindowOptions = {
   onTabsChanged: (tabs: OpenTab[]) => void;
   onTabState: (s: { tabId: string; state: string; errorMessage?: string; title?: string }) => void;
   onClosed?: () => void;
+  /** When this returns true, the close button hides the window instead of closing it. */
+  getMinimizeToTray?: () => boolean;
 };
 
 export class AppWindow {
@@ -81,6 +83,13 @@ export class AppWindow {
       const [w, h] = this.window.getContentSize();
       this.shellView.setBounds({ x: 0, y: 0, width: w!, height: h! });
       this.tabManager.layout();
+    });
+
+    this.window.on('close', (e) => {
+      if (opts.getMinimizeToTray?.()) {
+        e.preventDefault();
+        this.window.hide();
+      }
     });
 
     this.window.on('closed', () => {

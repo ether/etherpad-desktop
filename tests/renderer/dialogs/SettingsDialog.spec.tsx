@@ -10,6 +10,7 @@ const DEFAULT_SETTINGS = {
   accentColor: '#3366cc',
   language: 'en',
   rememberOpenTabsOnQuit: true,
+  minimizeToTray: false,
 };
 
 beforeEach(() => {
@@ -60,12 +61,22 @@ describe('SettingsDialog', () => {
 
   it('toggling rememberOpenTabsOnQuit checkbox is reflected in update call', async () => {
     render(<SettingsDialog />);
-    const checkbox = screen.getByRole('checkbox');
+    const checkbox = screen.getByRole('checkbox', { name: /remember open tabs/i });
     // starts checked=true; uncheck it
     await userEvent.click(checkbox);
     await userEvent.click(screen.getByRole('button', { name: /save/i }));
     expect(window.etherpadDesktop.settings.update).toHaveBeenCalledWith(
       expect.objectContaining({ rememberOpenTabsOnQuit: false }),
+    );
+  });
+
+  it('toggling minimise-to-tray checkbox and saving sends the field', async () => {
+    useShellStore.setState({ settings: DEFAULT_SETTINGS });
+    render(<SettingsDialog />);
+    await userEvent.click(screen.getByRole('checkbox', { name: /minimise to system tray/i }));
+    await userEvent.click(screen.getByRole('button', { name: /save/i }));
+    expect(window.etherpadDesktop.settings.update).toHaveBeenCalledWith(
+      expect.objectContaining({ minimizeToTray: true }),
     );
   });
 

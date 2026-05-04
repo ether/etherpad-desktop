@@ -7,6 +7,7 @@ export function settingsHandlers(deps: {
   settings: SettingsStore;
   emitSettingsChanged: () => void;
   reloadAllPadsWithLanguage: (lang: string) => void;
+  onMinimizeToTrayChanged?: (enabled: boolean) => void;
 }) {
   return {
     get: wrapHandler('settings.get', z.object({}), async () => deps.settings.get()),
@@ -16,6 +17,9 @@ export function settingsHandlers(deps: {
       deps.emitSettingsChanged();
       if (patch.language && patch.language !== prev.language) {
         deps.reloadAllPadsWithLanguage(next.language);
+      }
+      if (patch.minimizeToTray !== undefined && patch.minimizeToTray !== prev.minimizeToTray) {
+        deps.onMinimizeToTrayChanged?.(next.minimizeToTray);
       }
       return next;
     }),

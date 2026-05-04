@@ -5,6 +5,7 @@ import { paths } from '../storage/paths.js';
 import { configureLogging, getLogger } from '../logging/logger.js';
 import { registerEtherpadAppScheme } from './protocol.js';
 import { buildMenuTemplate } from './menu.js';
+import { setupTray } from './tray.js';
 import { WorkspaceStore } from '../workspaces/workspace-store.js';
 import { PadHistoryStore } from '../pads/pad-history-store.js';
 import { SettingsStore } from '../settings/settings-store.js';
@@ -24,6 +25,8 @@ export type AppContext = {
   preloadPath: string;
   rendererUrl: string | null;
   rendererFile: string;
+  /** Called by settings handlers after minimizeToTray changes, so the tray follows. */
+  onMinimizeToTrayChanged?: (enabled: boolean) => void;
 };
 
 export async function boot(): Promise<void> {
@@ -60,6 +63,12 @@ export async function boot(): Promise<void> {
 
   const ipcRef: { current: ReturnType<typeof registerIpc> | undefined } = { current: undefined };
 
+  // allowQuit is set to true in the before-quit handler so close handlers stop
+  // intercepting once a real quit is in progress.
+  let allowQuit = false;
+
+  const trayIconPath = join(__dirname, '../../build/icons/icon-32.png');
+
   const windowManager = new WindowManager<AppWindow>({
     factory: (opts) => {
       const win: AppWindow = new AppWindow({
@@ -76,6 +85,7 @@ export async function boot(): Promise<void> {
         onClosed: () => {
           windowManager.forget(win);
         },
+        getMinimizeToTray: () => settings.get().minimizeToTray && !allowQuit,
       });
 
       const crashTimes: number[] = [];
@@ -112,7 +122,29 @@ export async function boot(): Promise<void> {
     rendererFile,
   };
 
+  const tray = setupTray({
+    iconPath: trayIconPath,
+    onShow: () => {
+      const wins = windowManager.list().filter((w) => !w.window.isDestroyed());
+      let target = wins[0];
+      if (!target) {
+        target = windowManager.create({ bounds: defaultBounds() });
+      }
+      target.window.show();
+      target.window.focus();
+    },
+    onQuit: () => {
+      allowQuit = true;
+      app.quit();
+    },
+  });
+
+  // Pass the tray sync callback into the context so settings handlers can call it.
+  ctx.onMinimizeToTrayChanged = (enabled: boolean) => tray.setEnabled(enabled);
+
   ipcRef.current = registerIpc(ctx);
+
+  tray.setEnabled(settings.get().minimizeToTray);
 
   // Restore saved layout, or open a fresh window.
   const saved = windowState.read();
@@ -157,10 +189,16 @@ export async function boot(): Promise<void> {
   });
 
   app.on('window-all-closed', () => {
-    if (process.platform !== 'darwin') app.quit();
+    if (process.platform === 'darwin') return;
+    // When minimizeToTray is on, all windows hiding via the close button is expected;
+    // the tray keeps the app alive. Only quit when the tray's "Quit" action fires.
+    if (settings.get().minimizeToTray) return;
+    app.quit();
   });
 
   app.on('before-quit', () => {
+    allowQuit = true;
+    tray.destroy();
     try {
       if (!settings.get().rememberOpenTabsOnQuit) {
         windowState.save({ schemaVersion: 1, windows: [] });

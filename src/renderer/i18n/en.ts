@@ -28,6 +28,7 @@ export const en = {
     accent: 'Accent colour',
     language: 'Language',
     rememberTabs: 'Remember open tabs on quit',
+    minimizeToTray: 'Minimise to system tray instead of quitting',
     clearAllHistory: 'Clear all pad history',
     save: 'Save',
     cancel: 'Cancel',

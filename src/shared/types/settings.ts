@@ -4,4 +4,5 @@ export type Settings = {
   accentColor: string;
   language: string;
   rememberOpenTabsOnQuit: boolean;
+  minimizeToTray: boolean;
 };
