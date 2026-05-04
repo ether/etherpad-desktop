@@ -1,6 +1,7 @@
 {
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
+    "baseUrl": ".",
     "rootDir": ".",
     "outDir": "out/preload",
     "lib": ["ES2022", "DOM"],
