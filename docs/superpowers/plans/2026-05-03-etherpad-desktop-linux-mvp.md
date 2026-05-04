@@ -217,7 +217,7 @@ Goal: a working monorepo-shape (single package) that compiles, lints, tests, and
     "dev": "electron-vite dev",
     "build": "electron-vite build",
     "typecheck": "tsc -b --pretty",
-    "lint": "eslint --ext .ts,.tsx src tests",
+    "lint": "eslint --ext .ts,.tsx --no-error-on-unmatched-pattern src tests",
     "format": "prettier --write src tests",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -626,8 +626,11 @@ git commit -m "chore: ESLint + Prettier config"
 
 ### Task 1.5: Vitest config + sanity test
 
+In Vitest 2.x the `workspace` field on `defineConfig` is a **path** to a workspace file, not an inline array — so we split into a base `vitest.config.ts` plus a separate `vitest.workspace.ts` that calls `defineWorkspace`.
+
 **Files:**
-- Create: `vitest.config.ts`
+- Create: `vitest.config.ts` (base, alias + react plugin + globals)
+- Create: `vitest.workspace.ts` (defines the `main` + `renderer` projects)
 - Create: `tests/main/sanity.spec.ts`
 - Create: `tests/renderer/setup.ts`
 
@@ -645,27 +648,34 @@ export default defineConfig({
   },
   test: {
     globals: true,
-    workspace: [
-      {
-        extends: true,
-        test: {
-          name: 'main',
-          environment: 'node',
-          include: ['tests/main/**/*.spec.ts'],
-        },
-      },
-      {
-        extends: true,
-        test: {
-          name: 'renderer',
-          environment: 'jsdom',
-          include: ['tests/renderer/**/*.spec.{ts,tsx}'],
-          setupFiles: ['tests/renderer/setup.ts'],
-        },
-      },
-    ],
   },
 });
+```
+
+- [ ] **Step 1b: Create `vitest.workspace.ts`**
+
+```ts
+import { defineWorkspace } from 'vitest/config';
+
+export default defineWorkspace([
+  {
+    extends: './vitest.config.ts',
+    test: {
+      name: 'main',
+      environment: 'node',
+      include: ['tests/main/**/*.spec.ts'],
+    },
+  },
+  {
+    extends: './vitest.config.ts',
+    test: {
+      name: 'renderer',
+      environment: 'jsdom',
+      include: ['tests/renderer/**/*.spec.{ts,tsx}'],
+      setupFiles: ['tests/renderer/setup.ts'],
+    },
+  },
+]);
 ```
 
 - [ ] **Step 2: Create `tests/renderer/setup.ts`**
@@ -694,7 +704,7 @@ Expected: PASS — 1 test in `main` project, 0 in `renderer` (no specs yet).
 - [ ] **Step 5: Commit**
 
 ```bash
-git add vitest.config.ts tests/main/sanity.spec.ts tests/renderer/setup.ts
+git add vitest.config.ts vitest.workspace.ts tests/main/sanity.spec.ts tests/renderer/setup.ts
 git commit -m "chore: Vitest config with main/renderer projects + sanity test"
 ```
 
