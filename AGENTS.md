@@ -49,6 +49,21 @@ After main-process source changes, **restart `pnpm dev`** — Vite HMR only cove
 - Commits: conventional style (`feat(scope): …`, `fix(scope): …`, `test(e2e): …`, `docs(scope): …`).
 - Push to `origin/feat/linux-mvp` after every fix or feature commit. Don't batch.
 
+## Distribution
+
+| Format | Workflow | Notes |
+|---|---|---|
+| AppImage | `release.yml` | Attached to GitHub Release on `v*` tag. |
+| .deb | `release.yml` | Attached to GitHub Release on `v*` tag. |
+| Snap | `snap-publish.yml` | Built via electron-builder's snap target (snapcraft destructive-mode). Published edge automatically on semver tag; stable requires manual approval via the `snap-store-stable` GitHub Environment. |
+
+**Snap maintainer setup (one-time):**
+1. `snapcraft register etherpad-desktop` — claim the name on the Snap Store.
+2. Generate a credential: `snapcraft export-login --snaps etherpad-desktop --channels edge,stable --acls package_access,package_push,package_release -` and save as repo secret `SNAPCRAFT_STORE_CREDENTIALS`.
+3. Create a GitHub Environment `snap-store-stable` with required reviewers to gate stable promotion.
+
+See `.github/workflows/snap-publish.yml` header comment for full detail.
+
 ## CI / Dependabot
 
 - Dependabot is configured for npm and GitHub Actions deps (`.github/dependabot.yml`).

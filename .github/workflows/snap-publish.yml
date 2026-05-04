@@ -1,0 +1,119 @@
+# Builds and publishes the etherpad-desktop snap on tagged releases.
+# Mirrors etherpad-lite's pattern: build → edge → manual-gate → stable.
+#
+# Note: `on.push.tags` uses GitHub's filter-pattern globs, NOT regex — so the
+# pattern must be expressed as two glob entries, not a single `v?...` regex.
+# https://docs.github.com/en/actions/writing-workflows/workflow-syntax-for-github-actions#filter-pattern-cheat-sheet
+#
+# One-time maintainer setup:
+#   1. snapcraft register etherpad-desktop  (claim the name)
+#   2. Generate a store credential:
+#        snapcraft export-login --snaps etherpad-desktop \
+#          --channels edge,stable \
+#          --acls package_access,package_push,package_release -
+#      Save the output as repo secret SNAPCRAFT_STORE_CREDENTIALS.
+#   3. Create a GitHub Environment 'snap-store-stable' with required
+#      reviewers so stable promotion is gated behind manual approval.
+#
+# Ref: https://documentation.ubuntu.com/snapcraft/latest/how-to/publishing/
+
+name: Snap
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+      - '[0-9]+.[0-9]+.[0-9]+'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      snap-file: ${{ steps.find.outputs.path }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install snapcraft
+        run: sudo snap install snapcraft --classic
+        # snapcraft requires LXD or multipass for builds; use destructive
+        # mode in CI which is the recommended approach for ubuntu-latest.
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build app
+        run: pnpm build
+
+      - name: Build snap via electron-builder
+        env:
+          USE_SYSTEM_FPM: 'true'
+          # electron-builder's snap target invokes snapcraft under the hood; in
+          # CI we want destructive-mode (no LXD container).
+          SNAPCRAFT_BUILD_ENVIRONMENT: 'host'
+        run: pnpm exec electron-builder --linux snap --config build/electron-builder.yml
+
+      - name: Locate snap file
+        id: find
+        run: |
+          file=$(ls release/*.snap | head -n1)
+          echo "path=$file" >> "$GITHUB_OUTPUT"
+
+      - name: Upload snap artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: etherpad-desktop-snap
+          path: release/*.snap
+          if-no-files-found: error
+          retention-days: 7
+
+  publish-edge:
+    needs: build
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: etherpad-desktop-snap
+
+      - name: Publish to edge
+        uses: snapcore/action-publish@v1
+        env:
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+        with:
+          snap: ${{ needs.build.outputs.snap-file }}
+          release: edge
+
+  publish-stable:
+    needs: [build, publish-edge]
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    # Manual gate: stable promotion goes through the snap-store-stable
+    # GitHub Environment, which has required reviewers configured.
+    environment: snap-store-stable
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: etherpad-desktop-snap
+
+      - name: Publish to stable
+        uses: snapcore/action-publish@v1
+        env:
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+        with:
+          snap: ${{ needs.build.outputs.snap-file }}
+          release: stable

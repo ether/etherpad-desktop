@@ -15,6 +15,10 @@ Download the latest release from [Releases](https://github.com/ether/etherpad-de
   sudo apt install ./etherpad-desktop_<version>_amd64.deb
   etherpad-desktop
   ```
+- Snap (once approved on the Snap Store):
+  ```bash
+  sudo snap install etherpad-desktop
+  ```
 
 ## Develop
 

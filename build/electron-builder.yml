@@ -19,6 +19,7 @@ linux:
   target:
     - AppImage
     - deb
+    - snap
   category: Office
   icon: build/icons/
   description: Native desktop client for Etherpad
@@ -41,6 +42,34 @@ deb:
 
 appImage:
   artifactName: ${productName}-${version}.${ext}
+
+snap:
+  grade: stable
+  confinement: strict
+  # Etherpad Desktop needs network for talking to user-supplied Etherpad
+  # servers, plus the standard Electron desktop plugs.
+  plugs:
+    - default
+    - network
+    - network-bind
+    - home
+    - removable-media
+    - browser-sandbox
+  # The snap-store base. core24 (Ubuntu 24.04) matches our Node 22 baseline.
+  base: core24
+  # Display name in the Snap Store
+  summary: Native desktop client for Etherpad
+  description: |
+    Etherpad Desktop is a native client for Etherpad, the real-time
+    collaborative editor. It provides per-workspace session isolation,
+    native menus and shortcuts, dark mode, multi-window support, and
+    background updates.
+
+    Connect to any Etherpad server, switch between multiple workspaces
+    in a Slack-style sidebar, and pin pads you visit often.
+
+    Upstream: https://etherpad.org
+    Source:   https://github.com/ether/etherpad-desktop
 
 publish:
   - provider: github
