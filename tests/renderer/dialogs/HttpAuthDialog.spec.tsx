@@ -7,7 +7,7 @@ import { useShellStore, dialogActions } from '../../../src/renderer/state/store'
 beforeEach(() => {
   useShellStore.setState(useShellStore.getInitialState());
   dialogActions.openDialog('httpAuth', { requestId: 'r1', url: 'https://x' });
-  // @ts-expect-error
+  // @ts-expect-error -- mock partial window.etherpadDesktop for test
   window.etherpadDesktop = {
     httpLogin: { respond: vi.fn().mockResolvedValue({ ok: true, value: { ok: true } }) },
   };

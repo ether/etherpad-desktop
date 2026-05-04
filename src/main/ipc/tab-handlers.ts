@@ -1,6 +1,5 @@
 import { wrapHandler } from './dispatcher.js';
 import { tabOpenPayload, tabIdPayload } from '@shared/ipc/channels';
-import { z } from 'zod';
 import { WorkspaceNotFoundError } from '@shared/types/errors';
 import type { WorkspaceStore } from '../workspaces/workspace-store.js';
 import type { PadHistoryStore } from '../pads/pad-history-store.js';

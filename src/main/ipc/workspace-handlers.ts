@@ -34,7 +34,7 @@ export function workspaceHandlers(deps: WorkspaceHandlerDeps) {
       let ok: boolean;
       try {
         ok = await deps.probeIsEtherpad(input.serverUrl);
-      } catch (e) {
+      } catch {
         throw new ServerUnreachableError(input.serverUrl);
       }
       if (!ok) throw new NotAnEtherpadServerError(input.serverUrl);
@@ -67,7 +67,7 @@ export function workspaceHandlers(deps: WorkspaceHandlerDeps) {
       }
       try {
         await deps.clearWorkspaceStorage(input.id);
-      } catch (e) {
+      } catch {
         // Partition wipe failed — log handled by caller; workspace is already gone from view.
       }
       deps.emitWorkspacesChanged();

@@ -11,7 +11,7 @@ beforeEach(() => {
     workspaceOrder: ['a'],
   });
   dialogActions.openDialog('removeWorkspace', { workspaceId: 'a' });
-  // @ts-expect-error
+  // @ts-expect-error -- mock partial window.etherpadDesktop for test
   window.etherpadDesktop = {
     workspace: { remove: vi.fn().mockResolvedValue({ ok: true, value: { ok: true } }) },
     window: { setActiveWorkspace: vi.fn().mockResolvedValue({ ok: true }) },

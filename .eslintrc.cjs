@@ -14,7 +14,7 @@ module.exports = {
   ignorePatterns: ['out/', 'dist/', 'coverage/', 'playwright-report/', 'test-results/'],
   rules: {
     'react/react-in-jsx-scope': 'off',
-    '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+    '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' }],
     '@typescript-eslint/consistent-type-imports': 'error',
   },
 };

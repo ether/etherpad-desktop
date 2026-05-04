@@ -16,7 +16,7 @@ beforeEach(() => {
       ],
     },
   });
-  // @ts-expect-error
+  // @ts-expect-error -- mock partial window.etherpadDesktop for test
   window.etherpadDesktop = {
     tab: { open: vi.fn().mockResolvedValue({ ok: true, value: { tabId: 't' } }) },
   };

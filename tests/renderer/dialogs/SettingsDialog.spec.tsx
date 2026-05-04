@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { SettingsDialog } from '../../../src/renderer/dialogs/SettingsDialog';
-import { useShellStore, dialogActions } from '../../../src/renderer/state/store';
+import { useShellStore } from '../../../src/renderer/state/store';
 
 beforeEach(() => {
   useShellStore.setState(useShellStore.getInitialState());
@@ -15,7 +15,7 @@ beforeEach(() => {
       rememberOpenTabsOnQuit: true,
     },
   });
-  // @ts-expect-error
+  // @ts-expect-error -- mock partial window.etherpadDesktop for test
   window.etherpadDesktop = {
     settings: { update: vi.fn().mockResolvedValue({ ok: true, value: {} }) },
     padHistory: { clearAll: vi.fn().mockResolvedValue({ ok: true }) },

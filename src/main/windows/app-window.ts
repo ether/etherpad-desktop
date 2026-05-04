@@ -1,7 +1,6 @@
 import { BaseWindow, WebContentsView } from 'electron';
 import { TabManager, type ViewHost } from '../tabs/tab-manager.js';
 import { PadViewFactory } from '../pads/pad-view-factory.js';
-import type { PadView } from '../pads/pad-view-factory.js';
 import type { OpenTab } from '@shared/types/tab';
 
 export const RAIL_WIDTH = 64;

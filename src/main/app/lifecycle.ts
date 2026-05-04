@@ -57,7 +57,7 @@ export async function boot(): Promise<void> {
   const rendererUrl = process.env.ELECTRON_RENDERER_URL ?? null;
   const rendererFile = join(__dirname, '../renderer/index.html');
 
-  let ipc: ReturnType<typeof registerIpc> | undefined;
+  const ipcRef: { current: ReturnType<typeof registerIpc> | undefined } = { current: undefined };
 
   const windowManager = new WindowManager<AppWindow>({
     factory: (opts) => {
@@ -67,10 +67,10 @@ export async function boot(): Promise<void> {
         rendererUrl,
         rendererFile,
         onTabsChanged: () => {
-          ipc?.emitTabsChanged();
+          ipcRef.current?.emitTabsChanged();
         },
         onTabState: (s) => {
-          ipc?.emitTabState(win, s);
+          ipcRef.current?.emitTabState(win, s);
         },
       });
 
@@ -108,7 +108,7 @@ export async function boot(): Promise<void> {
     rendererFile,
   };
 
-  ipc = registerIpc(ctx);
+  ipcRef.current = registerIpc(ctx);
 
   // Restore saved layout, or open a fresh window.
   const saved = windowState.read();
@@ -134,12 +134,12 @@ export async function boot(): Promise<void> {
   Menu.setApplicationMenu(
     Menu.buildFromTemplate(
       buildMenuTemplate({
-        newTab: () => ipc?.broadcastShell('menu.newTab'),
-        openPad: () => ipc?.broadcastShell('menu.openPad'),
-        reload: () => ipc?.broadcastShell('menu.reload'),
-        settings: () => ipc?.broadcastShell('menu.settings'),
+        newTab: () => ipcRef.current?.broadcastShell('menu.newTab'),
+        openPad: () => ipcRef.current?.broadcastShell('menu.openPad'),
+        reload: () => ipcRef.current?.broadcastShell('menu.reload'),
+        settings: () => ipcRef.current?.broadcastShell('menu.settings'),
         quit: () => app.quit(),
-        about: () => ipc?.broadcastShell('menu.about'),
+        about: () => ipcRef.current?.broadcastShell('menu.about'),
         openLogs: () => void shell.openPath(ps.logsDir),
       }),
     ),
@@ -175,7 +175,7 @@ export async function boot(): Promise<void> {
 
   app.on('login', (event, _wc, _details, authInfo, callback) => {
     event.preventDefault();
-    void ipc
+    void ipcRef.current
       ?.requestHttpLogin(authInfo.host, authInfo.realm)
       .then((resp) => {
         if (resp.cancel || !resp.username) callback();

@@ -61,7 +61,7 @@ describe('WorkspaceStore', () => {
   });
 
   it('reject reorder with mismatched id set', () => {
-    const a = store.add({ name: 'A', serverUrl: 'https://a', color: '#000000' });
+    store.add({ name: 'A', serverUrl: 'https://a', color: '#000000' });
     expect(() => store.reorder(['00000000-0000-4000-8000-000000000000'])).toThrow();
   });
 

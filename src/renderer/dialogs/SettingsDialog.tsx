@@ -12,7 +12,7 @@ export function SettingsDialog(): JSX.Element | null {
   if (!draft) return null;
 
   const save = async () => {
-    const { schemaVersion: _ignored, ...patch } = draft;
+    const { schemaVersion: _schemaVersion, ...patch } = draft;
     await ipc.settings.update(patch);
     dialogActions.closeDialog();
   };
