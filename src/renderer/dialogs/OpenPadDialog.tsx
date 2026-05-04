@@ -5,7 +5,7 @@ import { t } from '../i18n/index.js';
 
 const EMPTY_HISTORY: never[] = [];
 
-export function OpenPadDialog(): JSX.Element {
+export function OpenPadDialog(): React.JSX.Element {
   const wsId = useShellStore((s) => s.activeWorkspaceId);
   const history = useShellStore((s) => (wsId ? s.padHistory[wsId] ?? EMPTY_HISTORY : EMPTY_HISTORY));
   const [name, setName] = useState('');

@@ -3,7 +3,7 @@ import { useShellStore, dialogActions } from '../state/store.js';
 import { ipc } from '../ipc/api.js';
 import { t } from '../i18n/index.js';
 
-export function WorkspaceRail(): JSX.Element {
+export function WorkspaceRail(): React.JSX.Element {
   const order = useShellStore((s) => s.workspaceOrder);
   const workspaces = useShellStore((s) => s.workspaces);
   const active = useShellStore((s) => s.activeWorkspaceId);

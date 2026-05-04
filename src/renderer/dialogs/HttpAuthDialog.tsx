@@ -3,7 +3,7 @@ import { ipc } from '../ipc/api.js';
 import { dialogActions, useShellStore } from '../state/store.js';
 import { t } from '../i18n/index.js';
 
-export function HttpAuthDialog(): JSX.Element {
+export function HttpAuthDialog(): React.JSX.Element {
   const ctx = useShellStore((s) => s.dialogContext as { requestId: string; url?: string; realm?: string });
   const [u, setU] = useState('');
   const [p, setP] = useState('');

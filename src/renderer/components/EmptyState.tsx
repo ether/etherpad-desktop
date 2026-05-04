@@ -2,7 +2,7 @@ import React from 'react';
 import { dialogActions } from '../state/store.js';
 import { t } from '../i18n/index.js';
 
-export function EmptyState(): JSX.Element {
+export function EmptyState(): React.JSX.Element {
   return (
     <div style={{ display: 'grid', placeItems: 'center', height: '100%', color: 'var(--text-muted)' }}>
       <div style={{ textAlign: 'center' }}>

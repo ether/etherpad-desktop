@@ -1,7 +1,7 @@
 import React from 'react';
 import { dialogActions } from '../state/store.js';
 
-export function AboutDialog(): JSX.Element {
+export function AboutDialog(): React.JSX.Element {
   // App version comes from package.json at build time. Vite injects __APP_VERSION__
   // via define; if not configured, fall back to a constant.
   const version =

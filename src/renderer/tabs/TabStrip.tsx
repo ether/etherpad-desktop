@@ -3,7 +3,7 @@ import { useShellStore } from '../state/store.js';
 import { ipc } from '../ipc/api.js';
 import { t } from '../i18n/index.js';
 
-export function TabStrip(): JSX.Element {
+export function TabStrip(): React.JSX.Element {
   const activeId = useShellStore((s) => s.activeWorkspaceId);
   const allTabs = useShellStore((s) => s.tabs);
   const tabs = activeId ? allTabs.filter((tab) => tab.workspaceId === activeId) : [];

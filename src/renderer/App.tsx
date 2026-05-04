@@ -31,7 +31,7 @@ if (typeof window !== 'undefined' && window.etherpadDesktop?.e2eFlags?.enabled) 
   };
 }
 
-export function App(): JSX.Element {
+export function App(): React.JSX.Element {
   const workspaces = useShellStore((s) => s.workspaces);
   const openDialog = useShellStore((s) => s.openDialog);
   const activeWorkspaceId = useShellStore((s) => s.activeWorkspaceId);

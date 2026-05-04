@@ -3,7 +3,7 @@ import { ipc } from '../ipc/api.js';
 import { dialogActions, useShellStore } from '../state/store.js';
 import { t } from '../i18n/index.js';
 
-export function RemoveWorkspaceDialog(): JSX.Element | null {
+export function RemoveWorkspaceDialog(): React.JSX.Element | null {
   const workspaceId = useShellStore((s) => (s.dialogContext as { workspaceId?: string }).workspaceId);
   const ws = useShellStore((s) => s.workspaces.find((w) => w.id === workspaceId));
   const [busy, setBusy] = useState(false);

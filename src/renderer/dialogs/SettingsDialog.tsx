@@ -5,7 +5,7 @@ import { t } from '../i18n/index.js';
 import type { Settings } from '@shared/types/settings';
 import { ETHERPAD_LOCALES, localeDisplayName } from '@shared/locales/etherpad-locales';
 
-export function SettingsDialog(): JSX.Element | null {
+export function SettingsDialog(): React.JSX.Element | null {
   const settings = useShellStore((s) => s.settings);
   const workspaces = useShellStore((s) => s.workspaces);
   const [draft, setDraft] = useState<Settings | null>(settings);

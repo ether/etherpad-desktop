@@ -3,7 +3,7 @@ import { ipc } from '../ipc/api.js';
 import { useShellStore } from '../state/store.js';
 import { t } from '../i18n/index.js';
 
-export function TabErrorOverlay(): JSX.Element | null {
+export function TabErrorOverlay(): React.JSX.Element | null {
   const wsId = useShellStore((s) => s.activeWorkspaceId);
   const tabs = useShellStore((s) => s.tabs);
   const activeId = useShellStore((s) => s.activeTabId);
