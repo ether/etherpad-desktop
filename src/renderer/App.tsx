@@ -93,6 +93,10 @@ export function App(): JSX.Element {
     return () => offs.forEach((o) => o());
   }, []);
 
+  useEffect(() => {
+    void ipc.window.setPadViewsHidden(openDialog !== null);
+  }, [openDialog]);
+
   const activeTabsForWs = activeWorkspaceId
     ? tabs.filter((t) => t.workspaceId === activeWorkspaceId)
     : [];

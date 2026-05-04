@@ -13,7 +13,7 @@ Object.defineProperty(window, 'etherpadDesktop', {
     state: { getInitial: noop },
     workspace: { list: noop, add: noop, update: noop, remove: noop, reorder: noop },
     tab: { open: noop, close: noop, focus: noop, reload: noop },
-    window: { setActiveWorkspace: noop, reloadShell: noop },
+    window: { setActiveWorkspace: noop, reloadShell: noop, setPadViewsHidden: noop },
     padHistory: { list: noop, pin: noop, unpin: noop, clearRecent: noop, clearAll: noop },
     settings: { get: noop, update: noop },
     httpLogin: { respond: noop },
