@@ -1,4 +1,4 @@
-import { app, Menu, protocol, shell } from 'electron';
+import { app, dialog, Menu, protocol, shell } from 'electron';
 import { join } from 'node:path';
 import { mkdirSync } from 'node:fs';
 import { paths } from '../storage/paths.js';
@@ -73,6 +73,25 @@ export async function boot(): Promise<void> {
           ipc?.emitTabState(win, s);
         },
       });
+
+      const crashTimes: number[] = [];
+      win.shellView.webContents.on('render-process-gone', () => {
+        const now = Date.now();
+        crashTimes.push(now);
+        while (crashTimes.length > 0 && (now - crashTimes[0]!) > 60_000) crashTimes.shift();
+        if (crashTimes.length > 3) {
+          log.error('shell crashed >3 times in 60s — giving up');
+          dialog.showErrorBox(
+            'Etherpad Desktop',
+            'The interface keeps crashing. Please restart the app, and if this persists, file an issue.',
+          );
+          app.quit();
+          return;
+        }
+        log.warn('shell crashed; reloading');
+        win.shellView.webContents.reload();
+      });
+
       return win;
     },
   });
