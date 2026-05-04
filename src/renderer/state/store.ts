@@ -59,7 +59,7 @@ export const useShellStore = create<ShellState>()((set) => ({
 }));
 
 // Allow tests to reset the store to its initial state
-useShellStore.getInitialState = () => ({ ...initialState });
+useShellStore.getInitialState = () => ({ ...initialState }) as unknown as ShellState;
 
 // Dialog actions (separate to avoid the type collision between the field and the function above)
 export const dialogActions = {

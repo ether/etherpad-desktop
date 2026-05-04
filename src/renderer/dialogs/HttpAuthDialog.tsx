@@ -9,7 +9,12 @@ export function HttpAuthDialog(): JSX.Element {
   const [p, setP] = useState('');
 
   const submit = async (cancel: boolean) => {
-    await ipc.httpLogin.respond({ requestId: ctx.requestId, cancel, username: cancel ? undefined : u, password: cancel ? undefined : p });
+    const requestId = ctx.requestId ?? '';
+    await ipc.httpLogin.respond({
+      requestId,
+      cancel,
+      ...(cancel ? {} : { username: u, password: p }),
+    });
     dialogActions.closeDialog();
   };
 
