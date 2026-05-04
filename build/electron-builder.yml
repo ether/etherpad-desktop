@@ -24,10 +24,11 @@ linux:
   description: Native desktop client for Etherpad
   maintainer: Etherpad Foundation <noreply@etherpad.org>
   desktop:
-    Name: Etherpad Desktop
-    Comment: Native desktop client for Etherpad
-    Categories: Office;TextEditor;
-    StartupWMClass: etherpad-desktop
+    entry:
+      Name: Etherpad Desktop
+      Comment: Native desktop client for Etherpad
+      Categories: Office;TextEditor;
+      StartupWMClass: etherpad-desktop
 
 deb:
   packageCategory: editors
