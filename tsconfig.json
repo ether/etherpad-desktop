@@ -4,6 +4,7 @@
     { "path": "./tsconfig.shared.json" },
     { "path": "./tsconfig.main.json" },
     { "path": "./tsconfig.preload.json" },
-    { "path": "./tsconfig.renderer.json" }
+    { "path": "./tsconfig.renderer.json" },
+    { "path": "./tsconfig.tests.json" }
   ]
 }
