@@ -127,3 +127,63 @@ describe('settingsSchema', () => {
     expect(() => settingsSchema.parse({ ...defaultSettings, accentColor: 'red' })).toThrow();
   });
 });
+
+import { windowStateSchema } from '@shared/validation/window-state';
+
+describe('windowStateSchema', () => {
+  it('accepts an empty windows array', () => {
+    expect(windowStateSchema.parse({ schemaVersion: 1, windows: [] })).toEqual({
+      schemaVersion: 1,
+      windows: [],
+    });
+  });
+
+  it('accepts a window with bounds and tabs', () => {
+    const v = {
+      schemaVersion: 1 as const,
+      windows: [
+        {
+          activeWorkspaceId: '00000000-0000-4000-8000-000000000000',
+          bounds: { x: 0, y: 0, width: 1200, height: 800 },
+          openTabs: [
+            { workspaceId: '00000000-0000-4000-8000-000000000000', padName: 'a' },
+          ],
+          activeTabIndex: 0,
+        },
+      ],
+    };
+    expect(windowStateSchema.parse(v)).toEqual(v);
+  });
+
+  it('accepts null activeWorkspaceId', () => {
+    expect(
+      windowStateSchema.parse({
+        schemaVersion: 1,
+        windows: [
+          {
+            activeWorkspaceId: null,
+            bounds: { x: 0, y: 0, width: 800, height: 600 },
+            openTabs: [],
+            activeTabIndex: -1,
+          },
+        ],
+      }),
+    ).toBeDefined();
+  });
+
+  it('rejects negative bounds width', () => {
+    expect(() =>
+      windowStateSchema.parse({
+        schemaVersion: 1,
+        windows: [
+          {
+            activeWorkspaceId: null,
+            bounds: { x: 0, y: 0, width: -1, height: 600 },
+            openTabs: [],
+            activeTabIndex: -1,
+          },
+        ],
+      }),
+    ).toThrow();
+  });
+});
