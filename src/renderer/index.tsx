@@ -1,5 +1,11 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
+import { App } from './App.js';
+import './styles/index.css';
 
 const root = createRoot(document.getElementById('root')!);
-root.render(<div style={{ padding: 24, fontFamily: 'sans-serif' }}>Etherpad Desktop — skeleton</div>);
+root.render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>,
+);
