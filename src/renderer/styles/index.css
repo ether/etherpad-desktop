@@ -166,6 +166,48 @@ input[type="checkbox"] {
   justify-self: start;
 }
 
+/* ── Pad sidebar row layout ── */
+.pad-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.pad-row .pad-open {
+  flex: 1;
+  text-align: left;
+  padding: 4px 8px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: var(--sidebar-fg);
+  min-width: 0; /* allow truncation */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pad-row .pad-open:hover {
+  background: var(--sidebar-hover);
+}
+.pad-row .pad-pin {
+  flex: 0 0 auto;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  border-radius: 4px;
+  font-size: 14px;
+  line-height: 1;
+}
+.pad-row .pad-pin:hover {
+  background: var(--sidebar-hover);
+  color: var(--accent);
+}
+.pad-row .pad-pin[aria-pressed="true"] {
+  color: var(--accent);
+}
+
 /* Native select styled to match inputs */
 select {
   font: inherit;

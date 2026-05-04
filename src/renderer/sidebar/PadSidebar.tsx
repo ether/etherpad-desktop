@@ -34,9 +34,25 @@ export function PadSidebar(): JSX.Element {
           <h3 style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 16 }}>{t.sidebar.pinned}</h3>
           <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
             {pinned.map((e) => (
-              <li key={e.padName}>
-                <button onClick={() => void open(e.padName)} style={{ width: '100%', textAlign: 'left', padding: 4 }}>
+              <li key={e.padName} className="pad-row">
+                <button
+                  className="pad-open"
+                  onClick={() => void open(e.padName)}
+                  title={`Open ${e.padName}`}
+                >
                   {e.title ?? e.padName}
+                </button>
+                <button
+                  className="pad-pin"
+                  aria-label={`Unpin ${e.padName}`}
+                  aria-pressed={true}
+                  title="Unpin"
+                  onClick={(ev) => {
+                    ev.stopPropagation();
+                    void ipc.padHistory.unpin(wsId, e.padName);
+                  }}
+                >
+                  ★
                 </button>
               </li>
             ))}
@@ -48,9 +64,25 @@ export function PadSidebar(): JSX.Element {
         <h3 style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 16 }}>{t.sidebar.recent}</h3>
         <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
           {recent.map((e) => (
-            <li key={e.padName}>
-              <button onClick={() => void open(e.padName)} style={{ width: '100%', textAlign: 'left', padding: 4 }}>
+            <li key={e.padName} className="pad-row">
+              <button
+                className="pad-open"
+                onClick={() => void open(e.padName)}
+                title={`Open ${e.padName}`}
+              >
                 {e.title ?? e.padName}
+              </button>
+              <button
+                className="pad-pin"
+                aria-label={`Pin ${e.padName}`}
+                aria-pressed={false}
+                title="Pin"
+                onClick={(ev) => {
+                  ev.stopPropagation();
+                  void ipc.padHistory.pin(wsId, e.padName);
+                }}
+              >
+                ☆
               </button>
             </li>
           ))}

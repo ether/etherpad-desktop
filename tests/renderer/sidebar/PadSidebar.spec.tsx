@@ -112,8 +112,45 @@ describe('PadSidebar', () => {
     }));
     useShellStore.setState({ activeWorkspaceId: 'a', padHistory: { a: entries } });
     render(<PadSidebar />);
-    // Only 50 recent items should be rendered
+    // Only 50 recent items should be rendered (each has a pad-open button with the pad name)
     const buttons = screen.getAllByRole('button').filter((b) => b.textContent?.startsWith('pad'));
     expect(buttons.length).toBe(50);
+  });
+
+  it('shows ☆ on recent pads, ★ on pinned pads', () => {
+    useShellStore.setState({
+      activeWorkspaceId: 'a',
+      padHistory: {
+        a: [
+          { workspaceId: 'a', padName: 'standup', lastOpenedAt: 2, pinned: true },
+          { workspaceId: 'a', padName: 'retro', lastOpenedAt: 1, pinned: false },
+        ],
+      },
+    });
+    render(<PadSidebar />);
+    expect(screen.getByRole('button', { name: /unpin standup/i })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: /^pin retro/i })).toHaveAttribute('aria-pressed', 'false');
+  });
+
+  it('clicking ☆ on a recent pad calls padHistory.pin and does not open the pad', async () => {
+    useShellStore.setState({
+      activeWorkspaceId: 'a',
+      padHistory: { a: [{ workspaceId: 'a', padName: 'retro', lastOpenedAt: 1, pinned: false }] },
+    });
+    render(<PadSidebar />);
+    await userEvent.click(screen.getByRole('button', { name: /^pin retro/i }));
+    expect(window.etherpadDesktop.padHistory.pin).toHaveBeenCalledWith({ workspaceId: 'a', padName: 'retro' });
+    expect(window.etherpadDesktop.tab.open).not.toHaveBeenCalled();
+  });
+
+  it('clicking ★ on a pinned pad calls padHistory.unpin and does not open', async () => {
+    useShellStore.setState({
+      activeWorkspaceId: 'a',
+      padHistory: { a: [{ workspaceId: 'a', padName: 'standup', lastOpenedAt: 2, pinned: true }] },
+    });
+    render(<PadSidebar />);
+    await userEvent.click(screen.getByRole('button', { name: /unpin standup/i }));
+    expect(window.etherpadDesktop.padHistory.unpin).toHaveBeenCalledWith({ workspaceId: 'a', padName: 'standup' });
+    expect(window.etherpadDesktop.tab.open).not.toHaveBeenCalled();
   });
 });
