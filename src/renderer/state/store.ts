@@ -30,16 +30,20 @@ export type ShellState = {
   setPadHistory(workspaceId: string, entries: PadHistoryEntry[]): void;
 };
 
+const initialState = {
+  workspaces: [] as Workspace[],
+  workspaceOrder: [] as string[],
+  activeWorkspaceId: null as string | null,
+  tabs: [] as OpenTab[],
+  activeTabId: null as string | null,
+  padHistory: {} as Record<string, PadHistoryEntry[]>,
+  settings: null as Settings | null,
+  openDialog: null as DialogKind,
+  dialogContext: {} as Record<string, unknown>,
+};
+
 export const useShellStore = create<ShellState>()((set) => ({
-  workspaces: [],
-  workspaceOrder: [],
-  activeWorkspaceId: null,
-  tabs: [],
-  activeTabId: null,
-  padHistory: {},
-  settings: null,
-  openDialog: null,
-  dialogContext: {},
+  ...initialState,
 
   hydrate: (input) =>
     set({
@@ -53,6 +57,9 @@ export const useShellStore = create<ShellState>()((set) => ({
   setPadHistory: (workspaceId, entries) =>
     set((s) => ({ padHistory: { ...s.padHistory, [workspaceId]: entries } })),
 }));
+
+// Allow tests to reset the store to its initial state
+useShellStore.getInitialState = () => ({ ...initialState });
 
 // Dialog actions (separate to avoid the type collision between the field and the function above)
 export const dialogActions = {
