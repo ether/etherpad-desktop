@@ -8,6 +8,7 @@ import { OpenPadDialog } from './dialogs/OpenPadDialog.js';
 import { SettingsDialog } from './dialogs/SettingsDialog.js';
 import { RemoveWorkspaceDialog } from './dialogs/RemoveWorkspaceDialog.js';
 import { HttpAuthDialog } from './dialogs/HttpAuthDialog.js';
+import { AboutDialog } from './dialogs/AboutDialog.js';
 import { WorkspaceRail } from './rail/WorkspaceRail.js';
 import { PadSidebar } from './sidebar/PadSidebar.js';
 import { TabStrip } from './tabs/TabStrip.js';
@@ -99,6 +100,7 @@ export function App(): JSX.Element {
         const k = (p as { kind: string }).kind;
         if (k === 'menu.newTab' || k === 'menu.openPad') dialogActions.openDialog('openPad');
         if (k === 'menu.settings') dialogActions.openDialog('settings');
+        if (k === 'menu.about') dialogActions.openDialog('about');
         if (k === 'menu.reload') {
           const { activeTabId: activeId } = useShellStore.getState();
           if (activeId) void ipc.tab.reload({ tabId: activeId });
@@ -138,6 +140,7 @@ export function App(): JSX.Element {
       {openDialog === 'settings' && <SettingsDialog />}
       {openDialog === 'removeWorkspace' && <RemoveWorkspaceDialog />}
       {openDialog === 'httpAuth' && <HttpAuthDialog />}
+      {openDialog === 'about' && <AboutDialog />}
     </ErrorBoundary>
   );
 }

@@ -82,3 +82,29 @@ test('File > Settings opens SettingsDialog (the user-reported bug)', async () =>
     await h.close();
   }
 });
+
+async function clickHelpMenuItem(h: AppHandle, label: string): Promise<boolean> {
+  return await h.app.evaluate(({ Menu }, { lbl }) => {
+    const menu = Menu.getApplicationMenu();
+    if (!menu) return false;
+    const help = menu.items.find((m) => m.label === 'Help');
+    if (!help || !help.submenu) return false;
+    const item = help.submenu.items.find((m) => m.label === lbl);
+    if (!item) return false;
+    item.click();
+    return true;
+  }, { lbl: label });
+}
+
+test('Help > About Etherpad Desktop opens AboutDialog (the user-reported bug)', async () => {
+  const h = await launchApp();
+  try {
+    await setupWorkspace(h, 'AboutTest');
+    const ok = await clickHelpMenuItem(h, 'About Etherpad Desktop');
+    expect(ok).toBe(true);
+    await expect(h.shell.getByRole('heading', { name: /^etherpad desktop$/i })).toBeVisible();
+    await expect(h.shell.getByText(/version 0\.1\.0/i)).toBeVisible();
+  } finally {
+    await h.close();
+  }
+});

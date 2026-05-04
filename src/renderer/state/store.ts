@@ -10,6 +10,7 @@ export type DialogKind =
   | 'settings'
   | 'removeWorkspace'
   | 'httpAuth'
+  | 'about'
   | null;
 
 export type ShellState = {
