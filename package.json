@@ -1,0 +1,60 @@
+{
+  "name": "etherpad-desktop",
+  "version": "0.1.0",
+  "description": "Native desktop client for Etherpad",
+  "license": "Apache-2.0",
+  "author": "Etherpad Foundation",
+  "homepage": "https://etherpad.org/",
+  "repository": "github:ether/etherpad-desktop",
+  "main": "./out/main/index.cjs",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "typecheck": "tsc -b --pretty",
+    "lint": "eslint --ext .ts,.tsx src tests",
+    "format": "prettier --write src tests",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "package": "electron-vite build && electron-builder --linux --config build/electron-builder.yml",
+    "start": "electron-vite preview"
+  },
+  "dependencies": {
+    "electron-log": "^5.2.0",
+    "electron-store": "^10.0.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "zod": "^3.23.0",
+    "zustand": "^5.0.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.48.0",
+    "@testing-library/jest-dom": "^6.6.0",
+    "@testing-library/react": "^16.0.0",
+    "@testing-library/user-event": "^14.5.2",
+    "@types/node": "^22.0.0",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "@typescript-eslint/eslint-plugin": "^8.10.0",
+    "@typescript-eslint/parser": "^8.10.0",
+    "@vitejs/plugin-react": "^4.3.0",
+    "electron": "^32.0.0",
+    "electron-builder": "^25.0.0",
+    "electron-vite": "^2.3.0",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-react": "^7.37.0",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "jsdom": "^25.0.0",
+    "prettier": "^3.3.0",
+    "tmp": "^0.2.3",
+    "@types/tmp": "^0.2.6",
+    "typescript": "^5.6.0",
+    "vite": "^5.4.0",
+    "vitest": "^2.1.0"
+  }
+}
