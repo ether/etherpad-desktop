@@ -1,3 +1,4 @@
+import type { z } from 'zod';
 import { VersionedStore } from '../storage/versioned-store.js';
 import { padHistoryFileSchema } from '@shared/validation/pad-history';
 import type { PadHistoryEntry, PadHistoryFile } from '@shared/types/pad-history';
@@ -10,7 +11,7 @@ export class PadHistoryStore {
   constructor(file: string) {
     this.inner = new VersionedStore<PadHistoryFile>({
       file,
-      schema: padHistoryFileSchema,
+      schema: padHistoryFileSchema as z.ZodType<PadHistoryFile>,
       defaults: () => ({ schemaVersion: 1, entries: [] }),
     });
     this.state = this.inner.read();
