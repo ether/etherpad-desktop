@@ -132,6 +132,15 @@ export class TabManager {
     this.emitTabs();
   }
 
+  setPadViewsHidden(hidden: boolean): void {
+    if (hidden) {
+      for (const t of this.tabs) t.view.setVisible(false);
+    } else {
+      // Re-apply per-workspace visibility
+      this.setActiveWorkspace(this.activeWorkspaceId);
+    }
+  }
+
   destroyAll(): void {
     for (const t of this.tabs) this.opts.viewHost.remove(t.view);
     this.tabs.length = 0;

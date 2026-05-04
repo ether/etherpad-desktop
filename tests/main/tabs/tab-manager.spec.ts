@@ -91,4 +91,23 @@ describe('TabManager', () => {
     const b = await mgr.open({ workspaceId: WS_A, padName: 'b', src: 's' });
     expect(mgr.listForWorkspace(WS_A).map((t) => t.tabId)).toEqual([a.tabId, b.tabId]);
   });
+
+  it('setPadViewsHidden(true) hides all open pad views', async () => {
+    mgr.setActiveWorkspace(WS_A);
+    const t = await mgr.open({ workspaceId: WS_A, padName: 'p', src: 'https://x/p/p' });
+    const v = mgr.viewFor(t.tabId)!;
+    vi.clearAllMocks();
+    mgr.setPadViewsHidden(true);
+    expect(v.setVisible).toHaveBeenCalledWith(false);
+  });
+
+  it('setPadViewsHidden(false) restores visibility of active-workspace tabs', async () => {
+    mgr.setActiveWorkspace(WS_A);
+    const t = await mgr.open({ workspaceId: WS_A, padName: 'p', src: 'https://x/p/p' });
+    const v = mgr.viewFor(t.tabId)!;
+    mgr.setPadViewsHidden(true);
+    vi.clearAllMocks();
+    mgr.setPadViewsHidden(false);
+    expect(v.setVisible).toHaveBeenCalledWith(true);
+  });
 });
