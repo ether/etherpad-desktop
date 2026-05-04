@@ -47,6 +47,59 @@ describe('workspace.add', () => {
     }
   });
 
+  it('embedded: skips probe, calls embeddedServer.start(), stores kind=embedded', async () => {
+    const embeddedServer = {
+      start: vi.fn().mockResolvedValue('http://127.0.0.1:19999'),
+      stop: vi.fn().mockResolvedValue(undefined),
+      url: vi.fn().mockReturnValue('http://127.0.0.1:19999'),
+      state: vi.fn().mockReturnValue({ kind: 'running', url: 'http://127.0.0.1:19999' }),
+    };
+    const hEmb = workspaceHandlers({
+      workspaces,
+      padHistory,
+      closeAllTabsForWorkspace: vi.fn(),
+      clearWorkspaceStorage: (id: string) => clearStorage(id),
+      probeIsEtherpad: probe,
+      emitWorkspacesChanged: vi.fn(),
+      emitPadHistoryChanged: vi.fn(),
+      embeddedServer,
+    });
+
+    const r = await hEmb.add(undefined, { name: 'Local', color: '#44b492', kind: 'embedded' });
+
+    expect(r.ok).toBe(true);
+    if (r.ok) {
+      expect(r.value.name).toBe('Local');
+      expect(r.value.serverUrl).toBe('http://127.0.0.1:19999');
+      expect(r.value.kind).toBe('embedded');
+    }
+    expect(embeddedServer.start).toHaveBeenCalledOnce();
+    expect(probe).not.toHaveBeenCalled();
+  });
+
+  it('embedded: returns error when embeddedServer is not available', async () => {
+    const hNoEmb = workspaceHandlers({
+      workspaces,
+      padHistory,
+      closeAllTabsForWorkspace: vi.fn(),
+      clearWorkspaceStorage: (id: string) => clearStorage(id),
+      probeIsEtherpad: probe,
+      emitWorkspacesChanged: vi.fn(),
+      emitPadHistoryChanged: vi.fn(),
+      // embeddedServer intentionally omitted
+    });
+
+    const r = await hNoEmb.add(undefined, { name: 'Local', color: '#44b492', kind: 'embedded' });
+
+    expect(r.ok).toBe(false);
+  });
+
+  it('remote: returns UrlValidationError when serverUrl is missing', async () => {
+    const r = await h.add(undefined, { name: 'A', color: '#000000' });
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.error.kind).toBe('UrlValidationError');
+  });
+
   it('returns NotAnEtherpadServerError if probe returns false', async () => {
     probe.mockResolvedValueOnce(false);
     const r = await h.add(undefined, {

@@ -104,6 +104,51 @@ describe('AddWorkspaceDialog', () => {
     expect(screen.getByRole('button', { name: /^add$/i })).not.toBeDisabled();
   });
 
+  it('embedded: checkbox hides URL field and enables Add with just a name', async () => {
+    render(<AddWorkspaceDialog dismissable={false} />);
+    await userEvent.type(screen.getByLabelText(/name/i), 'Local');
+    await userEvent.click(screen.getByRole('checkbox', { name: /use a local etherpad server/i }));
+
+    // URL field should no longer be visible
+    expect(screen.queryByLabelText(/etherpad url/i)).not.toBeInTheDocument();
+    // Add should be enabled (name is filled + embedded mode)
+    expect(screen.getByRole('button', { name: /^add$/i })).not.toBeDisabled();
+  });
+
+  it('embedded: submits with kind=embedded and no serverUrl', async () => {
+    render(<AddWorkspaceDialog dismissable={false} />);
+    await userEvent.type(screen.getByLabelText(/name/i), 'Local');
+    await userEvent.click(screen.getByRole('checkbox', { name: /use a local etherpad server/i }));
+    await userEvent.click(screen.getByRole('button', { name: /^add$/i }));
+
+    expect(window.etherpadDesktop.workspace.add).toHaveBeenCalledWith(
+      expect.objectContaining({ name: 'Local', kind: 'embedded' }),
+    );
+    // Verify no serverUrl key in the call
+    const callArgs = (window.etherpadDesktop.workspace.add as ReturnType<typeof vi.fn>).mock.calls[0][0] as Record<string, unknown>;
+    expect(callArgs).not.toHaveProperty('serverUrl');
+  });
+
+  it('embedded: shows embeddedFailed error when server start fails', async () => {
+    // @ts-expect-error mock override
+    window.etherpadDesktop.workspace.add = vi.fn().mockResolvedValue({
+      ok: false,
+      error: { kind: 'StorageError', message: 'spawn failed' },
+    });
+    render(<AddWorkspaceDialog dismissable={false} />);
+    await userEvent.type(screen.getByLabelText(/name/i), 'Local');
+    await userEvent.click(screen.getByRole('checkbox', { name: /use a local etherpad server/i }));
+    await userEvent.click(screen.getByRole('button', { name: /^add$/i }));
+
+    expect(await screen.findByText(/could not start the local etherpad server/i)).toBeInTheDocument();
+  });
+
+  it('embedded: hint text is shown when checkbox is checked', async () => {
+    render(<AddWorkspaceDialog dismissable={false} />);
+    await userEvent.click(screen.getByRole('checkbox', { name: /use a local etherpad server/i }));
+    expect(screen.getByText(/etherpad will run locally/i)).toBeInTheDocument();
+  });
+
   it('clicking a color swatch changes the pressed state', async () => {
     render(<AddWorkspaceDialog dismissable={false} />);
     const swatches = screen.getAllByRole('button', { name: /colour/i });
