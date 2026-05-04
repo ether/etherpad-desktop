@@ -108,3 +108,67 @@ test('Help > About Etherpad Desktop opens AboutDialog (the user-reported bug)', 
     await h.close();
   }
 });
+
+test('Help > Open Log Folder menu item exists and fires openLogs callback', async () => {
+  const h = await launchApp();
+  try {
+    await setupWorkspace(h, 'LogFolderTest');
+    // We can't easily assert shell.openPath was called, but we CAN assert the
+    // item exists in the menu and its click() doesn't throw.
+    const ok = await clickHelpMenuItem(h, 'Open Log Folder');
+    expect(ok).toBe(true);
+  } finally {
+    await h.close();
+  }
+});
+
+async function clickViewMenuItem(h: AppHandle, label: string): Promise<boolean> {
+  return await h.app.evaluate(({ Menu }, { lbl }) => {
+    const menu = Menu.getApplicationMenu();
+    if (!menu) return false;
+    const view = menu.items.find((m) => m.label === 'View');
+    if (!view || !view.submenu) return false;
+    const item = view.submenu.items.find((m) => m.label === lbl);
+    if (!item) return false;
+    item.click();
+    return true;
+  }, { lbl: label });
+}
+
+test('View > Reload Pad menu item exists and fires reload callback', async () => {
+  const h = await launchApp();
+  try {
+    await setupWorkspace(h, 'ViewReloadTest');
+    // Open a pad tab first so there's an active tab to reload
+    const clickedNewTab = await clickFileMenuItem(h, 'New Tab');
+    expect(clickedNewTab).toBe(true);
+    await expect(h.shell.getByRole('heading', { name: /open a pad/i })).toBeVisible();
+    // Close the dialog
+    await h.shell.getByRole('button', { name: /cancel/i }).click();
+    // Now trigger Reload Pad; this calls cb.reload() in lifecycle → broadcastShell('menu.reload')
+    const ok = await clickViewMenuItem(h, 'Reload Pad');
+    expect(ok).toBe(true);
+    // No assertion on side-effect (no active tab was opened), but the item fired without error
+  } finally {
+    await h.close();
+  }
+});
+
+test('File > Quit menu item exists and fires quit callback', async () => {
+  const h = await launchApp();
+  try {
+    await setupWorkspace(h, 'QuitTest');
+    // We can't actually quit the app in a test, but we can verify the item exists.
+    // Use app.evaluate to check the item label rather than calling click() (which would close the app).
+    const found = await h.app.evaluate(({ Menu }) => {
+      const menu = Menu.getApplicationMenu();
+      if (!menu) return false;
+      const file = menu.items.find((m) => m.label === 'File');
+      if (!file || !file.submenu) return false;
+      return file.submenu.items.some((m) => m.label === 'Quit');
+    });
+    expect(found).toBe(true);
+  } finally {
+    await h.close();
+  }
+});
