@@ -19,6 +19,7 @@ export function AddWorkspaceDialog({ dismissable }: { dismissable: boolean }): J
     try {
       const ws = await ipc.workspace.add({ name, serverUrl, color });
       useShellStore.getState().setActiveWorkspaceId(ws.id);
+      await ipc.window.setActiveWorkspace(ws.id);
       dialogActions.closeDialog();
     } catch (e) {
       if (e instanceof AppError) {
