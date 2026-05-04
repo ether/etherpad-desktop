@@ -15,7 +15,11 @@ let cachedEtherpad: ChildProcess | null = null;
 let cachedUrl = '';
 let cachedDir = '';
 
-async function waitForReady(url: string, timeoutMs = 60_000): Promise<void> {
+// 4 minutes: enough for `npx etherpad-lite@latest` to download + install on
+// a cold CI runner (the npm-tarball fetch + extraction commonly takes
+// 60-120s before the server even starts booting). On warm dev machines this
+// returns in seconds.
+async function waitForReady(url: string, timeoutMs = 240_000): Promise<void> {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
     try {
