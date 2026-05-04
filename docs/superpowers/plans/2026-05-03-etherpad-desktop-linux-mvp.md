@@ -338,6 +338,8 @@ git commit -m "chore: initialise package.json and ignore files"
     "noImplicitOverride": true,
     "noFallthroughCasesInSwitch": true,
     "exactOptionalPropertyTypes": true,
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
@@ -358,6 +360,7 @@ git commit -m "chore: initialise package.json and ignore files"
     "outDir": "out/shared",
     "composite": true,
     "declaration": true,
+    "tsBuildInfoFile": "out/shared/tsconfig.shared.tsbuildinfo",
     "lib": ["ES2022"]
   },
   "include": ["src/shared/**/*.ts"]
@@ -375,9 +378,12 @@ git commit -m "chore: initialise package.json and ignore files"
     "lib": ["ES2022"],
     "types": ["node"],
     "composite": true,
-    "noEmit": true
+    "noEmit": true,
+    "paths": {
+      "@shared/*": ["src/shared/*"]
+    }
   },
-  "include": ["src/main/**/*.ts", "src/shared/**/*.ts"],
+  "include": ["src/main/**/*.ts"],
   "references": [{ "path": "./tsconfig.shared.json" }]
 }
 ```
@@ -393,9 +399,12 @@ git commit -m "chore: initialise package.json and ignore files"
     "lib": ["ES2022", "DOM"],
     "types": ["node"],
     "composite": true,
-    "noEmit": true
+    "noEmit": true,
+    "paths": {
+      "@shared/*": ["src/shared/*"]
+    }
   },
-  "include": ["src/preload/**/*.ts", "src/shared/**/*.ts"],
+  "include": ["src/preload/**/*.ts"],
   "references": [{ "path": "./tsconfig.shared.json" }]
 }
 ```
@@ -412,9 +421,12 @@ git commit -m "chore: initialise package.json and ignore files"
     "jsx": "react-jsx",
     "types": ["vite/client"],
     "composite": true,
-    "noEmit": true
+    "noEmit": true,
+    "paths": {
+      "@shared/*": ["src/shared/*"]
+    }
   },
-  "include": ["src/renderer/**/*.ts", "src/renderer/**/*.tsx", "src/shared/**/*.ts"],
+  "include": ["src/renderer/**/*.ts", "src/renderer/**/*.tsx"],
   "references": [{ "path": "./tsconfig.shared.json" }]
 }
 ```
