@@ -57,7 +57,14 @@ const api = {
     onSettingsChanged: (l: (p: unknown) => void) => on(CH.EV_SETTINGS_CHANGED, l),
     onHttpLoginRequest: (l: (p: unknown) => void) => on(CH.EV_HTTP_LOGIN_REQUEST, l),
     onMenuShellMessage: (l: (p: unknown) => void) => {
-      const channels = ['menu.newTab', 'menu.openPad', 'menu.reload', 'menu.settings', 'menu.about'];
+      const channels = [
+        'menu.newTab',
+        'menu.openPad',
+        'menu.reload',
+        'menu.settings',
+        'menu.about',
+        'menu.quickSwitcher',
+      ];
       const offs = channels.map((c) => on(c, () => l({ kind: c })));
       return () => offs.forEach((o) => o());
     },

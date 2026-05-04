@@ -66,6 +66,15 @@ export const en = {
     reload: 'Reload window',
     showDetails: 'Show details',
   },
+  quickSwitcher: {
+    title: 'Quick switcher',
+    placeholder: 'Search workspaces and pads…',
+    inputAria: 'Quick switcher search input',
+    resultsAria: 'Quick switcher results',
+    workspaceLabel: 'Workspace',
+    empty: 'Type to search across all workspaces and recent pads.',
+    noMatches: 'No matches',
+  },
 };
 
 export type Strings = typeof en;

@@ -220,6 +220,60 @@ input[type="checkbox"] {
   padding: 12px 0;
 }
 
+/* ── Quick Switcher dialog ── */
+.qs-title {
+  margin: 0 0 4px 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+.qs-input {
+  width: 100%;
+  font-size: 16px;
+  padding: 8px 12px;
+}
+.qs-empty {
+  color: var(--text-muted);
+  margin: 8px 0;
+  text-align: center;
+  font-size: 13px;
+}
+.qs-results {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 360px;
+  overflow-y: auto;
+}
+.qs-row {
+  display: grid;
+  grid-template-columns: 12px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.qs-row-selected {
+  background: var(--sidebar-hover);
+}
+.qs-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.qs-primary {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.qs-secondary {
+  color: var(--text-muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
 /* Native select styled to match inputs */
 select {
   font: inherit;

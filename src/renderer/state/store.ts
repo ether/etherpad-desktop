@@ -11,6 +11,7 @@ export type DialogKind =
   | 'removeWorkspace'
   | 'httpAuth'
   | 'about'
+  | 'quickSwitcher'
   | null;
 
 export type ShellState = {

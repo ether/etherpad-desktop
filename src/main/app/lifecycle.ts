@@ -182,6 +182,7 @@ export async function boot(): Promise<void> {
       quit: () => app.quit(),
       about: () => ipcRef.current?.broadcastShell('menu.about'),
       openLogs: () => void shell.openPath(ps.logsDir),
+      quickSwitcher: () => ipcRef.current?.broadcastShell('menu.quickSwitcher'),
     }),
   );
   Menu.setApplicationMenu(appMenu);

@@ -10,6 +10,7 @@ import { SettingsDialog } from './dialogs/SettingsDialog.js';
 import { RemoveWorkspaceDialog } from './dialogs/RemoveWorkspaceDialog.js';
 import { HttpAuthDialog } from './dialogs/HttpAuthDialog.js';
 import { AboutDialog } from './dialogs/AboutDialog.js';
+import { QuickSwitcherDialog } from './dialogs/QuickSwitcherDialog.js';
 import { WorkspaceRail } from './rail/WorkspaceRail.js';
 import { PadSidebar } from './sidebar/PadSidebar.js';
 import { TabStrip } from './tabs/TabStrip.js';
@@ -102,6 +103,7 @@ export function App(): React.JSX.Element {
         if (k === 'menu.newTab' || k === 'menu.openPad') dialogActions.openDialog('openPad');
         if (k === 'menu.settings') dialogActions.openDialog('settings');
         if (k === 'menu.about') dialogActions.openDialog('about');
+        if (k === 'menu.quickSwitcher') dialogActions.openDialog('quickSwitcher');
         if (k === 'menu.reload') {
           const { activeTabId: activeId } = useShellStore.getState();
           if (activeId) void ipc.tab.reload({ tabId: activeId });
@@ -109,6 +111,29 @@ export function App(): React.JSX.Element {
       }),
     ];
     return () => offs.forEach((o) => o());
+  }, []);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      // Ctrl+K (or Cmd+K) opens the quick switcher unless an input/textarea
+      // already has focus (we don't want to swallow user typing in dialogs).
+      if (e.key !== 'k' && e.key !== 'K') return;
+      if (!(e.ctrlKey || e.metaKey)) return;
+      const target = e.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.isContentEditable)
+      ) {
+        // If the quick switcher itself is open, that's fine — the dialog will see Esc.
+        if (useShellStore.getState().openDialog !== 'quickSwitcher') return;
+      }
+      e.preventDefault();
+      dialogActions.openDialog('quickSwitcher');
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
   }, []);
 
   useEffect(() => {
@@ -142,6 +167,7 @@ export function App(): React.JSX.Element {
       {openDialog === 'removeWorkspace' && <RemoveWorkspaceDialog />}
       {openDialog === 'httpAuth' && <HttpAuthDialog />}
       {openDialog === 'about' && <AboutDialog />}
+      {openDialog === 'quickSwitcher' && <QuickSwitcherDialog />}
     </ErrorBoundary>
   );
 }

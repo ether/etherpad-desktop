@@ -29,8 +29,10 @@ test('shell renderer mounts and exposes window.etherpadDesktop', async () => {
     //    runtime in the sandboxed preload context).
     const bridge = await h.shell.evaluate(() => {
       // Returning the keys (instead of the api object itself) avoids any
-      // serialization issues with bound functions.
-      const api = (window as unknown as { etherpadDesktop?: Record<string, unknown> }).etherpadDesktop;
+      // serialization issues with bound functions. Cast through globalThis
+      // because the e2e tsconfig has no DOM lib.
+      const w = globalThis as unknown as { etherpadDesktop?: Record<string, unknown> };
+      const api = w.etherpadDesktop;
       if (!api) return null;
       return Object.keys(api).sort();
     });

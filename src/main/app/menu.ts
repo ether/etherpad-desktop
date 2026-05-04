@@ -8,6 +8,7 @@ export type MenuCallbacks = {
   quit: () => void;
   about: () => void;
   openLogs: () => void;
+  quickSwitcher: () => void;
 };
 
 /** IDs used to locate items for dynamic enable/disable. */
@@ -48,6 +49,8 @@ export function buildMenuTemplate(cb: MenuCallbacks): MenuItemConstructorOptions
       label: 'View',
       submenu: [
         { id: MENU_IDS.reload, label: 'Reload Pad', accelerator: 'CmdOrCtrl+R', click: () => cb.reload() },
+        { type: 'separator' },
+        { label: 'Quick Switcher…', accelerator: 'CmdOrCtrl+K', click: () => cb.quickSwitcher() },
         { type: 'separator' },
         { role: 'resetZoom' },
         { role: 'zoomIn' },
