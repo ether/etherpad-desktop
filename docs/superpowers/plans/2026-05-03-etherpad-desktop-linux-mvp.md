@@ -531,12 +531,14 @@ export default defineConfig({
 
 - [ ] **Step 2: Create `src/renderer/index.html`**
 
+`'unsafe-eval'` is required for Vite HMR (its dev runtime evaluates module code via `eval`). `connect-src ws://localhost:* http://localhost:*` lets the HMR WebSocket reach the dev server. The shell renderer never loads untrusted remote content (pads live in separate `WebContentsView`s with isolated sessions), so this relaxation only affects the shell's own bundled code — acceptable for v1. A tighter prod-only CSP can be applied later via `session.webRequest.onHeadersReceived` in lifecycle.
+
 ```html
 <!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; script-src 'self'" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; script-src 'self' 'unsafe-eval'; connect-src 'self' ws://localhost:* http://localhost:*" />
     <title>Etherpad Desktop</title>
   </head>
   <body>
