@@ -2188,12 +2188,16 @@ Expected: FAIL — module not found.
 
 - [ ] **Step 3: Create `src/main/logging/logger.ts`**
 
+`configureLogging` and `getLogger` are async because `electron-log/main` imports `electron` at module-eval time, which fails when Vitest runs the test in node env. Dynamic-import inside the functions keeps `redactForLog` (the part the tests need) cleanly importable without triggering the electron-log load. Call sites must `await` both.
+
 ```ts
-import log from 'electron-log/main';
+// redactForLog is a pure function with no Electron dependencies — safe to import in tests.
+// electron-log is loaded lazily inside configureLogging / getLogger so that unit tests
+// running under Vitest (node environment, no Electron) can import this module without error.
 
 const REDACTED_KEYS = new Set([
-  'padName',
-  'serverUrl',
+  'padname',
+  'serverurl',
   'password',
   'authorization',
   'cookie',
@@ -2223,7 +2227,8 @@ export type Logger = {
   debug: (msg: string, ...args: unknown[]) => void;
 };
 
-export function configureLogging(logsDir: string): void {
+export async function configureLogging(logsDir: string): Promise<void> {
+  const log = (await import('electron-log/main')).default;
   log.transports.file.resolvePathFn = () => `${logsDir}/main.log`;
   log.transports.file.maxSize = 5 * 1024 * 1024;
   log.transports.file.format = '[{y}-{m}-{d} {h}:{i}:{s}.{ms}] [{level}] {text}';
@@ -2235,7 +2240,8 @@ export function configureLogging(logsDir: string): void {
   }
 }
 
-export function getLogger(scope: string): Logger {
+export async function getLogger(scope: string): Promise<Logger> {
+  const log = (await import('electron-log/main')).default;
   const scoped = log.scope(scope);
   return {
     info: (m, ...a) => scoped.info(m, ...a.map(redactForLog)),
@@ -4043,8 +4049,8 @@ export async function boot(): Promise<void> {
   mkdirSync(userData, { recursive: true });
   const ps = paths(userData);
   mkdirSync(ps.padCacheDir, { recursive: true });
-  configureLogging(ps.logsDir);
-  const log = getLogger('lifecycle');
+  await configureLogging(ps.logsDir);
+  const log = await getLogger('lifecycle');
 
   await app.whenReady();
 
