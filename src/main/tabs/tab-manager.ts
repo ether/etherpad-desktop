@@ -36,11 +36,14 @@ export class TabManager {
 
   setActiveWorkspace(workspaceId: string | null): void {
     this.activeWorkspaceId = workspaceId;
-    for (const t of this.tabs) {
-      const visible = t.tab.workspaceId === workspaceId;
-      t.view.setVisible(visible);
-      if (visible) t.view.setBounds(this.opts.viewHost.mainArea());
+    // Promote the existing activeTabId only if it lives in the new workspace.
+    const currentActive = this.tabs.find((t) => t.tab.tabId === this.activeTabId);
+    const sameWs = currentActive && currentActive.tab.workspaceId === workspaceId;
+    if (!sameWs) {
+      const first = this.tabs.find((t) => t.tab.workspaceId === workspaceId);
+      this.activeTabId = first?.tab.tabId ?? null;
     }
+    this.applyVisibility();
   }
 
   async open(input: OpenInput): Promise<OpenTab> {
@@ -48,8 +51,10 @@ export class TabManager {
       (t) => t.tab.workspaceId === input.workspaceId && t.tab.padName === input.padName,
     );
     if (existing) {
-      this.activeTabId = existing.tab.tabId;
-      existing.view.setVisible(input.workspaceId === this.activeWorkspaceId);
+      if (input.workspaceId === this.activeWorkspaceId) {
+        this.activeTabId = existing.tab.tabId;
+      }
+      this.applyVisibility();
       this.emitTabs();
       return existing.tab;
     }
@@ -68,12 +73,9 @@ export class TabManager {
     this.tabs.push({ tab, view });
     this.opts.viewHost.add(view);
     if (input.workspaceId === this.activeWorkspaceId) {
-      view.setBounds(this.opts.viewHost.mainArea());
-      view.setVisible(true);
       this.activeTabId = tab.tabId;
-    } else {
-      view.setVisible(false);
     }
+    this.applyVisibility();
     this.wireViewEvents(tab.tabId, view);
     this.emitTabs();
     return tab;
@@ -88,11 +90,8 @@ export class TabManager {
     if (this.activeTabId === tabId) {
       const next = this.tabs.find((t) => t.tab.workspaceId === this.activeWorkspaceId);
       this.activeTabId = next?.tab.tabId ?? null;
-      if (next) {
-        next.view.setBounds(this.opts.viewHost.mainArea());
-        next.view.setVisible(true);
-      }
     }
+    this.applyVisibility();
     this.emitTabs();
   }
 
@@ -100,8 +99,7 @@ export class TabManager {
     const t = this.tabs.find((x) => x.tab.tabId === tabId);
     if (!t) return;
     this.activeTabId = tabId;
-    t.view.setBounds(this.opts.viewHost.mainArea());
-    t.view.setVisible(true);
+    this.applyVisibility();
     this.emitTabs();
   }
 
@@ -138,8 +136,7 @@ export class TabManager {
     if (hidden) {
       for (const t of this.tabs) t.view.setVisible(false);
     } else {
-      // Re-apply per-workspace visibility
-      this.setActiveWorkspace(this.activeWorkspaceId);
+      this.applyVisibility();
     }
   }
 
@@ -148,6 +145,14 @@ export class TabManager {
     this.tabs.length = 0;
     this.activeTabId = null;
     this.emitTabs();
+  }
+
+  private applyVisibility(): void {
+    for (const t of this.tabs) {
+      const visible = t.tab.tabId === this.activeTabId;
+      t.view.setVisible(visible);
+      if (visible) t.view.setBounds(this.opts.viewHost.mainArea());
+    }
   }
 
   private wireViewEvents(tabId: string, view: PadView): void {

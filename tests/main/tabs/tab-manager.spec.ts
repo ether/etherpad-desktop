@@ -110,4 +110,22 @@ describe('TabManager', () => {
     mgr.setPadViewsHidden(false);
     expect(v.setVisible).toHaveBeenCalledWith(true);
   });
+
+  it('focus() hides previously-active tab and shows newly-focused tab', async () => {
+    mgr.setActiveWorkspace(WS_A);
+    const a = await mgr.open({ workspaceId: WS_A, padName: 'a', src: 's' });
+    const b = await mgr.open({ workspaceId: WS_A, padName: 'b', src: 's' });
+    // After opening b, b is active; a should be hidden
+    const va = mgr.viewFor(a.tabId)!;
+    const vb = mgr.viewFor(b.tabId)!;
+    const lastFor = (mock: ReturnType<typeof vi.fn>) =>
+      mock.mock.calls[mock.mock.calls.length - 1]?.[0];
+    expect(lastFor(va.setVisible as ReturnType<typeof vi.fn>)).toBe(false);
+    expect(lastFor(vb.setVisible as ReturnType<typeof vi.fn>)).toBe(true);
+
+    // Now focus a — a should become visible and b hidden
+    mgr.focus(a.tabId);
+    expect(lastFor(va.setVisible as ReturnType<typeof vi.fn>)).toBe(true);
+    expect(lastFor(vb.setVisible as ReturnType<typeof vi.fn>)).toBe(false);
+  });
 });
