@@ -49,6 +49,12 @@ After main-process source changes, **restart `pnpm dev`** — Vite HMR only cove
 - Commits: conventional style (`feat(scope): …`, `fix(scope): …`, `test(e2e): …`, `docs(scope): …`).
 - Push to `origin/feat/linux-mvp` after every fix or feature commit. Don't batch.
 
+## CI / Dependabot
+
+- Dependabot is configured for npm and GitHub Actions deps (`.github/dependabot.yml`).
+- Dependabot PRs auto-merge once CI passes (`.github/workflows/dependabot-auto-merge.yml`). No semver filter — trust CI for major bumps too; CI gates breakage.
+- The auto-merge workflow waits for `lint-typecheck-test` and `e2e` jobs using `lewagon/wait-on-check-action`, then enables squash auto-merge via `gh pr merge --auto --squash`.
+
 ## House rules
 
 - Match the spec at `docs/superpowers/specs/2026-05-03-etherpad-desktop-linux-mvp-design.md` and the plan at `docs/superpowers/plans/2026-05-03-etherpad-desktop-linux-mvp.md`.
