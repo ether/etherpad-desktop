@@ -147,7 +147,7 @@ export async function boot(): Promise<void> {
       schemaVersion: 1,
       windows: wins.map((w) => ({
         bounds: w.bounds(),
-        activeWorkspaceId: null, // TabManager doesn't expose activeWorkspaceId; track via context if needed in M7
+        activeWorkspaceId: w.tabManager.getActiveWorkspaceId(),
         openTabs: w.tabManager.listAll().map((t) => ({ workspaceId: t.workspaceId, padName: t.padName })),
         activeTabIndex: 0,
       })),

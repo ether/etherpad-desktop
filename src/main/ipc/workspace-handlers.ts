@@ -43,7 +43,12 @@ export function workspaceHandlers(deps: WorkspaceHandlerDeps) {
       return ws;
     }),
     update: wrapHandler('workspace.update', workspaceUpdatePayload, async (input) => {
-      const ws = deps.workspaces.update(input);
+      const ws = deps.workspaces.update({
+        id: input.id,
+        ...(input.name !== undefined ? { name: input.name } : {}),
+        ...(input.serverUrl !== undefined ? { serverUrl: input.serverUrl } : {}),
+        ...(input.color !== undefined ? { color: input.color } : {}),
+      });
       deps.emitWorkspacesChanged();
       return ws;
     }),
