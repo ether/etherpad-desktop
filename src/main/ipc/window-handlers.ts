@@ -1,10 +1,11 @@
 import { wrapHandler } from './dispatcher.js';
-import { setActiveWorkspacePayload } from '@shared/ipc/channels';
+import { setActiveWorkspacePayload, setPadViewsHiddenPayload } from '@shared/ipc/channels';
 import { z } from 'zod';
 
 export type WindowHandlerDeps = {
   setActiveWorkspaceForActiveWindow: (id: string | null) => void;
   reloadShellOfActiveWindow: () => void;
+  setPadViewsHiddenForActiveWindow: (hidden: boolean) => void;
   emitTabsChanged: () => void;
 };
 
@@ -17,6 +18,10 @@ export function windowHandlers(deps: WindowHandlerDeps) {
     }),
     reloadShell: wrapHandler('window.reloadShell', z.object({}), async () => {
       deps.reloadShellOfActiveWindow();
+      return { ok: true } as const;
+    }),
+    setPadViewsHidden: wrapHandler('window.setPadViewsHidden', setPadViewsHiddenPayload, async (input) => {
+      deps.setPadViewsHiddenForActiveWindow(input.hidden);
       return { ok: true } as const;
     }),
   };

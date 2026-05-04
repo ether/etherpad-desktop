@@ -23,6 +23,7 @@ export const CH = {
   WINDOW_SET_ACTIVE_WORKSPACE: 'window.setActiveWorkspace',
   WINDOW_RELOAD_SHELL: 'window.reloadShell',
   WINDOW_GET_INITIAL: 'window.getInitial',
+  WINDOW_SET_PAD_VIEWS_HIDDEN: 'window.setPadViewsHidden',
   PAD_HISTORY_LIST: 'padHistory.list',
   PAD_HISTORY_PIN: 'padHistory.pin',
   PAD_HISTORY_UNPIN: 'padHistory.unpin',
@@ -68,6 +69,8 @@ export const tabIdPayload = z.object({ tabId: z.string().min(1) });
 export const setActiveWorkspacePayload = z.object({
   workspaceId: z.string().uuid().nullable(),
 });
+
+export const setPadViewsHiddenPayload = z.object({ hidden: z.boolean() });
 
 export const padHistoryListPayload = z.object({ workspaceId: z.string().uuid() });
 export const padHistoryMutatePayload = z.object({

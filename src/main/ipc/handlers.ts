@@ -126,6 +126,10 @@ export function registerIpc(ctx: AppContext): IpcRegistration {
       const w = ctx.windowManager.list()[0];
       w?.shellView.webContents.reload();
     },
+    setPadViewsHiddenForActiveWindow: (hidden) => {
+      const w = ctx.windowManager.list()[0];
+      w?.tabManager.setPadViewsHidden(hidden);
+    },
     emitTabsChanged,
   });
 
@@ -148,6 +152,7 @@ export function registerIpc(ctx: AppContext): IpcRegistration {
   register(CH.TAB_RELOAD, (e, p) => tabs.reload(e, p));
   register(CH.WINDOW_SET_ACTIVE_WORKSPACE, (e, p) => wins.setActiveWorkspace(e, p));
   register(CH.WINDOW_RELOAD_SHELL, (e, p) => wins.reloadShell(e, p));
+  register(CH.WINDOW_SET_PAD_VIEWS_HIDDEN, (e, p) => wins.setPadViewsHidden(e, p));
   register(CH.SETTINGS_GET, (e, p) => setts.get(e, p));
   register(CH.SETTINGS_UPDATE, (e, p) => setts.update(e, p));
   register(CH.GET_INITIAL_STATE, (e, p) => state.getInitial(e, p));
