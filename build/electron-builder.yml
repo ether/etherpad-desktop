@@ -1,0 +1,47 @@
+appId: org.etherpad.desktop
+productName: Etherpad Desktop
+copyright: Copyright (c) 2026 The Etherpad Foundation
+
+directories:
+  buildResources: build
+  output: release
+
+files:
+  - 'out/**/*'
+  - 'package.json'
+  - '!**/*.{md,map,ts,tsx}'
+
+asar: true
+asarUnpack:
+  - 'out/preload/index.cjs'
+
+linux:
+  target:
+    - AppImage
+    - deb
+  category: Office
+  icon: build/icons/
+  description: Native desktop client for Etherpad
+  maintainer: Etherpad Foundation <noreply@etherpad.org>
+  desktop:
+    Name: Etherpad Desktop
+    Comment: Native desktop client for Etherpad
+    Categories: Office;TextEditor;
+    StartupWMClass: etherpad-desktop
+
+deb:
+  packageCategory: editors
+  depends:
+    - libnotify4
+    - libnss3
+    - libxtst6
+    - libgtk-3-0
+    - libasound2
+
+appImage:
+  artifactName: ${productName}-${version}.${ext}
+
+publish:
+  - provider: github
+    owner: ether
+    repo: etherpad-desktop
