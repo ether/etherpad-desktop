@@ -4,7 +4,7 @@ Guidance for AI agents (Claude, Copilot, Cursor, etc.) working in this repo.
 
 ## TL;DR
 
-- TypeScript strict end-to-end, React 18 + Zustand renderer, Electron 35 main.
+- TypeScript strict end-to-end, React 19 + Zustand 5 renderer, Electron 41 main.
 - All persistent state lives in main-process stores; renderer talks to disk only via IPC.
 - IPC payloads are Zod-validated; channels live in `src/shared/ipc/channels.ts`.
 - Pad content runs in `WebContentsView`s isolated by per-workspace partitions.
@@ -74,7 +74,7 @@ These are real bugs we've hit and fixed in this codebase. Keep them in mind:
 
 2. **`exactOptionalPropertyTypes: true`** mismatches with Zod's `.optional()` (which infers `T | undefined` rather than `T?`). Where this bites: `PadHistoryEntry.title?` vs `padHistoryEntrySchema.title.optional()` → cast at the boundary. See `src/main/pads/pad-history-store.ts`.
 
-3. **Vitest 2.x** — `workspace` field on `defineConfig` is a PATH to a workspace file, not an inline array. Split is intentional: `vitest.config.ts` (base) + `vitest.workspace.ts` (project list).
+3. **Vitest 4.x** — `test.workspace` was removed. Projects are now declared inline via `test.projects` in `vitest.config.ts`. The `vitest.workspace.ts` file (with `defineWorkspace`) is no longer auto-discovered; keep projects in `vitest.config.ts`. The `--workspace` CLI flag is also gone. ESLint 9 + flat-config migration is a known follow-up (currently on ESLint 8.x + legacy plugin config).
 
 4. **TypeScript composite projects** — leaf configs (`main`, `preload`, `renderer`) use `references: [{ path: './tsconfig.shared.json' }]` AND `paths: { '@shared/*': ['src/shared/*'] }`. Do NOT add `'src/shared/**'` to leaf `include` arrays — that double-compiles shared sources and corrupts cross-project type checking once shared has real types.
 
