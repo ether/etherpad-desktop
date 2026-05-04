@@ -5,7 +5,7 @@ type Props = { onReload: () => void; children: React.ReactNode };
 type State = { error: Error | null; showDetails: boolean };
 
 export class ErrorBoundary extends React.Component<Props, State> {
-  state: State = { error: null, showDetails: false };
+  override state: State = { error: null, showDetails: false };
 
   static getDerivedStateFromError(error: Error): State {
     return { error, showDetails: false };
