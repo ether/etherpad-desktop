@@ -17,7 +17,7 @@
     "dev": "electron-vite dev",
     "build": "electron-vite build",
     "typecheck": "tsc -b --pretty",
-    "lint": "eslint --ext .ts,.tsx src tests",
+    "lint": "eslint --ext .ts,.tsx --no-error-on-unmatched-pattern src tests",
     "format": "prettier --write src tests",
     "test": "vitest run",
     "test:watch": "vitest",
