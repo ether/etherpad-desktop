@@ -6,7 +6,7 @@ import type { InitialState } from '@shared/ipc/channels';
 
 export function stateHandlers(deps: { workspaces: WorkspaceStore; settings: SettingsStore }) {
   return {
-    getInitial: wrapHandler<object, InitialState>('state.getInitial', z.object({}), async () => ({
+    getInitial: wrapHandler('state.getInitial', z.object({}), async () => ({
       workspaces: deps.workspaces.list(),
       workspaceOrder: deps.workspaces.order(),
       settings: deps.settings.get(),

@@ -4,10 +4,10 @@ import type { IpcResult } from '@shared/ipc/channels';
 
 export type WrappedHandler<O> = (event: unknown, input: unknown) => Promise<IpcResult<O>>;
 
-export function wrapHandler<I, O>(
+export function wrapHandler<S extends z.ZodType, O>(
   channel: string,
-  schema: z.ZodType<I>,
-  handler: (input: I, event: unknown) => Promise<O> | O,
+  schema: S,
+  handler: (input: z.infer<S>, event: unknown) => Promise<O> | O,
 ): WrappedHandler<O> {
   return async (event, input) => {
     const parsed = schema.safeParse(input);
@@ -16,7 +16,7 @@ export function wrapHandler<I, O>(
       return { ok: false, error: serializeError(e) };
     }
     try {
-      const value = await handler(parsed.data, event);
+      const value = await handler(parsed.data as z.infer<S>, event);
       return { ok: true, value };
     } catch (err) {
       return { ok: false, error: serializeError(err) };
