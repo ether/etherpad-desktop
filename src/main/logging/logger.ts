@@ -35,7 +35,7 @@ export type Logger = {
 };
 
 export async function configureLogging(logsDir: string): Promise<void> {
-  const log = (await import('electron-log/main')).default;
+  const log = (await import('electron-log/main.js')).default;
   log.transports.file.resolvePathFn = () => `${logsDir}/main.log`;
   log.transports.file.maxSize = 5 * 1024 * 1024;
   log.transports.file.format = '[{y}-{m}-{d} {h}:{i}:{s}.{ms}] [{level}] {text}';
@@ -48,7 +48,7 @@ export async function configureLogging(logsDir: string): Promise<void> {
 }
 
 export async function getLogger(scope: string): Promise<Logger> {
-  const log = (await import('electron-log/main')).default;
+  const log = (await import('electron-log/main.js')).default;
   const scoped = log.scope(scope);
   return {
     info: (m, ...a) => scoped.info(m, ...a.map(redactForLog)),
