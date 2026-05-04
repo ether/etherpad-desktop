@@ -19,7 +19,7 @@ export const ipc = {
   },
   workspace: {
     list: () => unwrap<{ workspaces: Workspace[]; order: string[] }>(api().workspace.list() as never),
-    add: (input: { name: string; serverUrl: string; color: string }) =>
+    add: (input: { name: string; serverUrl?: string; color: string; kind?: 'remote' | 'embedded' }) =>
       unwrap<Workspace>(api().workspace.add(input) as never),
     update: (input: { id: string; name?: string; serverUrl?: string; color?: string }) =>
       unwrap<Workspace>(api().workspace.update(input) as never),

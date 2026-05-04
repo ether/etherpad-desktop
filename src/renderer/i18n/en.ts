@@ -22,6 +22,10 @@ export const en = {
     errorUrl: 'Enter a valid URL.',
     errorUnreachable: 'Could not reach that server.',
     errorNotEtherpad: 'That URL does not look like Etherpad.',
+    embeddedToggle: 'Use a local Etherpad server (no remote URL needed)',
+    embeddedHint: 'Etherpad will run locally on this machine.',
+    embeddedStarting: 'Starting local Etherpad…',
+    errorEmbeddedFailed: 'Could not start the local Etherpad server.',
   },
   openPad: {
     title: 'Open a pad',

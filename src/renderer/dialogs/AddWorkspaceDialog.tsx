@@ -12,12 +12,17 @@ export function AddWorkspaceDialog({ dismissable }: { dismissable: boolean }): R
   const [color, setColor] = useState(PALETTE[0]!);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [useEmbedded, setUseEmbedded] = useState(false);
+
+  const canSubmit = Boolean(name) && (useEmbedded || Boolean(serverUrl));
 
   const submit = async () => {
     setBusy(true);
     setError(null);
     try {
-      const ws = await ipc.workspace.add({ name, serverUrl, color });
+      const ws = useEmbedded
+        ? await ipc.workspace.add({ name, color, kind: 'embedded' })
+        : await ipc.workspace.add({ name, serverUrl, color });
       useShellStore.getState().setActiveWorkspaceId(ws.id);
       await ipc.window.setActiveWorkspace(ws.id);
       dialogActions.closeDialog();
@@ -26,7 +31,7 @@ export function AddWorkspaceDialog({ dismissable }: { dismissable: boolean }): R
         if (e.kind === 'ServerUnreachableError') setError(t.addWorkspace.errorUnreachable);
         else if (e.kind === 'NotAnEtherpadServerError') setError(t.addWorkspace.errorNotEtherpad);
         else if (e.kind === 'UrlValidationError' || e.kind === 'InvalidPayloadError') setError(t.addWorkspace.errorUrl);
-        else setError(e.message);
+        else setError(useEmbedded ? t.addWorkspace.errorEmbeddedFailed : e.message);
       } else {
         setError(String(e));
       }
@@ -43,15 +48,29 @@ export function AddWorkspaceDialog({ dismissable }: { dismissable: boolean }): R
           {t.addWorkspace.nameLabel}
           <input value={name} onChange={(e) => setName(e.target.value)} autoFocus required />
         </label>
-        <label>
-          {t.addWorkspace.serverUrlLabel}
+        <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
           <input
-            value={serverUrl}
-            onChange={(e) => setServerUrl(e.target.value)}
-            placeholder="https://pads.example.com"
-            required
+            type="checkbox"
+            checked={useEmbedded}
+            onChange={(e) => setUseEmbedded(e.target.checked)}
           />
+          {t.addWorkspace.embeddedToggle}
         </label>
+        {useEmbedded ? (
+          <p style={{ margin: 0, fontSize: '0.875em', color: 'var(--panel-fg)', opacity: 0.75 }}>
+            {t.addWorkspace.embeddedHint}
+          </p>
+        ) : (
+          <label>
+            {t.addWorkspace.serverUrlLabel}
+            <input
+              value={serverUrl}
+              onChange={(e) => setServerUrl(e.target.value)}
+              placeholder="https://pads.example.com"
+              required
+            />
+          </label>
+        )}
         <fieldset style={{ border: 'none', padding: 0 }}>
           <legend>{t.addWorkspace.colorLabel}</legend>
           <div style={{ display: 'flex', gap: 6 }}>
@@ -69,8 +88,8 @@ export function AddWorkspaceDialog({ dismissable }: { dismissable: boolean }): R
         </fieldset>
         {error && <p role="alert" style={{ color: 'var(--error)' }}>{error}</p>}
         <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
-          <button className="btn-primary" onClick={() => void submit()} disabled={busy || !name || !serverUrl}>
-            {busy ? t.addWorkspace.probing : t.addWorkspace.submit}
+          <button className="btn-primary" onClick={() => void submit()} disabled={busy || !canSubmit}>
+            {busy ? (useEmbedded ? t.addWorkspace.embeddedStarting : t.addWorkspace.probing) : t.addWorkspace.submit}
           </button>
           {dismissable && <button className="btn-secondary" onClick={() => dialogActions.closeDialog()}>{t.addWorkspace.cancel}</button>}
         </div>
