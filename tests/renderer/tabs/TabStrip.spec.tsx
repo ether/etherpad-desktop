@@ -60,4 +60,63 @@ describe('TabStrip', () => {
     render(<TabStrip />);
     expect(screen.getByLabelText(/error/i)).toBeInTheDocument();
   });
+
+  it('shows error indicator on tabs with state=crashed', () => {
+    useShellStore.setState({
+      activeWorkspaceId: 'a',
+      tabs: [{ tabId: 't1', workspaceId: 'a', padName: 'p', title: 'p', state: 'crashed' }],
+    });
+    render(<TabStrip />);
+    expect(screen.getByLabelText(/error/i)).toBeInTheDocument();
+  });
+
+  it('active tab has aria-selected=true, inactive tab has aria-selected=false', () => {
+    useShellStore.setState({
+      activeWorkspaceId: 'a',
+      tabs: [
+        { tabId: 't1', workspaceId: 'a', padName: 'p1', title: 'Pad One', state: 'loaded' },
+        { tabId: 't2', workspaceId: 'a', padName: 'p2', title: 'Pad Two', state: 'loaded' },
+      ],
+      activeTabId: 't1',
+    });
+    render(<TabStrip />);
+    const tabs = screen.getAllByRole('tab');
+    const activeTab = tabs.find((t) => t.getAttribute('aria-selected') === 'true');
+    const inactiveTab = tabs.find((t) => t.getAttribute('aria-selected') === 'false');
+    expect(activeTab).toBeDefined();
+    expect(inactiveTab).toBeDefined();
+    // Verify the right one is active
+    expect(activeTab).toContainElement(screen.getByText('Pad One'));
+  });
+
+  it('renders no tabs when there is no active workspace', () => {
+    useShellStore.setState({
+      activeWorkspaceId: null,
+      tabs: [{ tabId: 't1', workspaceId: 'a', padName: 'p', title: 'p', state: 'loaded' }],
+    });
+    render(<TabStrip />);
+    expect(screen.queryByRole('tab')).not.toBeInTheDocument();
+  });
+
+  it('only shows tabs belonging to the active workspace', () => {
+    useShellStore.setState({
+      activeWorkspaceId: 'a',
+      tabs: [
+        { tabId: 't1', workspaceId: 'a', padName: 'pa', title: 'WsA Tab', state: 'loaded' },
+        { tabId: 't2', workspaceId: 'b', padName: 'pb', title: 'WsB Tab', state: 'loaded' },
+      ],
+    });
+    render(<TabStrip />);
+    expect(screen.getByText('WsA Tab')).toBeInTheDocument();
+    expect(screen.queryByText('WsB Tab')).not.toBeInTheDocument();
+  });
+
+  it('no error indicator on tabs with state=loaded', () => {
+    useShellStore.setState({
+      activeWorkspaceId: 'a',
+      tabs: [{ tabId: 't1', workspaceId: 'a', padName: 'p', title: 'p', state: 'loaded' }],
+    });
+    render(<TabStrip />);
+    expect(screen.queryByLabelText(/error/i)).not.toBeInTheDocument();
+  });
 });
