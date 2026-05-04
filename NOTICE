@@ -1,0 +1,11 @@
+Etherpad Desktop
+Copyright 2026 The Etherpad Foundation and contributors
+
+Licensed under the Apache License, Version 2.0.
+
+This product includes software developed at Etherpad
+(https://etherpad.org/) — see https://github.com/ether/etherpad-lite
+for upstream sources.
+
+Bundled third-party components carry their own licenses; see the
+node_modules tree of the distributed package for details.
