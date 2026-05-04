@@ -1,7 +1,14 @@
 export const en = {
   app: { title: 'Etherpad Desktop' },
   rail: { add: 'Add workspace', settings: 'Settings' },
-  sidebar: { pinned: 'Pinned', recent: 'Recent', newPad: 'New Pad' },
+  sidebar: {
+    pinned: 'Pinned',
+    recent: 'Recent',
+    newPad: 'New Pad',
+    filterPlaceholder: 'Filter pads…',
+    filterAria: 'Filter pads',
+    noMatches: 'No pads match',
+  },
   tabStrip: { close: 'Close tab' },
   emptyState: { noPads: 'No pads open', openPad: 'Open Pad…' },
   addWorkspace: {

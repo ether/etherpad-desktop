@@ -208,6 +208,18 @@ input[type="checkbox"] {
   color: var(--accent);
 }
 
+/* ── Sidebar filter ── */
+.sidebar-filter {
+  width: 100%;
+  margin-bottom: 8px;
+}
+.sidebar-empty {
+  color: var(--text-muted);
+  font-size: 13px;
+  text-align: center;
+  padding: 12px 0;
+}
+
 /* Native select styled to match inputs */
 select {
   font: inherit;
