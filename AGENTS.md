@@ -22,7 +22,7 @@ Guidance for AI agents (Claude, Copilot, Cursor, etc.) working in this repo.
 | `pnpm format` | Prettier write. |
 | `pnpm test` | Vitest unit + component tests (single run). |
 | `pnpm test:watch` | Vitest watch mode. |
-| `pnpm test:e2e` | Playwright Electron E2E. Requires Etherpad on `:9003` (auto-spun by global setup). |
+| `pnpm test:e2e` | Playwright Electron E2E. Requires Etherpad on `:9003` (auto-spun by global setup). Auto-runs under `xvfb-run` when available so no windows steal focus. Set `E2E_NO_XVFB=1` to disable. |
 | `pnpm build` | Production build → `out/main`, `out/preload`, `out/renderer`. |
 | `pnpm package` | Build + electron-builder → AppImage + .deb under `release/`. |
 
