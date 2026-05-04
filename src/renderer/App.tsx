@@ -1,5 +1,6 @@
 import React from 'react';
 import { useEffect } from 'react';
+import type { Settings } from '@shared/types/settings';
 import { ipc } from './ipc/api.js';
 import { ErrorBoundary } from './components/ErrorBoundary.js';
 import { useShellStore, dialogActions } from './state/store.js';
@@ -88,7 +89,7 @@ export function App(): React.JSX.Element {
         }
       }),
       ipc.events.onSettingsChanged((p) => {
-        const newSettings = p as import('@shared/types/settings').Settings;
+        const newSettings = p as Settings;
         useShellStore.setState({ settings: newSettings });
         // Apply renderer-side i18n change immediately
         void import('./i18n/index.js').then(({ setLanguage }) => setLanguage(newSettings.language));

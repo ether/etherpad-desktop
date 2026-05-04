@@ -41,6 +41,7 @@ After main-process source changes, **restart `pnpm dev`** — Vite HMR only cove
 ## Conventions
 
 - TypeScript strict; no `.js` files in source tree.
+- ESLint 9 flat config (`eslint.config.js`). No `.eslintrc.*` files. Run `pnpm lint` (no `--ext` flag needed — extensions are inferred from the globs in the config).
 - All persistent state goes through main-process stores (`workspace-store`, `pad-history-store`, `settings-store`, `window-state-store`). Renderer NEVER touches disk.
 - IPC payloads are Zod-validated in main via `wrapHandler(channel, schema, handler)`. Channels are constants in `src/shared/ipc/channels.ts` (`CH.WORKSPACE_LIST` etc.).
 - Each `WebContentsView` is created via `pad-view-factory.ts` — single seam for future offline-cache / embedded-server work.
@@ -74,7 +75,7 @@ These are real bugs we've hit and fixed in this codebase. Keep them in mind:
 
 2. **`exactOptionalPropertyTypes: true`** mismatches with Zod's `.optional()` (which infers `T | undefined` rather than `T?`). Where this bites: `PadHistoryEntry.title?` vs `padHistoryEntrySchema.title.optional()` → cast at the boundary. See `src/main/pads/pad-history-store.ts`.
 
-3. **Vitest 4.x** — `test.workspace` was removed. Projects are now declared inline via `test.projects` in `vitest.config.ts`. The `vitest.workspace.ts` file (with `defineWorkspace`) is no longer auto-discovered; keep projects in `vitest.config.ts`. The `--workspace` CLI flag is also gone. ESLint 9 + flat-config migration is a known follow-up (currently on ESLint 8.x + legacy plugin config).
+3. **Vitest 4.x** — `test.workspace` was removed. Projects are now declared inline via `test.projects` in `vitest.config.ts`. The `vitest.workspace.ts` file (with `defineWorkspace`) is no longer auto-discovered; keep projects in `vitest.config.ts`. The `--workspace` CLI flag is also gone.
 
 4. **TypeScript composite projects** — leaf configs (`main`, `preload`, `renderer`) use `references: [{ path: './tsconfig.shared.json' }]` AND `paths: { '@shared/*': ['src/shared/*'] }`. Do NOT add `'src/shared/**'` to leaf `include` arrays — that double-compiles shared sources and corrupts cross-project type checking once shared has real types.
 

@@ -13,15 +13,13 @@
  * router lives inside it, but we suppress all rendering noise with stubs.
  */
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, act } from '@testing-library/react';
-import React from 'react';
 import { useShellStore, dialogActions } from '../../src/renderer/state/store';
 
 // ---- helpers ----
 type EventCallback = (payload: unknown) => void | Promise<void>;
 
 /** Build a fake ipc.events object that captures the registered callbacks. */
-function makeEventCapture() {
+function _makeEventCapture() {
   const cbs: Record<string, EventCallback> = {};
   return {
     events: {

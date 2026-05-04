@@ -17,7 +17,7 @@
     "dev": "electron-vite dev",
     "build": "electron-vite build",
     "typecheck": "tsc -b --pretty",
-    "lint": "eslint --ext .ts,.tsx --no-error-on-unmatched-pattern src tests",
+    "lint": "eslint src tests",
     "format": "prettier --write src tests",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -34,6 +34,7 @@
     "zustand": "^5.0.12"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.4",
     "@playwright/test": "^1.59.1",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.2",
@@ -48,15 +49,17 @@
     "electron": "^41.5.0",
     "electron-builder": "^26.6.0",
     "electron-vite": "^5.0.0",
-    "eslint": "^8.57.1",
-    "eslint-config-prettier": "^9.1.0",
+    "eslint": "^9.39.4",
+    "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^16.5.0",
     "jsdom": "^29.1.1",
     "playwright-core": "^1.59.1",
     "prettier": "^3.5.3",
     "tmp": "^0.2.3",
     "typescript": "^5.8.3",
+    "typescript-eslint": "^8.59.2",
     "vite": "^7.3.1",
     "vitest": "^4.1.5"
   }

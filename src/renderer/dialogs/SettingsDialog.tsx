@@ -9,7 +9,7 @@ export function SettingsDialog(): React.JSX.Element | null {
   const settings = useShellStore((s) => s.settings);
   const workspaces = useShellStore((s) => s.workspaces);
   const [draft, setDraft] = useState<Settings | null>(settings);
-  useEffect(() => setDraft(settings), [settings]);
+  useEffect(() => { setDraft(settings); }, [settings]);
   if (!draft) return null;
 
   const save = async () => {
