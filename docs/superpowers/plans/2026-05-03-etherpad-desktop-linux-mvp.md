@@ -323,6 +323,7 @@ git commit -m "chore: initialise package.json and ignore files"
 - Create: `tsconfig.preload.json`
 - Create: `tsconfig.renderer.json`
 - Create: `tsconfig.shared.json`
+- Modify: `.gitignore` (append `*.tsbuildinfo` since `tsc -b` emits per-config build-info files)
 
 - [ ] **Step 1: Create `tsconfig.base.json`**
 
@@ -440,15 +441,25 @@ Create `src/shared/types/index.ts`:
 export {};
 ```
 
-- [ ] **Step 8: Verify typecheck passes**
+- [ ] **Step 8: Append `*.tsbuildinfo` to `.gitignore`**
+
+`tsc -b` emits `tsconfig.<variant>.tsbuildinfo` files for incremental compilation. They're per-machine and large; ignore them.
+
+Append to `.gitignore`:
+
+```
+*.tsbuildinfo
+```
+
+- [ ] **Step 9: Verify typecheck passes**
 
 Run: `pnpm typecheck`
 Expected: no errors. (`tsc -b` succeeds across all four configs.)
 
-- [ ] **Step 9: Commit**
+- [ ] **Step 10: Commit**
 
 ```bash
-git add tsconfig*.json src/shared/types/index.ts
+git add tsconfig*.json src/shared/types/index.ts .gitignore
 git commit -m "chore: TypeScript configs (main, preload, renderer, shared)"
 ```
 
