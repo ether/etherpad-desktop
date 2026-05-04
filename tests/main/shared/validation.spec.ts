@@ -110,3 +110,20 @@ describe('padHistoryFileSchema', () => {
     });
   });
 });
+
+import { settingsSchema, defaultSettings } from '@shared/validation/settings';
+
+describe('settingsSchema', () => {
+  it('accepts the default settings', () => {
+    expect(settingsSchema.parse(defaultSettings)).toEqual(defaultSettings);
+  });
+
+  it('rejects zoom < 0.5 or > 3', () => {
+    expect(() => settingsSchema.parse({ ...defaultSettings, defaultZoom: 0.1 })).toThrow();
+    expect(() => settingsSchema.parse({ ...defaultSettings, defaultZoom: 5 })).toThrow();
+  });
+
+  it('rejects bad colour hex', () => {
+    expect(() => settingsSchema.parse({ ...defaultSettings, accentColor: 'red' })).toThrow();
+  });
+});
