@@ -25,6 +25,9 @@
 | PadSidebar – click pinned pad → tab.open | click | ❌ | no test | ✅ |
 | PadSidebar – uses title over padName when available | render | ❌ | no test | ✅ |
 | PadSidebar – caps recent list at 50 | render | ❌ | no test | ✅ |
+| PadSidebar – ☆ on recent pads, ★ on pinned pads | render | ❌ | no test (pin/unpin UI new in M8) | ✅ |
+| PadSidebar – click ☆ on recent pad → padHistory.pin, no tab.open | click | ❌ | no test (pin/unpin UI new in M8) | ✅ |
+| PadSidebar – click ★ on pinned pad → padHistory.unpin, no tab.open | click | ❌ | no test (pin/unpin UI new in M8) | ✅ |
 | TabStrip – renders tabs per workspace | render | ✅ | — | ✅ |
 | TabStrip – click tab → ipc.tab.focus | click | ✅ | — | ✅ |
 | TabStrip – click ✕ → ipc.tab.close | click | ✅ | — | ✅ |
