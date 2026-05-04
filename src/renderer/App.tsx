@@ -14,6 +14,22 @@ import { TabStrip } from './tabs/TabStrip.js';
 import { EmptyState } from './components/EmptyState.js';
 import { TabErrorOverlay } from './components/TabErrorOverlay.js';
 
+// E2E test seam — attached only when the preload sets E2E_TEST=1.
+// This block is dead code in production (the flag is always false there).
+if (typeof window !== 'undefined' && window.etherpadDesktop?.e2eFlags?.enabled) {
+  // @ts-expect-error attach for tests
+  window.__test_useShellStore = useShellStore;
+  // @ts-expect-error attach for tests
+  window.__test_dialogActions = {
+    openHttpAuth: (requestId: string, url: string) =>
+      dialogActions.openDialog('httpAuth', { requestId, url }),
+    openRemoveWorkspace: (name: string) => {
+      const ws = useShellStore.getState().workspaces.find((w) => w.name === name);
+      if (ws) dialogActions.openDialog('removeWorkspace', { workspaceId: ws.id });
+    },
+  };
+}
+
 export function App(): JSX.Element {
   const workspaces = useShellStore((s) => s.workspaces);
   const openDialog = useShellStore((s) => s.openDialog);

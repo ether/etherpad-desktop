@@ -11,6 +11,9 @@ const on = (channel: string, listener: (payload: unknown) => void) => {
 };
 
 const api = {
+  e2eFlags: {
+    enabled: process.env.E2E_TEST === '1',
+  },
   state: {
     getInitial: () => invoke(CH.GET_INITIAL_STATE),
   },

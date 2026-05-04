@@ -19,7 +19,7 @@ export async function launchApp(opts?: { userDataDir?: string }): Promise<AppHan
 
   const app = await _electron.launch({
     args: [MAIN_PATH, `--user-data-dir=${dir}`],
-    env: { ...process.env, NODE_ENV: 'production' },
+    env: { ...process.env, NODE_ENV: 'production', E2E_TEST: '1' },
   });
 
   const shell = await app.firstWindow();
