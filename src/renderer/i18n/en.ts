@@ -1,0 +1,63 @@
+export const en = {
+  app: { title: 'Etherpad Desktop' },
+  rail: { add: 'Add workspace', settings: 'Settings' },
+  sidebar: { pinned: 'Pinned', recent: 'Recent', newPad: 'New Pad' },
+  tabStrip: { close: 'Close tab' },
+  emptyState: { noPads: 'No pads open', openPad: 'Open Pad…' },
+  addWorkspace: {
+    title: 'Add a workspace',
+    nameLabel: 'Name',
+    serverUrlLabel: 'Etherpad URL',
+    colorLabel: 'Colour',
+    submit: 'Add',
+    cancel: 'Cancel',
+    probing: 'Checking server…',
+    errorUrl: 'Enter a valid URL.',
+    errorUnreachable: 'Could not reach that server.',
+    errorNotEtherpad: 'That URL does not look like Etherpad.',
+  },
+  openPad: {
+    title: 'Open a pad',
+    label: 'Pad name',
+    submit: 'Open',
+    create: 'Create new',
+  },
+  settings: {
+    title: 'Settings',
+    zoom: 'Default zoom',
+    accent: 'Accent colour',
+    language: 'Language',
+    rememberTabs: 'Remember open tabs on quit',
+    clearAllHistory: 'Clear all pad history',
+    save: 'Save',
+    cancel: 'Cancel',
+  },
+  removeWorkspace: {
+    title: 'Remove workspace?',
+    body: 'This will close any open tabs in this workspace, clear its login state, and delete its pad history.',
+    confirm: 'Remove',
+    cancel: 'Cancel',
+  },
+  httpAuth: {
+    title: 'Authentication required',
+    bodyPrefix: 'Sign in to ',
+    username: 'Username',
+    password: 'Password',
+    submit: 'Sign in',
+    cancel: 'Cancel',
+  },
+  tabError: {
+    cantReach: "Couldn't reach {{url}}.",
+    crashed: 'This pad’s view crashed.',
+    retry: 'Retry',
+    closeTab: 'Close tab',
+    reload: 'Reload',
+  },
+  errorBoundary: {
+    title: 'Something went wrong.',
+    reload: 'Reload window',
+    showDetails: 'Show details',
+  },
+};
+
+export type Strings = typeof en;
