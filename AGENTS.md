@@ -49,6 +49,30 @@ After main-process source changes, **restart `pnpm dev`** — Vite HMR only cove
 - Commits: conventional style (`feat(scope): …`, `fix(scope): …`, `test(e2e): …`, `docs(scope): …`).
 - Push to `origin/feat/linux-mvp` after every fix or feature commit. Don't batch.
 
+## Embedded Etherpad server (Spec 5 v1)
+
+`etherpad-desktop` can spawn a local Etherpad on demand for users who don't
+have a remote server. The controller in `src/main/embedded/embedded-server.ts`
+is a singleton that uses `npx etherpad-lite@latest` and stores pad data at
+`userData/embedded-etherpad/`. The first invocation on a clean machine downloads
+Etherpad (~100MB) and can take 60-180s; subsequent invocations are immediate.
+
+The `Workspace.kind` field distinguishes `'remote'` (default for back-compat)
+from `'embedded'`. The `AddWorkspaceDialog` exposes a "Use a local server"
+checkbox; embedded workspaces skip the URL probe.
+
+The embedded server controller accepts injected `spawnFn` and `findFreePortFn`
+so unit tests can stub out child_process without mocking Node internals.
+
+Future Spec 5 work: bundle Etherpad source so first-launch doesn't need
+the network (avoids the npx download), version-pin the embedded Etherpad
+separately from the desktop app's own version.
+
+The E2E test for embedded workspaces (`tests/e2e/embedded-workspace.spec.ts`)
+is skipped by default (requires `E2E_EMBEDDED=1` env var) because it needs a
+warm npx cache to avoid CI timeouts. Unit-level coverage in
+`tests/main/embedded/embedded-server.spec.ts` provides the logic guarantees.
+
 ## Distribution
 
 | Format | Workflow | Notes |
