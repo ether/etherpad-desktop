@@ -72,11 +72,12 @@ test('removing workspace A clears its history but not workspace B history', asyn
     await openPad(h, 'pad-b');
 
     // Confirm pad-b appears in workspace B's sidebar
-    await expect(h.shell.getByRole('button', { name: /pad-b/ })).toBeVisible();
+    // Use class-scoped selector to avoid matching the pin button (aria-label="Pin pad-b")
+    await expect(h.shell.locator('.pad-open', { hasText: 'pad-b' })).toBeVisible();
 
     // Switch to workspace A and verify pad-a is in its history
     await h.shell.getByRole('button', { name: /open workspace rm-a/i }).click();
-    await expect(h.shell.getByRole('button', { name: /pad-a/ })).toBeVisible();
+    await expect(h.shell.locator('.pad-open', { hasText: 'pad-a' })).toBeVisible();
 
     // Remove workspace A via Settings
     await h.shell.getByRole('button', { name: /^settings$/i }).click();
@@ -92,7 +93,7 @@ test('removing workspace A clears its history but not workspace B history', asyn
 
     // Switch to workspace B — its history (pad-b) must still be intact
     await h.shell.getByRole('button', { name: /open workspace rm-b/i }).click();
-    await expect(h.shell.getByRole('button', { name: /pad-b/ })).toBeVisible();
+    await expect(h.shell.locator('.pad-open', { hasText: 'pad-b' })).toBeVisible();
   } finally {
     await h.close();
   }

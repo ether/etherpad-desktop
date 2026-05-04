@@ -99,7 +99,8 @@ test('Clear All History wipes pad history in the sidebar', async () => {
     await openPad(h, 'hist-pad-1');
 
     // Confirm the pad appears in the sidebar recent list
-    await expect(h.shell.getByRole('button', { name: /hist-pad-1/ })).toBeVisible();
+    // Use class-scoped selector to avoid matching the pin button (aria-label="Pin hist-pad-1")
+    await expect(h.shell.locator('.pad-open', { hasText: 'hist-pad-1' })).toBeVisible();
 
     // Open settings and clear all history
     await h.shell.getByRole('button', { name: /^settings$/i }).click();
@@ -111,8 +112,8 @@ test('Clear All History wipes pad history in the sidebar', async () => {
     await h.shell.getByRole('button', { name: /^cancel$/i }).click();
     await expect(h.shell.getByRole('dialog')).toHaveCount(0);
 
-    // Sidebar should no longer show the pad in recent
-    await expect(h.shell.getByRole('button', { name: /hist-pad-1/ })).toHaveCount(0);
+    // Sidebar should no longer show the pad in recent (neither open nor pin button)
+    await expect(h.shell.locator('.pad-open', { hasText: 'hist-pad-1' })).toHaveCount(0);
   } finally {
     await h.close();
   }
