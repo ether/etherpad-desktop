@@ -16,6 +16,8 @@ import { PadSidebar } from './sidebar/PadSidebar.js';
 import { TabStrip } from './tabs/TabStrip.js';
 import { EmptyState } from './components/EmptyState.js';
 import { TabErrorOverlay } from './components/TabErrorOverlay.js';
+import { UpdaterBanner } from './components/UpdaterBanner.js';
+import type { UpdaterState } from '@shared/types/updater';
 
 // E2E test seam — attached only when the preload sets E2E_TEST=1.
 // This block is dead code in production (the flag is always false there).
@@ -51,6 +53,9 @@ export function App(): React.JSX.Element {
         useShellStore.getState().setActiveWorkspaceId(initial.workspaceOrder[0]);
         await ipc.window.setActiveWorkspace(initial.workspaceOrder[0]);
       }
+      // Hydrate updater state from main process on startup.
+      const updaterStateRaw = await ipc.updater.getState() as UpdaterState;
+      useShellStore.setState({ updaterState: updaterStateRaw });
     })();
   }, []);
 
@@ -97,6 +102,9 @@ export function App(): React.JSX.Element {
       }),
       ipc.events.onHttpLoginRequest((p) => {
         dialogActions.openDialog('httpAuth', p as Record<string, unknown>);
+      }),
+      ipc.events.onUpdaterState((p) => {
+        useShellStore.setState({ updaterState: p as UpdaterState });
       }),
       ipc.events.onMenuShellMessage((p) => {
         const k = (p as { kind: string }).kind;
@@ -146,19 +154,22 @@ export function App(): React.JSX.Element {
 
   return (
     <ErrorBoundary onReload={() => void ipc.window.reloadShell()}>
-      <div className="shell-root">
-        <div style={{ gridColumn: '1', gridRow: '1 / span 2' }}>
-          <WorkspaceRail />
-        </div>
-        <div style={{ gridColumn: '2', gridRow: '1 / span 2' }}>
-          <PadSidebar />
-        </div>
-        <div style={{ gridColumn: '3', gridRow: '1' }}>
-          <TabStrip />
-        </div>
-        <div style={{ gridColumn: '3', gridRow: '2', position: 'relative' }}>
-          {activeTabsForWs.length === 0 ? <EmptyState /> : null}
-          <TabErrorOverlay />
+      <div className="shell-root-wrapper">
+        <UpdaterBanner />
+        <div className="shell-root">
+          <div style={{ gridColumn: '1', gridRow: '1 / span 2' }}>
+            <WorkspaceRail />
+          </div>
+          <div style={{ gridColumn: '2', gridRow: '1 / span 2' }}>
+            <PadSidebar />
+          </div>
+          <div style={{ gridColumn: '3', gridRow: '1' }}>
+            <TabStrip />
+          </div>
+          <div style={{ gridColumn: '3', gridRow: '2', position: 'relative' }}>
+            {activeTabsForWs.length === 0 ? <EmptyState /> : null}
+            <TabErrorOverlay />
+          </div>
         </div>
       </div>
       {openDialog === 'addWorkspace' && <AddWorkspaceDialog dismissable={workspaces.length > 0} />}

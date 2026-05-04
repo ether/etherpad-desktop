@@ -34,4 +34,8 @@ export const CH = {
   EV_TAB_STATE: 'event.tabState',
   EV_SETTINGS_CHANGED: 'event.settingsChanged',
   EV_HTTP_LOGIN_REQUEST: 'event.httpLoginRequest',
+  UPDATER_CHECK_NOW: 'updater.checkNow',
+  UPDATER_INSTALL_AND_RESTART: 'updater.installAndRestart',
+  UPDATER_GET_STATE: 'updater.getState',
+  EV_UPDATER_STATE: 'event.updaterState',
 } as const;

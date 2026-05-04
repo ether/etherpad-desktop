@@ -3,6 +3,7 @@ import type { Workspace } from '@shared/types/workspace';
 import type { Settings } from '@shared/types/settings';
 import type { OpenTab } from '@shared/types/tab';
 import type { PadHistoryEntry } from '@shared/types/pad-history';
+import type { UpdaterState } from '@shared/types/updater';
 
 export type DialogKind =
   | 'addWorkspace'
@@ -24,6 +25,7 @@ export type ShellState = {
   settings: Settings | null;
   openDialog: DialogKind;
   dialogContext: Record<string, unknown>;
+  updaterState: UpdaterState;
 
   hydrate(input: { workspaces: Workspace[]; workspaceOrder: string[]; settings: Settings }): void;
   setActiveWorkspaceId(id: string | null): void;
@@ -42,6 +44,7 @@ const initialState = {
   settings: null as Settings | null,
   openDialog: null as DialogKind,
   dialogContext: {} as Record<string, unknown>,
+  updaterState: { kind: 'idle' } as UpdaterState,
 };
 
 export const useShellStore = create<ShellState>()((set) => ({

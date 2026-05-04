@@ -75,6 +75,12 @@ export const en = {
     empty: 'Type to search across all workspaces and recent pads.',
     noMatches: 'No matches',
   },
+  updater: {
+    downloading: 'Downloading update… {{percent}}%',
+    readyPrefix: 'Update {{version}} ready.',
+    restartNow: 'Restart to install',
+    errorPrefix: 'Update error:',
+  },
 };
 
 export type Strings = typeof en;

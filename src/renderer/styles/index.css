@@ -115,7 +115,6 @@ input[type="checkbox"] {
   display: grid;
   grid-template-columns: 64px 240px 1fr;
   grid-template-rows: 40px 1fr;
-  height: 100vh;
 }
 
 .btn-primary {
@@ -273,6 +272,32 @@ input[type="checkbox"] {
   font-size: 12px;
   white-space: nowrap;
 }
+
+/* ── Updater banner ── */
+.shell-root-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+.shell-root {
+  flex: 1;
+  overflow: hidden;
+}
+.updater-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 16px;
+  font-size: 13px;
+  border-bottom: 1px solid var(--panel-border);
+  flex-shrink: 0;
+}
+.updater-banner-ready { background: rgba(68, 180, 146, 0.10); color: var(--accent); }
+.updater-banner-info  { background: var(--sidebar-hover); color: var(--text-muted); }
+.updater-banner-warn  { background: rgba(245, 158, 11, 0.10); color: var(--color-warning, #f59e0b); }
+.updater-banner-actions { display: flex; gap: 8px; }
 
 /* Native select styled to match inputs */
 select {

@@ -49,6 +49,11 @@ const api = {
     get: () => invoke(CH.SETTINGS_GET),
     update: (patch: Record<string, unknown>) => invoke(CH.SETTINGS_UPDATE, patch),
   },
+  updater: {
+    checkNow: () => invoke(CH.UPDATER_CHECK_NOW),
+    installAndRestart: () => invoke(CH.UPDATER_INSTALL_AND_RESTART),
+    getState: () => invoke(CH.UPDATER_GET_STATE),
+  },
   events: {
     onWorkspacesChanged: (l: (p: unknown) => void) => on(CH.EV_WORKSPACES_CHANGED, l),
     onPadHistoryChanged: (l: (p: unknown) => void) => on(CH.EV_PAD_HISTORY_CHANGED, l),
@@ -56,6 +61,7 @@ const api = {
     onTabState: (l: (p: unknown) => void) => on(CH.EV_TAB_STATE, l),
     onSettingsChanged: (l: (p: unknown) => void) => on(CH.EV_SETTINGS_CHANGED, l),
     onHttpLoginRequest: (l: (p: unknown) => void) => on(CH.EV_HTTP_LOGIN_REQUEST, l),
+    onUpdaterState: (l: (p: unknown) => void) => on(CH.EV_UPDATER_STATE, l),
     onMenuShellMessage: (l: (p: unknown) => void) => {
       const channels = [
         'menu.newTab',

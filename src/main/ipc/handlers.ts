@@ -204,6 +204,18 @@ export function registerIpc(ctx: AppContext): IpcRegistration {
   register(CH.PAD_HISTORY_CLEAR_RECENT, (e, p) => hist.clearRecent(e, p));
   register(CH.PAD_HISTORY_CLEAR_ALL, (e, p) => hist.clearAll(e, p));
 
+  ipcMain.handle(CH.UPDATER_CHECK_NOW, async () => {
+    await ctx.updater?.check();
+    return { ok: true } as const;
+  });
+  ipcMain.handle(CH.UPDATER_INSTALL_AND_RESTART, async () => {
+    ctx.updater?.installAndRestart();
+    return { ok: true } as const;
+  });
+  ipcMain.handle(CH.UPDATER_GET_STATE, async () => {
+    return ctx.updater?.getState() ?? { kind: 'unsupported', reason: 'no updater' };
+  });
+
   ipcMain.handle('httpLogin.respond', async (_e, payload: { requestId: string; cancel?: boolean; username?: string; password?: string }) => {
     const cb = pendingHttpLogins.get(payload.requestId);
     if (cb) {

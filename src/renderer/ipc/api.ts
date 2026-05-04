@@ -63,6 +63,11 @@ export const ipc = {
     respond: (input: { requestId: string; cancel?: boolean; username?: string; password?: string }) =>
       unwrap<{ ok: true }>(api().httpLogin.respond(input) as never),
   },
+  updater: {
+    checkNow: () => unwrap<{ ok: true }>(api().updater.checkNow() as never),
+    installAndRestart: () => unwrap<{ ok: true }>(api().updater.installAndRestart() as never),
+    getState: () => api().updater.getState() as Promise<unknown>,
+  },
   get events() {
     return api().events;
   },

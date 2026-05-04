@@ -14,6 +14,9 @@ import { AppWindow } from '../windows/app-window.js';
 import { WindowManager } from '../windows/window-manager.js';
 import { registerIpc } from '../ipc/handlers.js';
 import { serializeWindowsForQuit } from './quit-state.js';
+import { createUpdater } from './updater.js';
+import type { UpdaterController } from './updater.js';
+import { CH } from '@shared/ipc/channel-names.js';
 
 export type AppContext = {
   windowManager: WindowManager<AppWindow>;
@@ -33,6 +36,8 @@ export type AppContext = {
    * native menu's enabled/disabled state.
    */
   onMenuStateMayHaveChanged?: () => void;
+  /** Auto-updater controller — undefined until boot() completes wiring. */
+  updater?: UpdaterController;
 };
 
 export async function boot(): Promise<void> {
@@ -148,9 +153,19 @@ export async function boot(): Promise<void> {
   // Pass the tray sync callback into the context so settings handlers can call it.
   ctx.onMinimizeToTrayChanged = (enabled: boolean) => tray.setEnabled(enabled);
 
+  // Set up the auto-updater and broadcast state changes to all shell views.
+  const updater = await createUpdater({ log });
+  ctx.updater = updater;
+  updater.onStateChange((s) => {
+    ipcRef.current?.broadcastShell(CH.EV_UPDATER_STATE, s);
+  });
+
   ipcRef.current = registerIpc(ctx);
 
   tray.setEnabled(settings.get().minimizeToTray);
+
+  // Start auto-checking: on boot + every 6 hours.
+  updater.startAutoCheck(6 * 60 * 60 * 1000);
 
   // Restore saved layout, or open a fresh window.
   const saved = windowState.read();
@@ -222,6 +237,7 @@ export async function boot(): Promise<void> {
   app.on('before-quit', () => {
     allowQuit = true;
     tray.destroy();
+    updater.stop();
     try {
       if (!settings.get().rememberOpenTabsOnQuit) {
         windowState.save({ schemaVersion: 1, windows: [] });
