@@ -140,3 +140,42 @@ input[type="checkbox"] {
 .btn-secondary:hover {
   background: var(--sidebar-hover);
 }
+
+/* ── Settings dialog layout ── */
+.settings-row {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.settings-label {
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 500;
+}
+.settings-row select,
+.settings-row input[type="text"],
+.settings-row input[type="number"] {
+  width: 100%;
+}
+.settings-row input[type="checkbox"] {
+  justify-self: start;
+}
+.settings-row input[type="color"] {
+  justify-self: start;
+}
+
+/* Native select styled to match inputs */
+select {
+  font: inherit;
+  background: var(--input-bg);
+  color: var(--input-fg);
+  border: 1px solid var(--input-border);
+  border-radius: 4px;
+  padding: 4px 8px;
+}
+select:focus {
+  outline: none;
+  border-color: var(--input-border-focus, var(--accent));
+}

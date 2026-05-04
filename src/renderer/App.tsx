@@ -40,6 +40,8 @@ export function App(): JSX.Element {
     void (async () => {
       const initial = await ipc.state.getInitial();
       useShellStore.getState().hydrate(initial);
+      const { setLanguage } = await import('./i18n/index.js');
+      setLanguage(initial.settings.language);
       if (initial.workspaces.length === 0) {
         dialogActions.openDialog('addWorkspace');
       } else if (initial.workspaceOrder[0]) {
@@ -83,6 +85,12 @@ export function App(): JSX.Element {
           const entries = await ipc.padHistory.list(id);
           useShellStore.getState().setPadHistory(id, entries);
         }
+      }),
+      ipc.events.onSettingsChanged((p) => {
+        const newSettings = p as import('@shared/types/settings').Settings;
+        useShellStore.setState({ settings: newSettings });
+        // Apply renderer-side i18n change immediately
+        void import('./i18n/index.js').then(({ setLanguage }) => setLanguage(newSettings.language));
       }),
       ipc.events.onHttpLoginRequest((p) => {
         dialogActions.openDialog('httpAuth', p as Record<string, unknown>);

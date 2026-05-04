@@ -31,4 +31,34 @@ describe('PadSyncService.resolveSrc', () => {
     });
     expect(url).toBe('https://x/etherpad/p/foo');
   });
+
+  it('appends ?lang= when a language is provided', () => {
+    const svc = new PadSyncService();
+    expect(svc.resolveSrc({
+      kind: 'remote',
+      serverUrl: 'https://x',
+      padName: 'foo',
+      lang: 'es',
+    })).toBe('https://x/p/foo?lang=es');
+  });
+
+  it('omits ?lang= when lang is empty string', () => {
+    const svc = new PadSyncService();
+    expect(svc.resolveSrc({
+      kind: 'remote',
+      serverUrl: 'https://x',
+      padName: 'foo',
+      lang: '',
+    })).toBe('https://x/p/foo');
+  });
+
+  it('percent-encodes non-ASCII lang codes', () => {
+    const svc = new PadSyncService();
+    expect(svc.resolveSrc({
+      kind: 'remote',
+      serverUrl: 'https://x',
+      padName: 'foo',
+      lang: 'zh-hans',
+    })).toBe('https://x/p/foo?lang=zh-hans');
+  });
 });

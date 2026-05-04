@@ -16,6 +16,7 @@ export type TabHandlerDeps = {
   reloadInAnyWindow: (tabId: string) => void;
   emitTabsChanged: () => void;
   emitPadHistoryChanged: () => void;
+  getLanguage: () => string;
 };
 
 export function tabHandlers(deps: TabHandlerDeps) {
@@ -27,6 +28,7 @@ export function tabHandlers(deps: TabHandlerDeps) {
         kind: 'remote',
         serverUrl: ws.serverUrl,
         padName: input.padName,
+        lang: deps.getLanguage(),
       });
       const tab = await deps.openInActiveWindow({
         workspaceId: input.workspaceId,

@@ -3,6 +3,7 @@ import { ipc } from '../ipc/api.js';
 import { dialogActions, useShellStore } from '../state/store.js';
 import { t } from '../i18n/index.js';
 import type { Settings } from '@shared/types/settings';
+import { ETHERPAD_LOCALES, localeDisplayName } from '@shared/locales/etherpad-locales';
 
 export function SettingsDialog(): JSX.Element | null {
   const settings = useShellStore((s) => s.settings);
@@ -21,8 +22,8 @@ export function SettingsDialog(): JSX.Element | null {
     <div role="dialog" aria-modal="true" aria-labelledby="settings-title" style={overlayStyle}>
       <div style={panelStyle}>
         <h2 id="settings-title">{t.settings.title}</h2>
-        <label>
-          {t.settings.zoom}
+        <label className="settings-row">
+          <span className="settings-label">{t.settings.zoom}</span>
           <input
             type="number"
             min={0.5}
@@ -32,34 +33,40 @@ export function SettingsDialog(): JSX.Element | null {
             onChange={(e) => setDraft({ ...draft, defaultZoom: parseFloat(e.target.value) })}
           />
         </label>
-        <label>
-          {t.settings.accent}
+        <label className="settings-row">
+          <span className="settings-label">{t.settings.accent}</span>
           <input
             type="color"
             value={draft.accentColor}
             onChange={(e) => setDraft({ ...draft, accentColor: e.target.value })}
           />
         </label>
-        <label>
-          {t.settings.language}
-          <input
+        <label className="settings-row">
+          <span className="settings-label">{t.settings.language}</span>
+          <select
             value={draft.language}
             onChange={(e) => setDraft({ ...draft, language: e.target.value })}
-          />
+          >
+            {ETHERPAD_LOCALES.map((code) => (
+              <option key={code} value={code}>
+                {localeDisplayName(code)} ({code})
+              </option>
+            ))}
+          </select>
         </label>
-        <label>
+        <label className="settings-row" style={{ gridTemplateColumns: 'auto 1fr' }}>
           <input
             type="checkbox"
             checked={draft.rememberOpenTabsOnQuit}
             onChange={(e) => setDraft({ ...draft, rememberOpenTabsOnQuit: e.target.checked })}
           />
-          {t.settings.rememberTabs}
+          <span className="settings-label" style={{ color: 'var(--text)' }}>{t.settings.rememberTabs}</span>
         </label>
         <button onClick={() => void ipc.padHistory.clearAll()}>{t.settings.clearAllHistory}</button>
         <section>
           <h3>Workspaces</h3>
           {workspaces.map((ws) => (
-            <div key={ws.id} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div key={ws.id} className="settings-row" style={{ gridTemplateColumns: '1fr auto' }}>
               <span>{ws.name}</span>
               <button onClick={() => dialogActions.openDialog('removeWorkspace', { workspaceId: ws.id })}>
                 Remove

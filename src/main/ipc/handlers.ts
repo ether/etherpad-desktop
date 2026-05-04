@@ -100,10 +100,38 @@ export function registerIpc(ctx: AppContext): IpcRegistration {
 
   const reloadInAnyWindow = (tabId: string) => {
     for (const w of ctx.windowManager.list()) {
-      const v = w.tabManager.viewFor(tabId);
-      if (v) {
-        (v.webContents as unknown as { reload: () => void }).reload();
-        return;
+      const view = w.tabManager.viewFor(tabId);
+      if (!view) continue;
+      const tab = w.tabManager.listAll().find((t) => t.tabId === tabId);
+      if (!tab) return;
+      const ws = ctx.workspaces.byId(tab.workspaceId);
+      if (!ws) return;
+      const src = padSync.resolveSrc({
+        kind: 'remote',
+        serverUrl: ws.serverUrl,
+        padName: tab.padName,
+        lang: ctx.settings.get().language,
+      });
+      void view.webContents.loadURL(src);
+      return;
+    }
+  };
+
+  const reloadAllPadsWithLanguage = (lang: string) => {
+    for (const w of ctx.windowManager.list()) {
+      for (const t of w.tabManager.listAll()) {
+        const ws = ctx.workspaces.byId(t.workspaceId);
+        if (!ws) continue;
+        const newSrc = padSync.resolveSrc({
+          kind: 'remote',
+          serverUrl: ws.serverUrl,
+          padName: t.padName,
+          lang,
+        });
+        const view = w.tabManager.viewFor(t.tabId);
+        if (view) {
+          void view.webContents.loadURL(newSrc);
+        }
       }
     }
   };
@@ -118,6 +146,7 @@ export function registerIpc(ctx: AppContext): IpcRegistration {
     reloadInAnyWindow,
     emitTabsChanged,
     emitPadHistoryChanged,
+    getLanguage: () => ctx.settings.get().language,
   });
 
   const wins = windowHandlers({
@@ -136,7 +165,7 @@ export function registerIpc(ctx: AppContext): IpcRegistration {
     emitTabsChanged,
   });
 
-  const setts = settingsHandlers({ settings: ctx.settings, emitSettingsChanged });
+  const setts = settingsHandlers({ settings: ctx.settings, emitSettingsChanged, reloadAllPadsWithLanguage });
   const state = stateHandlers({ workspaces: ctx.workspaces, settings: ctx.settings });
   const hist = padHistoryHandlers({ padHistory: ctx.padHistory, emit: emitPadHistoryChanged });
 

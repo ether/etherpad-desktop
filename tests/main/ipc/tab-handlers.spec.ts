@@ -31,6 +31,7 @@ beforeEach(() => {
     reloadInAnyWindow: vi.fn(),
     emitTabsChanged: vi.fn(),
     emitPadHistoryChanged: vi.fn(),
+    getLanguage: () => 'en',
   });
 });
 
@@ -44,7 +45,7 @@ describe('tab.open', () => {
     expect(openInActive).toHaveBeenCalledWith({
       workspaceId: ws.id,
       padName: 'foo',
-      src: 'https://x/p/foo',
+      src: 'https://x/p/foo?lang=en',
     });
     expect(padHistory.listForWorkspace(ws.id)).toHaveLength(1);
     expect(padHistory.listForWorkspace(ws.id)[0]!.padName).toBe('foo');

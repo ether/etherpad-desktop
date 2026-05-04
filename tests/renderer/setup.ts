@@ -22,6 +22,7 @@ Object.defineProperty(window, 'etherpadDesktop', {
       onTabsChanged: noopEvents,
       onTabState: noopEvents,
       onPadHistoryChanged: noopEvents,
+      onSettingsChanged: noopEvents,
       onHttpLoginRequest: noopEvents,
       onMenuShellMessage: noopEvents,
     },
