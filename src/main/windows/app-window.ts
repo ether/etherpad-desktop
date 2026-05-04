@@ -22,6 +22,7 @@ export type AppWindowOptions = {
   rendererFile: string;
   onTabsChanged: (tabs: OpenTab[]) => void;
   onTabState: (s: { tabId: string; state: string; errorMessage?: string; title?: string }) => void;
+  onClosed?: () => void;
 };
 
 export class AppWindow {
@@ -80,6 +81,11 @@ export class AppWindow {
       const [w, h] = this.window.getContentSize();
       this.shellView.setBounds({ x: 0, y: 0, width: w!, height: h! });
       this.tabManager.layout();
+    });
+
+    this.window.on('closed', () => {
+      try { this.tabManager.destroyAll(); } catch { /* views already gone */ }
+      opts.onClosed?.();
     });
   }
 

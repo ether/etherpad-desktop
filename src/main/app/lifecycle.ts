@@ -12,6 +12,7 @@ import { WindowStateStore } from '../state/window-state-store.js';
 import { AppWindow } from '../windows/app-window.js';
 import { WindowManager } from '../windows/window-manager.js';
 import { registerIpc } from '../ipc/handlers.js';
+import { serializeWindowsForQuit } from './quit-state.js';
 
 export type AppContext = {
   windowManager: WindowManager<AppWindow>;
@@ -71,6 +72,9 @@ export async function boot(): Promise<void> {
         },
         onTabState: (s) => {
           ipcRef.current?.emitTabState(win, s);
+        },
+        onClosed: () => {
+          windowManager.forget(win);
         },
       });
 
@@ -157,20 +161,17 @@ export async function boot(): Promise<void> {
   });
 
   app.on('before-quit', () => {
-    if (!settings.get().rememberOpenTabsOnQuit) {
-      windowState.save({ schemaVersion: 1, windows: [] });
-      return;
+    try {
+      if (!settings.get().rememberOpenTabsOnQuit) {
+        windowState.save({ schemaVersion: 1, windows: [] });
+        return;
+      }
+      windowState.save(serializeWindowsForQuit(windowManager.list()));
+    } catch (e) {
+      // Best-effort persistence — never block quit on a save error or a
+      // destroyed-window access. Logged so we can spot regressions.
+      log.warn('failed to persist window state on quit', { message: (e as Error).message });
     }
-    const wins = windowManager.list();
-    windowState.save({
-      schemaVersion: 1,
-      windows: wins.map((w) => ({
-        bounds: w.bounds(),
-        activeWorkspaceId: w.tabManager.getActiveWorkspaceId(),
-        openTabs: w.tabManager.listAll().map((t) => ({ workspaceId: t.workspaceId, padName: t.padName })),
-        activeTabIndex: 0,
-      })),
-    });
   });
 
   app.on('login', (event, _wc, _details, authInfo, callback) => {

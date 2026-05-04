@@ -23,6 +23,11 @@ export class WindowManager<W extends ManagedWindow> {
     }
   }
 
+  forget(w: W): void {
+    const idx = this.windows.indexOf(w);
+    if (idx >= 0) this.windows.splice(idx, 1);
+  }
+
   list(): W[] {
     return [...this.windows];
   }

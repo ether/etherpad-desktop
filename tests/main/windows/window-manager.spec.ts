@@ -22,4 +22,16 @@ describe('WindowManager', () => {
     mgr.destroy(a);
     expect(mgr.list()).toEqual([b]);
   });
+
+  it('forget() drops the window without calling destroy on it', () => {
+    const factory = vi.fn().mockImplementation(() => ({
+      destroy: vi.fn(),
+      bounds: () => ({ x: 0, y: 0, width: 100, height: 100 }),
+    }));
+    const mgr = new WindowManager({ factory });
+    const a = mgr.create({});
+    mgr.forget(a);
+    expect(mgr.list()).toEqual([]);
+    expect(a.destroy).not.toHaveBeenCalled();
+  });
 });
