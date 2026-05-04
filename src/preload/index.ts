@@ -36,6 +36,7 @@ const api = {
     setActiveWorkspace: (input: { workspaceId: string | null }) =>
       invoke(CH.WINDOW_SET_ACTIVE_WORKSPACE, input),
     reloadShell: () => invoke(CH.WINDOW_RELOAD_SHELL, {}),
+    setPadViewsHidden: (hidden: boolean) => invoke(CH.WINDOW_SET_PAD_VIEWS_HIDDEN, { hidden }),
   },
   padHistory: {
     list: (input: { workspaceId: string }) => invoke(CH.PAD_HISTORY_LIST, input),

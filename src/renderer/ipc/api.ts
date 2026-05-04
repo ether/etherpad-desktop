@@ -39,6 +39,8 @@ export const ipc = {
     setActiveWorkspace: (workspaceId: string | null) =>
       unwrap<{ ok: true }>(api().window.setActiveWorkspace({ workspaceId }) as never),
     reloadShell: () => unwrap<{ ok: true }>(api().window.reloadShell() as never),
+    setPadViewsHidden: (hidden: boolean) =>
+      unwrap<{ ok: true }>(api().window.setPadViewsHidden(hidden) as never),
   },
   padHistory: {
     list: (workspaceId: string) =>
