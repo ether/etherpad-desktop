@@ -6,8 +6,11 @@
     "lib": ["ES2022"],
     "types": ["node"],
     "composite": true,
-    "noEmit": true
+    "noEmit": true,
+    "paths": {
+      "@shared/*": ["src/shared/*"]
+    }
   },
-  "include": ["src/main/**/*.ts", "src/shared/**/*.ts"],
+  "include": ["src/main/**/*.ts"],
   "references": [{ "path": "./tsconfig.shared.json" }]
 }

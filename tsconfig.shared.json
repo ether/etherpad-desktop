@@ -5,6 +5,7 @@
     "outDir": "out/shared",
     "composite": true,
     "declaration": true,
+    "tsBuildInfoFile": "out/shared/tsconfig.shared.tsbuildinfo",
     "lib": ["ES2022"]
   },
   "include": ["src/shared/**/*.ts"]
