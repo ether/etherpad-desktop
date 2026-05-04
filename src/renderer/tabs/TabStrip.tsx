@@ -12,7 +12,7 @@ export function TabStrip(): JSX.Element {
   return (
     <div
       role="tablist"
-      style={{ display: 'flex', height: 40, background: 'var(--tab-border)', alignItems: 'flex-end', borderBottom: '1px solid var(--tab-border)' }}
+      style={{ display: 'flex', height: 40, background: 'var(--tab-strip-bg)', alignItems: 'flex-end', borderBottom: '1px solid var(--tab-border)' }}
     >
       {tabs.map((tab) => (
         <div

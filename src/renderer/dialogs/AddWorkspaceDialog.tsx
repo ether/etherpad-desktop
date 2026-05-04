@@ -82,18 +82,20 @@ export function AddWorkspaceDialog({ dismissable }: { dismissable: boolean }): J
 const overlayStyle: React.CSSProperties = {
   position: 'fixed',
   inset: 0,
-  background: 'rgba(0,0,0,0.4)',
+  background: 'var(--modal-overlay-bg)',
   display: 'grid',
   placeItems: 'center',
   zIndex: 100,
 };
 const panelStyle: React.CSSProperties = {
-  background: '#fff',
+  background: 'var(--panel-bg)',
+  color: 'var(--panel-fg)',
   padding: 24,
   borderRadius: 12,
   width: 420,
   display: 'flex',
   flexDirection: 'column',
   gap: 8,
-  boxShadow: '0 10px 40px rgba(0,0,0,0.25)',
+  boxShadow: 'var(--panel-shadow)',
+  border: '1px solid var(--panel-border)',
 };

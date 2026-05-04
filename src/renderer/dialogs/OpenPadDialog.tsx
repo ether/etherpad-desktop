@@ -31,7 +31,7 @@ export function OpenPadDialog(): JSX.Element {
           <input value={name} onChange={(e) => setName(e.target.value)} autoFocus />
         </label>
         {matches.length > 0 && (
-          <ul role="listbox" style={{ listStyle: 'none', padding: 0, margin: 0, border: '1px solid var(--tab-border)' }}>
+          <ul role="listbox" style={{ listStyle: 'none', padding: 0, margin: 0, border: '1px solid var(--panel-border)' }}>
             {matches.map((m) => (
               <li key={m.padName} role="option" aria-selected={false}>
                 <button type="button" onClick={() => void submit(m.padName)} style={{ width: '100%', textAlign: 'left', padding: 4 }}>
@@ -59,18 +59,20 @@ export function OpenPadDialog(): JSX.Element {
 const overlayStyle: React.CSSProperties = {
   position: 'fixed',
   inset: 0,
-  background: 'rgba(0,0,0,0.4)',
+  background: 'var(--modal-overlay-bg)',
   display: 'grid',
   placeItems: 'center',
   zIndex: 100,
 };
 const panelStyle: React.CSSProperties = {
-  background: '#fff',
+  background: 'var(--panel-bg)',
+  color: 'var(--panel-fg)',
   padding: 24,
   borderRadius: 12,
   width: 420,
   display: 'flex',
   flexDirection: 'column',
   gap: 8,
-  boxShadow: '0 10px 40px rgba(0,0,0,0.25)',
+  boxShadow: 'var(--panel-shadow)',
+  border: '1px solid var(--panel-border)',
 };

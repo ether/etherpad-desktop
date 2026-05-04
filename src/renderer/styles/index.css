@@ -1,5 +1,5 @@
 :root {
-  /* Etherpad brand palette */
+  /* Etherpad brand palette — same in both modes */
   --color-primary: #44b492;
   --color-primary-light: #65d09b;
   --color-primary-dark: #2d7962;
@@ -10,41 +10,78 @@
   --color-error: #ef4444;
   --color-warning: #f59e0b;
 
-  /* Surface tokens (light mode default) */
+  /* Light-mode surface tokens (default) */
+  --body-bg: #ffffff;
+  --panel-bg: #ffffff;
+  --panel-fg: var(--color-secondary-dark);
+  --panel-border: #e5e7eb;
+  --panel-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+  --input-bg: #ffffff;
+  --input-fg: var(--color-secondary-dark);
+  --input-border: #d1d5db;
+  --input-border-focus: var(--color-primary);
   --rail-bg: var(--color-accent);
   --rail-fg: var(--color-secondary);
   --sidebar-bg: var(--color-secondary);
   --sidebar-fg: var(--color-secondary-dark);
-  --tab-bg: #ffffff;
-  --tab-bg-active: #ffffff;
+  --sidebar-hover: rgba(68, 180, 146, 0.08);
+  --tab-bg: var(--panel-bg);
+  --tab-bg-active: var(--panel-bg);
   --tab-bg-inactive: #fafafa;
   --tab-border: #e5e7eb;
+  --tab-strip-bg: #e5e7eb;
   --text: var(--color-secondary-dark);
   --text-muted: #6b7280;
   --accent: var(--color-primary);
   --accent-fg: #ffffff;
   --error: var(--color-error);
   --error-fg: #ffffff;
+  --error-overlay-bg: rgba(239, 68, 68, 0.06);
+  --modal-overlay-bg: rgba(0, 0, 0, 0.4);
 
   /* Type */
   --font-sans: Quicksand, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
 
   font-family: var(--font-sans);
+  color-scheme: light dark;
 }
 
-* {
-  box-sizing: border-box;
+@media (prefers-color-scheme: dark) {
+  :root {
+    --body-bg: var(--color-secondary-dark);
+    --panel-bg: #1d1d20;
+    --panel-fg: var(--color-secondary);
+    --panel-border: #2e2e32;
+    --panel-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+    --input-bg: #161618;
+    --input-fg: var(--color-secondary);
+    --input-border: #3f3f46;
+    --rail-bg: #161618;
+    --rail-fg: var(--color-secondary);
+    --sidebar-bg: #161618;
+    --sidebar-fg: var(--color-secondary);
+    --sidebar-hover: rgba(68, 180, 146, 0.16);
+    --tab-bg: #1d1d20;
+    --tab-bg-active: #1d1d20;
+    --tab-bg-inactive: #0f1111;
+    --tab-border: #2e2e32;
+    --tab-strip-bg: #0f1111;
+    --text: var(--color-secondary);
+    --text-muted: #9ca3af;
+    --error-overlay-bg: rgba(239, 68, 68, 0.12);
+    --modal-overlay-bg: rgba(0, 0, 0, 0.6);
+  }
 }
+
+* { box-sizing: border-box; }
 
 html, body, #root {
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  width: 100%;
+  margin: 0; padding: 0;
+  height: 100%; width: 100%;
   overflow: hidden;
   color: var(--text);
-  background: #ffffff;
+  background: var(--body-bg);
 }
 
 button {
@@ -54,6 +91,24 @@ button {
 
 input, textarea {
   font: inherit;
+  background: var(--input-bg);
+  color: var(--input-fg);
+  border: 1px solid var(--input-border);
+  border-radius: 4px;
+  padding: 4px 8px;
+}
+input:focus, textarea:focus {
+  outline: none;
+  border-color: var(--input-border-focus, var(--accent));
+}
+input[type="color"] {
+  padding: 0;
+  height: 28px;
+  width: 48px;
+}
+input[type="checkbox"] {
+  width: auto;
+  height: auto;
 }
 
 .shell-root {
@@ -72,12 +127,16 @@ input, textarea {
 }
 .btn-primary:disabled {
   background: var(--text-muted);
+  color: var(--accent-fg);
   cursor: not-allowed;
 }
 .btn-secondary {
   background: transparent;
   color: var(--text);
-  border: 1px solid var(--tab-border);
+  border: 1px solid var(--panel-border);
   padding: 8px 16px;
   border-radius: 6px;
+}
+.btn-secondary:hover {
+  background: var(--sidebar-hover);
 }

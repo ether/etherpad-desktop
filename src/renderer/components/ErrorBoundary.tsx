@@ -26,7 +26,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
             {t.errorBoundary.showDetails}
           </button>
           {this.state.showDetails && (
-            <pre style={{ marginTop: 12, whiteSpace: 'pre-wrap' }}>{stack}</pre>
+            <pre style={{ marginTop: 12, whiteSpace: 'pre-wrap', background: 'var(--input-bg)', color: 'var(--input-fg)' }}>{stack}</pre>
           )}
         </div>
       );
