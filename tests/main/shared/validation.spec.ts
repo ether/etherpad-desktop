@@ -65,3 +65,48 @@ describe('workspacesFileSchema', () => {
     ).toThrow();
   });
 });
+
+import { padHistoryEntrySchema, padHistoryFileSchema } from '@shared/validation/pad-history';
+
+describe('padHistoryEntrySchema', () => {
+  it('accepts a valid entry', () => {
+    const e = {
+      workspaceId: '00000000-0000-4000-8000-000000000000',
+      padName: 'standup',
+      lastOpenedAt: 1700000000000,
+      pinned: false,
+    };
+    expect(padHistoryEntrySchema.parse(e)).toEqual(e);
+  });
+
+  it('accepts optional title', () => {
+    const e = {
+      workspaceId: '00000000-0000-4000-8000-000000000000',
+      padName: 'standup',
+      lastOpenedAt: 1,
+      pinned: true,
+      title: 'Daily standup',
+    };
+    expect(padHistoryEntrySchema.parse(e).title).toBe('Daily standup');
+  });
+
+  it('rejects empty padName', () => {
+    expect(() =>
+      padHistoryEntrySchema.parse({
+        workspaceId: '00000000-0000-4000-8000-000000000000',
+        padName: '',
+        lastOpenedAt: 1,
+        pinned: false,
+      }),
+    ).toThrow();
+  });
+});
+
+describe('padHistoryFileSchema', () => {
+  it('accepts an empty file', () => {
+    expect(padHistoryFileSchema.parse({ schemaVersion: 1, entries: [] })).toEqual({
+      schemaVersion: 1,
+      entries: [],
+    });
+  });
+});
