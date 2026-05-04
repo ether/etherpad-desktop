@@ -200,6 +200,7 @@ Goal: a working monorepo-shape (single package) that compiles, lints, tests, and
 ```json
 {
   "name": "etherpad-desktop",
+  "private": true,
   "version": "0.1.0",
   "description": "Native desktop client for Etherpad",
   "license": "Apache-2.0",
@@ -208,6 +209,7 @@ Goal: a working monorepo-shape (single package) that compiles, lints, tests, and
   "repository": "github:ether/etherpad-desktop",
   "main": "./out/main/index.cjs",
   "type": "module",
+  "packageManager": "pnpm@10.33.0",
   "engines": {
     "node": ">=20"
   },
@@ -242,7 +244,7 @@ Goal: a working monorepo-shape (single package) that compiles, lints, tests, and
     "@typescript-eslint/eslint-plugin": "^8.10.0",
     "@typescript-eslint/parser": "^8.10.0",
     "@vitejs/plugin-react": "^4.3.0",
-    "electron": "^32.0.0",
+    "electron": "^35.0.0",
     "electron-builder": "^25.0.0",
     "electron-vite": "^2.3.0",
     "eslint": "^8.57.0",
@@ -296,6 +298,8 @@ insert_final_newline = true
 
 ```
 auto-install-peers=true
+prefer-frozen-lockfile=true
+engine-strict=true
 ```
 
 - [ ] **Step 5: Run `pnpm install`**
