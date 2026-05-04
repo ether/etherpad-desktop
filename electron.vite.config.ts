@@ -38,7 +38,21 @@ export default defineConfig({
         input: { index: resolve('src/renderer/index.html') },
       },
     },
-    plugins: [react()],
+    plugins: [
+      react(),
+      // Vite 5+ adds a `crossorigin` attribute to <script type="module"> in
+      // production index.html. Under Electron's file:// protocol, browsers
+      // (Chromium incl.) refuse to execute crossorigin module scripts loaded
+      // from file:// — the renderer never bootstraps and the window is blank.
+      // Strip the attribute from the built index.html.
+      {
+        name: 'strip-crossorigin',
+        apply: 'build',
+        transformIndexHtml(html: string) {
+          return html.replace(/\s+crossorigin(=["'][^"']*["'])?/g, '');
+        },
+      },
+    ],
     resolve: {
       alias: { '@shared': resolve('src/shared') },
     },

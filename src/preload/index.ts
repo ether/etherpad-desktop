@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron';
-import { CH } from '../shared/ipc/channels.js';
+import { CH } from '../shared/ipc/channel-names.js';
 
 const invoke = <T>(channel: string, payload?: unknown): Promise<T> =>
   ipcRenderer.invoke(channel, payload ?? {});
