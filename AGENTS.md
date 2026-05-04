@@ -73,6 +73,16 @@ The bar is **solid, not fluffy**:
 - Every menu item has both an IPC-level test (in `keyboard-shortcuts.spec.ts`) AND a real `Menu.getApplicationMenu().items[…].click()` test (in `menu-click.spec.ts`).
 - Coverage audit at `docs/test-coverage-audit.md` — keep it current as new surface lands.
 
+## Tray module
+
+`src/main/app/tray.ts` exports `setupTray(opts) → TrayController`. The controller is lazily created — `setEnabled(true)` builds the Tray; `setEnabled(false)` destroys it. Construction errors (e.g., DEs without a system tray) are caught and logged; the setting still persists but has no visible effect.
+
+The `minimizeToTray` setting (default `false`) wires into `lifecycle.ts`:
+- `AppWindow` takes a `getMinimizeToTray?: () => boolean` callback; when it returns `true`, the `close` event is intercepted and the window is hidden instead.
+- `window-all-closed` skips `app.quit()` when `minimizeToTray` is on.
+- `before-quit` sets `allowQuit = true` and calls `tray.destroy()` so subsequent close events no longer intercept.
+- Settings changes to `minimizeToTray` call `tray.setEnabled(...)` via `ctx.onMinimizeToTrayChanged`.
+
 ## Known gotchas (paid for in production-bug currency)
 
 These are real bugs we've hit and fixed in this codebase. Keep them in mind:

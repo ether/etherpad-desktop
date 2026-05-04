@@ -3,7 +3,8 @@
 **Date:** 2026-05-03  
 **Branch:** `feat/linux-mvp`  
 **Baseline:** 143 unit tests, 38 E2E tests  
-**Post-fill:** 273 unit tests, 41 E2E tests
+**Post-fill:** 273 unit tests, 41 E2E tests  
+**After tray + sidebar filter:** 300 unit tests, 41 E2E tests
 
 ---
 
@@ -28,6 +29,12 @@
 | PadSidebar – ☆ on recent pads, ★ on pinned pads | render | ❌ | no test (pin/unpin UI new in M8) | ✅ |
 | PadSidebar – click ☆ on recent pad → padHistory.pin, no tab.open | click | ❌ | no test (pin/unpin UI new in M8) | ✅ |
 | PadSidebar – click ★ on pinned pad → padHistory.unpin, no tab.open | click | ❌ | no test (pin/unpin UI new in M8) | ✅ |
+| PadSidebar – filter input narrows pinned + recent lists | click | ❌ | new surface | ✅ |
+| PadSidebar – filter shows "No pads match" when empty | click | ❌ | new surface | ✅ |
+| PadSidebar – clearing filter restores all pads | click | ❌ | new surface | ✅ |
+| PadSidebar – +New Pad visible even when filter active | render | ❌ | new surface | ✅ |
+| PadSidebar – filter matches by title | click | ❌ | new surface | ✅ |
+| PadSidebar – filter is case-insensitive | click | ❌ | new surface | ✅ |
 | TabStrip – renders tabs per workspace | render | ✅ | — | ✅ |
 | TabStrip – click tab → ipc.tab.focus | click | ✅ | — | ✅ |
 | TabStrip – click ✕ → ipc.tab.close | click | ✅ | — | ✅ |
@@ -89,6 +96,7 @@
 | SettingsDialog – Clear All History → padHistory.clearAll | click | ❌ | no test | ✅ |
 | SettingsDialog – Remove workspace → opens RemoveWorkspaceDialog | click | ❌ | no test | ✅ |
 | SettingsDialog – Remove button per workspace | render | ❌ | no test | ✅ |
+| SettingsDialog – minimizeToTray checkbox toggle + save | click | ❌ | new surface | ✅ |
 | RemoveWorkspaceDialog – confirm calls workspace.remove | click | ✅ | — | ✅ |
 | RemoveWorkspaceDialog – shows workspace name | render | ❌ | no test | ✅ |
 | RemoveWorkspaceDialog – Cancel closes without remove | click | ❌ | no test | ✅ |
@@ -189,6 +197,25 @@
 
 ---
 
+## Tray Module (main process unit)
+
+| Surface | Type | Status |
+|---|---|---|
+| setupTray – creates Tray on setEnabled(true) | unit | ✅ |
+| setupTray – destroys Tray on setEnabled(false) | unit | ✅ |
+| setupTray – setEnabled(true) idempotent | unit | ✅ |
+| setupTray – setEnabled(false) no-op when disabled | unit | ✅ |
+| setupTray – destroy() cleans up active tray | unit | ✅ |
+| setupTray – destroy() no-op when never created | unit | ✅ |
+| setupTray – catches Tray construction errors silently | unit | ✅ |
+| setupTray – click event triggers onShow | unit | ✅ |
+| setupTray – context menu "Show" triggers onShow | unit | ✅ |
+| setupTray – context menu "Quit" triggers onQuit | unit | ✅ |
+| settings.update – calls onMinimizeToTrayChanged when value changes | handler | ✅ |
+| settings.update – does NOT call onMinimizeToTrayChanged when unchanged | handler | ✅ |
+
+---
+
 ## Menu Template (main process unit)
 
 | Surface | Type | Pre-audit | Gap | Post-fill |
@@ -239,6 +266,11 @@
 - ✅ All surfaces covered
 - ⚠️ Fluffy: 0
 - ❌ Gaps: 0
+
+**After tray + sidebar filter (2026-05-03):**
+- Unit tests: 300 (+27)
+- E2E tests: 41 (unchanged)
+- New surfaces: tray controller (10 tests), minimizeToTray handler (2 tests), sidebar filter (6 tests), minimizeToTray settings dialog (1 test), existing rememberTabs test fixed to use accessible name selector
 
 **Bugs found during pass:**
 - `AddWorkspaceDialog` test setup was missing `window.etherpadDesktop.window.setActiveWorkspace` mock, causing the "successful submit closes dialog" test to fail (the dialog's `submit()` calls `ipc.window.setActiveWorkspace` synchronously before `dialogActions.closeDialog()`). Fixed by adding the mock to `beforeEach`.
