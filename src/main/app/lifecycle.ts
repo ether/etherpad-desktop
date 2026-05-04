@@ -4,7 +4,7 @@ import { mkdirSync } from 'node:fs';
 import { paths } from '../storage/paths.js';
 import { configureLogging, getLogger } from '../logging/logger.js';
 import { registerEtherpadAppScheme } from './protocol.js';
-import { buildMenuTemplate } from './menu.js';
+import { buildMenuTemplate, applyMenuEnabledState } from './menu.js';
 import { setupTray } from './tray.js';
 import { WorkspaceStore } from '../workspaces/workspace-store.js';
 import { PadHistoryStore } from '../pads/pad-history-store.js';
@@ -27,6 +27,12 @@ export type AppContext = {
   rendererFile: string;
   /** Called by settings handlers after minimizeToTray changes, so the tray follows. */
   onMinimizeToTrayChanged?: (enabled: boolean) => void;
+  /**
+   * Called whenever something that affects the contextual menu state changes
+   * (active workspace, active tab). The lifecycle wires this to refresh the
+   * native menu's enabled/disabled state.
+   */
+  onMenuStateMayHaveChanged?: () => void;
 };
 
 export async function boot(): Promise<void> {
@@ -167,19 +173,35 @@ export async function boot(): Promise<void> {
     }
   }
 
-  Menu.setApplicationMenu(
-    Menu.buildFromTemplate(
-      buildMenuTemplate({
-        newTab: () => ipcRef.current?.broadcastShell('menu.newTab'),
-        openPad: () => ipcRef.current?.broadcastShell('menu.openPad'),
-        reload: () => ipcRef.current?.broadcastShell('menu.reload'),
-        settings: () => ipcRef.current?.broadcastShell('menu.settings'),
-        quit: () => app.quit(),
-        about: () => ipcRef.current?.broadcastShell('menu.about'),
-        openLogs: () => void shell.openPath(ps.logsDir),
-      }),
-    ),
+  const appMenu = Menu.buildFromTemplate(
+    buildMenuTemplate({
+      newTab: () => ipcRef.current?.broadcastShell('menu.newTab'),
+      openPad: () => ipcRef.current?.broadcastShell('menu.openPad'),
+      reload: () => ipcRef.current?.broadcastShell('menu.reload'),
+      settings: () => ipcRef.current?.broadcastShell('menu.settings'),
+      quit: () => app.quit(),
+      about: () => ipcRef.current?.broadcastShell('menu.about'),
+      openLogs: () => void shell.openPath(ps.logsDir),
+    }),
   );
+  Menu.setApplicationMenu(appMenu);
+
+  /** Recompute menu item enabled state from the current windows' active tabs. */
+  const refreshMenuEnabledState = () => {
+    const wins = windowManager.list().filter((w) => !w.window.isDestroyed());
+    // For app-level menu, "active tab" is true if ANY window has one — the
+    // shortcuts target the focused window, but the menu is global.
+    const hasActiveWorkspace = wins.some((w) => w.tabManager.getActiveWorkspaceId() !== null);
+    const hasActiveTab = wins.some((w) => w.tabManager.getActiveTabId() !== null);
+    applyMenuEnabledState(appMenu, { hasActiveWorkspace, hasActiveTab });
+  };
+
+  // Wire the menu refresh into the AppContext so workspace/tab/active-workspace
+  // mutations all trigger it. (Patching ipcRef.current.emitTabsChanged from
+  // here would miss direct deps captures inside individual IPC handler
+  // factories.)
+  ctx.onMenuStateMayHaveChanged = refreshMenuEnabledState;
+  refreshMenuEnabledState();
 
   app.on('second-instance', () => {
     const wins = windowManager.list();

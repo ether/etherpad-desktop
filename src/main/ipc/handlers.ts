@@ -28,8 +28,10 @@ export function registerIpc(ctx: AppContext): IpcRegistration {
     }
   };
 
-  const emitWorkspacesChanged = () =>
+  const emitWorkspacesChanged = () => {
     broadcastShell(CH.EV_WORKSPACES_CHANGED, { workspaces: ctx.workspaces.list(), order: ctx.workspaces.order() });
+    ctx.onMenuStateMayHaveChanged?.();
+  };
   const emitPadHistoryChanged = () =>
     broadcastShell(CH.EV_PAD_HISTORY_CHANGED, { ts: Date.now() });
   const emitTabsChanged = () => {
@@ -39,6 +41,7 @@ export function registerIpc(ctx: AppContext): IpcRegistration {
         activeTabId: w.tabManager.getActiveTabId(),
       });
     }
+    ctx.onMenuStateMayHaveChanged?.();
   };
   const emitTabState = (_window: unknown, change: { tabId: string; state: string; errorMessage?: string; title?: string }) => {
     broadcastShell(CH.EV_TAB_STATE, change);

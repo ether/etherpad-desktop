@@ -1,4 +1,4 @@
-import type { MenuItemConstructorOptions } from 'electron';
+import type { Menu, MenuItemConstructorOptions } from 'electron';
 
 export type MenuCallbacks = {
   newTab: () => void;
@@ -10,17 +10,25 @@ export type MenuCallbacks = {
   openLogs: () => void;
 };
 
+/** IDs used to locate items for dynamic enable/disable. */
+export const MENU_IDS = {
+  newTab: 'menu.newTab',
+  openPad: 'menu.openPad',
+  closeTab: 'menu.closeTab',
+  reload: 'menu.reload',
+} as const;
+
 export function buildMenuTemplate(cb: MenuCallbacks): MenuItemConstructorOptions[] {
   return [
     {
       label: 'File',
       submenu: [
-        { label: 'New Tab', accelerator: 'CmdOrCtrl+T', click: () => cb.newTab() },
-        { label: 'Open Pad…', accelerator: 'CmdOrCtrl+O', click: () => cb.openPad() },
+        { id: MENU_IDS.newTab, label: 'New Tab', accelerator: 'CmdOrCtrl+T', click: () => cb.newTab() },
+        { id: MENU_IDS.openPad, label: 'Open Pad…', accelerator: 'CmdOrCtrl+O', click: () => cb.openPad() },
         { type: 'separator' },
         { label: 'Settings', accelerator: 'CmdOrCtrl+,', click: () => cb.settings() },
         { type: 'separator' },
-        { label: 'Close Tab', accelerator: 'CmdOrCtrl+W', role: 'close' },
+        { id: MENU_IDS.closeTab, label: 'Close Tab', accelerator: 'CmdOrCtrl+W', role: 'close' },
         { label: 'Quit', accelerator: 'CmdOrCtrl+Q', click: () => cb.quit() },
       ],
     },
@@ -39,7 +47,7 @@ export function buildMenuTemplate(cb: MenuCallbacks): MenuItemConstructorOptions
     {
       label: 'View',
       submenu: [
-        { label: 'Reload Pad', accelerator: 'CmdOrCtrl+R', click: () => cb.reload() },
+        { id: MENU_IDS.reload, label: 'Reload Pad', accelerator: 'CmdOrCtrl+R', click: () => cb.reload() },
         { type: 'separator' },
         { role: 'resetZoom' },
         { role: 'zoomIn' },
@@ -60,4 +68,39 @@ export function buildMenuTemplate(cb: MenuCallbacks): MenuItemConstructorOptions
       ],
     },
   ];
+}
+
+/** State the menu items react to. */
+export type MenuContext = {
+  hasActiveWorkspace: boolean;
+  hasActiveTab: boolean;
+};
+
+/**
+ * Compute which menu items should be enabled given the current app state.
+ * Pure function — no Electron dependency — so it can be unit tested.
+ */
+export function computeMenuEnabled(ctx: MenuContext): Record<keyof typeof MENU_IDS, boolean> {
+  return {
+    // Opening a pad needs a workspace to put it in.
+    newTab: ctx.hasActiveWorkspace,
+    openPad: ctx.hasActiveWorkspace,
+    // Closing the active tab only makes sense if one is open.
+    closeTab: ctx.hasActiveTab,
+    // Reload only makes sense if there's a pad to reload.
+    reload: ctx.hasActiveTab,
+  };
+}
+
+/**
+ * Apply the computed enabled state to an Electron Menu. Looks up items by
+ * their stable IDs from MENU_IDS.
+ */
+export function applyMenuEnabledState(menu: Menu | null, ctx: MenuContext): void {
+  if (!menu) return;
+  const enabled = computeMenuEnabled(ctx);
+  for (const [key, id] of Object.entries(MENU_IDS) as [keyof typeof MENU_IDS, string][]) {
+    const item = menu.getMenuItemById(id);
+    if (item) item.enabled = enabled[key];
+  }
 }

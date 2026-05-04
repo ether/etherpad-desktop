@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { buildMenuTemplate } from '../../../src/main/app/menu';
+import { buildMenuTemplate, computeMenuEnabled, applyMenuEnabledState, MENU_IDS } from '../../../src/main/app/menu';
 import type { MenuItemConstructorOptions } from 'electron';
 
 type MenuItem = { label?: string; role?: string; click?: () => void; accelerator?: string; type?: string };
@@ -120,5 +120,70 @@ describe('buildMenuTemplate', () => {
     const t = buildMenuTemplate(makeCallbacks());
     const closeTab = getSubmenu(t, 'File').find((m) => m.label === 'Close Tab');
     expect(closeTab?.role).toBe('close');
+  });
+
+  it('reload-able items have stable IDs for runtime enable/disable', () => {
+    const t = buildMenuTemplate(makeCallbacks());
+    const file = getSubmenu(t, 'File') as Array<MenuItem & { id?: string }>;
+    const view = getSubmenu(t, 'View') as Array<MenuItem & { id?: string }>;
+    expect(file.find((m) => m.label === 'New Tab')?.id).toBe(MENU_IDS.newTab);
+    expect(file.find((m) => m.label === 'Open Pad…')?.id).toBe(MENU_IDS.openPad);
+    expect(file.find((m) => m.label === 'Close Tab')?.id).toBe(MENU_IDS.closeTab);
+    expect(view.find((m) => m.label === 'Reload Pad')?.id).toBe(MENU_IDS.reload);
+  });
+});
+
+describe('computeMenuEnabled', () => {
+  it('disables newTab/openPad when no active workspace', () => {
+    const r = computeMenuEnabled({ hasActiveWorkspace: false, hasActiveTab: false });
+    expect(r.newTab).toBe(false);
+    expect(r.openPad).toBe(false);
+  });
+
+  it('enables newTab/openPad when there is an active workspace', () => {
+    const r = computeMenuEnabled({ hasActiveWorkspace: true, hasActiveTab: false });
+    expect(r.newTab).toBe(true);
+    expect(r.openPad).toBe(true);
+  });
+
+  it('disables closeTab and reload when no active tab', () => {
+    const r = computeMenuEnabled({ hasActiveWorkspace: true, hasActiveTab: false });
+    expect(r.closeTab).toBe(false);
+    expect(r.reload).toBe(false);
+  });
+
+  it('enables closeTab and reload when a tab is active', () => {
+    const r = computeMenuEnabled({ hasActiveWorkspace: true, hasActiveTab: true });
+    expect(r.closeTab).toBe(true);
+    expect(r.reload).toBe(true);
+  });
+
+  it('all four items disabled at first launch (no workspaces, no tabs)', () => {
+    const r = computeMenuEnabled({ hasActiveWorkspace: false, hasActiveTab: false });
+    expect(Object.values(r).every((v) => v === false)).toBe(true);
+  });
+});
+
+describe('applyMenuEnabledState', () => {
+  it('null menu is a no-op (does not throw)', () => {
+    expect(() => applyMenuEnabledState(null, { hasActiveWorkspace: false, hasActiveTab: false })).not.toThrow();
+  });
+
+  it('writes computed enabled state onto items resolved by id', () => {
+    const items: Record<string, { id: string; enabled: boolean }> = {};
+    for (const id of Object.values(MENU_IDS)) items[id] = { id, enabled: true };
+    const fakeMenu = {
+      getMenuItemById: (id: string) => items[id] ?? null,
+    };
+    applyMenuEnabledState(fakeMenu as never, { hasActiveWorkspace: false, hasActiveTab: false });
+    for (const id of Object.values(MENU_IDS)) expect(items[id]!.enabled).toBe(false);
+
+    applyMenuEnabledState(fakeMenu as never, { hasActiveWorkspace: true, hasActiveTab: true });
+    for (const id of Object.values(MENU_IDS)) expect(items[id]!.enabled).toBe(true);
+  });
+
+  it('tolerates missing menu items (returns null)', () => {
+    const fakeMenu = { getMenuItemById: () => null };
+    expect(() => applyMenuEnabledState(fakeMenu as never, { hasActiveWorkspace: true, hasActiveTab: true })).not.toThrow();
   });
 });
