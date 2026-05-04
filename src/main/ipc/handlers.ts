@@ -34,7 +34,10 @@ export function registerIpc(ctx: AppContext): IpcRegistration {
     broadcastShell(CH.EV_PAD_HISTORY_CHANGED, { ts: Date.now() });
   const emitTabsChanged = () => {
     for (const w of ctx.windowManager.list()) {
-      w.shellView.webContents.send(CH.EV_TABS_CHANGED, { tabs: w.tabManager.listAll() });
+      w.shellView.webContents.send(CH.EV_TABS_CHANGED, {
+        tabs: w.tabManager.listAll(),
+        activeTabId: w.tabManager.getActiveTabId(),
+      });
     }
   };
   const emitTabState = (_window: unknown, change: { tabId: string; state: string; errorMessage?: string; title?: string }) => {

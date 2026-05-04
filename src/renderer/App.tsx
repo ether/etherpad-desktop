@@ -56,8 +56,11 @@ export function App(): JSX.Element {
         useShellStore.setState({ workspaces: payload.workspaces, workspaceOrder: payload.order });
       }),
       ipc.events.onTabsChanged((p) => {
-        const payload = p as { tabs: typeof tabs };
+        const payload = p as { tabs: typeof tabs; activeTabId?: string | null };
         useShellStore.getState().replaceTabs(payload.tabs);
+        if (payload.activeTabId !== undefined) {
+          useShellStore.getState().setActiveTabId(payload.activeTabId ?? null);
+        }
       }),
       ipc.events.onTabState((p) => {
         const change = p as { tabId: string; state: string; errorMessage?: string; title?: string };
@@ -88,6 +91,10 @@ export function App(): JSX.Element {
         const k = (p as { kind: string }).kind;
         if (k === 'menu.newTab' || k === 'menu.openPad') dialogActions.openDialog('openPad');
         if (k === 'menu.settings') dialogActions.openDialog('settings');
+        if (k === 'menu.reload') {
+          const { activeTabId: activeId } = useShellStore.getState();
+          if (activeId) void ipc.tab.reload({ tabId: activeId });
+        }
       }),
     ];
     return () => offs.forEach((o) => o());

@@ -32,6 +32,8 @@ export class TabManager {
 
   getActiveWorkspaceId(): string | null { return this.activeWorkspaceId; }
 
+  getActiveTabId(): string | null { return this.activeTabId; }
+
   setActiveWorkspace(workspaceId: string | null): void {
     this.activeWorkspaceId = workspaceId;
     for (const t of this.tabs) {
