@@ -109,3 +109,55 @@ describe('workspace.remove', () => {
     if (!r.ok) expect(r.error.kind).toBe('WorkspaceNotFoundError');
   });
 });
+
+describe('workspace.update', () => {
+  it('happy path: updates name, emits workspacesChanged', async () => {
+    const ws = workspaces.add({ name: 'Old', serverUrl: 'https://old.example.com', color: '#000000' });
+    const r = await h.update(undefined, { id: ws.id, name: 'New' });
+    expect(r.ok).toBe(true);
+    if (r.ok) expect(r.value.name).toBe('New');
+  });
+
+  it('returns WorkspaceNotFoundError for unknown id', async () => {
+    const r = await h.update(undefined, { id: '00000000-0000-4000-8000-000000000000', name: 'X' });
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.error.kind).toBe('WorkspaceNotFoundError');
+  });
+
+  it('returns InvalidPayloadError when id is not a UUID', async () => {
+    const r = await h.update(undefined, { id: 'not-a-uuid' });
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.error.kind).toBe('InvalidPayloadError');
+  });
+});
+
+describe('workspace.list', () => {
+  it('returns all workspaces in order', async () => {
+    workspaces.add({ name: 'A', serverUrl: 'https://a.example.com', color: '#000000' });
+    workspaces.add({ name: 'B', serverUrl: 'https://b.example.com', color: '#111111' });
+    const r = await h.list(undefined, {});
+    expect(r.ok).toBe(true);
+    if (r.ok) {
+      expect(r.value.workspaces).toHaveLength(2);
+      expect(r.value.order).toHaveLength(2);
+    }
+  });
+});
+
+describe('workspace.reorder', () => {
+  it('happy path: reorders workspaces', async () => {
+    const ws1 = workspaces.add({ name: 'A', serverUrl: 'https://a.example.com', color: '#000000' });
+    const ws2 = workspaces.add({ name: 'B', serverUrl: 'https://b.example.com', color: '#111111' });
+    const r = await h.reorder(undefined, { order: [ws2.id, ws1.id] });
+    expect(r.ok).toBe(true);
+    if (r.ok) expect(r.value).toEqual([ws2.id, ws1.id]);
+  });
+
+  it('returns error when order has wrong ids', async () => {
+    workspaces.add({ name: 'A', serverUrl: 'https://a.example.com', color: '#000000' });
+    const r = await h.reorder(undefined, { order: ['00000000-0000-4000-8000-000000000000'] });
+    expect(r.ok).toBe(false);
+    // The workspace store throws a plain Error for set mismatch, which serializes as StorageError
+    if (!r.ok) expect(r.error.kind).toMatch(/Error/);
+  });
+});

@@ -60,4 +60,126 @@ describe('tab.open', () => {
     expect(r.ok).toBe(false);
     if (!r.ok) expect(r.error.kind).toBe('WorkspaceNotFoundError');
   });
+
+  it('returns InvalidPayloadError for empty padName', async () => {
+    const ws = workspaces.add({ name: 'A', serverUrl: 'https://x', color: '#000000' });
+    const r = await h.open(undefined, { workspaceId: ws.id, padName: '', mode: 'open' });
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.error.kind).toBe('InvalidPayloadError');
+  });
+
+  it('passes mode=create through to the src resolution', async () => {
+    const ws = workspaces.add({ name: 'A', serverUrl: 'https://x', color: '#000000' });
+    const r = await h.open(undefined, { workspaceId: ws.id, padName: 'newpad', mode: 'create' });
+    expect(r.ok).toBe(true);
+    expect(openInActive).toHaveBeenCalledWith(
+      expect.objectContaining({ padName: 'newpad' }),
+    );
+  });
+
+  it('emits tabsChanged and padHistoryChanged after opening', async () => {
+    const emitTabs = vi.fn();
+    const emitHist = vi.fn();
+    h = tabHandlers({
+      workspaces,
+      padHistory,
+      padSync,
+      openInActiveWindow: openInActive,
+      closeInAnyWindow: vi.fn(),
+      focusInAnyWindow: vi.fn(),
+      reloadInAnyWindow: vi.fn(),
+      emitTabsChanged: emitTabs,
+      emitPadHistoryChanged: emitHist,
+      getLanguage: () => 'en',
+    });
+    const ws = workspaces.add({ name: 'A', serverUrl: 'https://x', color: '#000000' });
+    await h.open(undefined, { workspaceId: ws.id, padName: 'foo', mode: 'open' });
+    expect(emitTabs).toHaveBeenCalled();
+    expect(emitHist).toHaveBeenCalled();
+  });
+});
+
+describe('tab.close', () => {
+  it('calls closeInAnyWindow and emits tabsChanged', async () => {
+    const closeInAny = vi.fn();
+    const emitTabs = vi.fn();
+    h = tabHandlers({
+      workspaces,
+      padHistory,
+      padSync,
+      openInActiveWindow: openInActive,
+      closeInAnyWindow: closeInAny,
+      focusInAnyWindow: vi.fn(),
+      reloadInAnyWindow: vi.fn(),
+      emitTabsChanged: emitTabs,
+      emitPadHistoryChanged: vi.fn(),
+      getLanguage: () => 'en',
+    });
+    const r = await h.close(undefined, { tabId: 'some-tab' });
+    expect(r.ok).toBe(true);
+    expect(closeInAny).toHaveBeenCalledWith('some-tab');
+    expect(emitTabs).toHaveBeenCalled();
+  });
+
+  it('returns InvalidPayloadError for empty tabId', async () => {
+    const r = await h.close(undefined, { tabId: '' });
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.error.kind).toBe('InvalidPayloadError');
+  });
+});
+
+describe('tab.focus', () => {
+  it('calls focusInAnyWindow and emits tabsChanged', async () => {
+    const focusInAny = vi.fn();
+    const emitTabs = vi.fn();
+    h = tabHandlers({
+      workspaces,
+      padHistory,
+      padSync,
+      openInActiveWindow: openInActive,
+      closeInAnyWindow: vi.fn(),
+      focusInAnyWindow: focusInAny,
+      reloadInAnyWindow: vi.fn(),
+      emitTabsChanged: emitTabs,
+      emitPadHistoryChanged: vi.fn(),
+      getLanguage: () => 'en',
+    });
+    const r = await h.focus(undefined, { tabId: 'tab-42' });
+    expect(r.ok).toBe(true);
+    expect(focusInAny).toHaveBeenCalledWith('tab-42');
+    expect(emitTabs).toHaveBeenCalled();
+  });
+
+  it('returns InvalidPayloadError for empty tabId', async () => {
+    const r = await h.focus(undefined, { tabId: '' });
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.error.kind).toBe('InvalidPayloadError');
+  });
+});
+
+describe('tab.reload', () => {
+  it('calls reloadInAnyWindow with the tabId', async () => {
+    const reloadInAny = vi.fn();
+    h = tabHandlers({
+      workspaces,
+      padHistory,
+      padSync,
+      openInActiveWindow: openInActive,
+      closeInAnyWindow: vi.fn(),
+      focusInAnyWindow: vi.fn(),
+      reloadInAnyWindow: reloadInAny,
+      emitTabsChanged: vi.fn(),
+      emitPadHistoryChanged: vi.fn(),
+      getLanguage: () => 'en',
+    });
+    const r = await h.reload(undefined, { tabId: 'tab-reload' });
+    expect(r.ok).toBe(true);
+    expect(reloadInAny).toHaveBeenCalledWith('tab-reload');
+  });
+
+  it('returns InvalidPayloadError for empty tabId', async () => {
+    const r = await h.reload(undefined, { tabId: '' });
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.error.kind).toBe('InvalidPayloadError');
+  });
 });
