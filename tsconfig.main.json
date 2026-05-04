@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "out/main",
+    "lib": ["ES2022"],
+    "types": ["node"],
+    "composite": true,
+    "noEmit": true
+  },
+  "include": ["src/main/**/*.ts", "src/shared/**/*.ts"],
+  "references": [{ "path": "./tsconfig.shared.json" }]
+}

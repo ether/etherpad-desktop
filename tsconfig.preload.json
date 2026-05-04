@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "out/preload",
+    "lib": ["ES2022", "DOM"],
+    "types": ["node"],
+    "composite": true,
+    "noEmit": true
+  },
+  "include": ["src/preload/**/*.ts", "src/shared/**/*.ts"],
+  "references": [{ "path": "./tsconfig.shared.json" }]
+}
