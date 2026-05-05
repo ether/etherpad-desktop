@@ -45,6 +45,13 @@ export class TabManager {
   private readonly tabs: Internal[] = [];
   private activeWorkspaceId: string | null = null;
   private activeTabId: string | null = null;
+  /**
+   * Tracks open() calls that are still awaiting factory.create() so a
+   * second rapid click on the same pad doesn't race past the existence
+   * check and end up creating a duplicate tab. Keyed by
+   * `${workspaceId}|${padName}`.
+   */
+  private readonly inflight = new Map<string, Promise<OpenTab>>();
 
   constructor(private readonly opts: TabManagerOptions) {}
 
@@ -76,27 +83,50 @@ export class TabManager {
       this.emitTabs();
       return existing.tab;
     }
-    const view = await this.opts.factory.create({
-      workspaceId: input.workspaceId,
-      src: input.src,
-      preloadPath: this.opts.preloadPath,
-    });
-    const tab: OpenTab = {
-      tabId: randomUUID(),
-      workspaceId: input.workspaceId,
-      padName: input.padName,
-      title: input.padName,
-      state: 'loading',
-    };
-    this.tabs.push({ tab, view });
-    this.opts.viewHost.add(view);
-    if (input.workspaceId === this.activeWorkspaceId) {
-      this.activeTabId = tab.tabId;
+    // Coalesce rapid concurrent opens for the same (workspace, pad) pair.
+    // Without this, two clicks <100ms apart both see no existing tab,
+    // both await factory.create(), both push their own view, and the
+    // user ends up with duplicate tabs.
+    const key = `${input.workspaceId}|${input.padName}`;
+    const inflight = this.inflight.get(key);
+    if (inflight) return inflight;
+
+    const promise = (async () => {
+      const view = await this.opts.factory.create({
+        workspaceId: input.workspaceId,
+        src: input.src,
+        preloadPath: this.opts.preloadPath,
+      });
+      // Re-check after the await: another path (e.g. a concurrent
+      // restoration) may have created the tab while we were waiting.
+      const raced = this.tabs.find(
+        (t) => t.tab.workspaceId === input.workspaceId && t.tab.padName === input.padName,
+      );
+      if (raced) return raced.tab;
+      const tab: OpenTab = {
+        tabId: randomUUID(),
+        workspaceId: input.workspaceId,
+        padName: input.padName,
+        title: input.padName,
+        state: 'loading',
+      };
+      this.tabs.push({ tab, view });
+      this.opts.viewHost.add(view);
+      if (input.workspaceId === this.activeWorkspaceId) {
+        this.activeTabId = tab.tabId;
+      }
+      this.applyVisibility();
+      this.wireViewEvents(tab.tabId, view);
+      return tab;
+    })();
+    this.inflight.set(key, promise);
+    try {
+      const tab = await promise;
+      this.emitTabs();
+      return tab;
+    } finally {
+      this.inflight.delete(key);
     }
-    this.applyVisibility();
-    this.wireViewEvents(tab.tabId, view);
-    this.emitTabs();
-    return tab;
   }
 
   close(tabId: string): void {

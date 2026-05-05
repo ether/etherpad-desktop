@@ -4,7 +4,14 @@ import type { PadView } from '../../../src/main/pads/pad-view-factory';
 
 function fakeView(): PadView {
   return {
-    webContents: { loadURL: vi.fn().mockResolvedValue(undefined), on: vi.fn(), id: 1 },
+    webContents: {
+      loadURL: vi.fn().mockResolvedValue(undefined),
+      on: vi.fn(),
+      getUserAgent: vi.fn(() => 'Mozilla/5.0 Test'),
+      setUserAgent: vi.fn(),
+      focus: vi.fn(),
+      id: 1,
+    },
     setBounds: vi.fn(),
     setVisible: vi.fn(),
   };
@@ -52,6 +59,55 @@ describe('TabManager', () => {
     const a = await mgr.open({ workspaceId: WS_A, padName: 'p', src: 'https://x/p/p' });
     const b = await mgr.open({ workspaceId: WS_A, padName: 'p', src: 'https://x/p/p' });
     expect(b.tabId).toBe(a.tabId);
+    expect(factory.create).toHaveBeenCalledTimes(1);
+  });
+
+  // REGRESSION: 2026-05-05 — user reported a pad opening multiple times
+  // when clicked quickly in succession. The dedup check looked for an
+  // existing tab BEFORE awaiting factory.create(); two concurrent opens
+  // both passed the check and both pushed their own view, producing
+  // duplicate tabs. Coalesce concurrent opens for the same key.
+  it('coalesces rapid concurrent opens for the same (workspaceId, padName)', async () => {
+    // Slow factory: returns a promise that resolves on the next tick so
+    // both calls overlap inside open().
+    let resolveCreate!: (v: PadView) => void;
+    factory.create = vi.fn().mockImplementation(
+      () => new Promise<PadView>((r) => { resolveCreate = r; }),
+    );
+    const p1 = mgr.open({ workspaceId: WS_A, padName: 'samepad', src: 'https://x/p/samepad' });
+    const p2 = mgr.open({ workspaceId: WS_A, padName: 'samepad', src: 'https://x/p/samepad' });
+    // Resolve the (single) factory call.
+    resolveCreate(fakeView());
+    const [a, b] = await Promise.all([p1, p2]);
+    expect(b.tabId).toBe(a.tabId);
+    expect(factory.create).toHaveBeenCalledTimes(1);
+    expect(host.add).toHaveBeenCalledTimes(1);
+  });
+
+  it('coalesces three concurrent opens too — all share one tab', async () => {
+    let resolveCreate!: (v: PadView) => void;
+    factory.create = vi.fn().mockImplementation(
+      () => new Promise<PadView>((r) => { resolveCreate = r; }),
+    );
+    const opens = [
+      mgr.open({ workspaceId: WS_A, padName: 'pad', src: 'https://x/p/pad' }),
+      mgr.open({ workspaceId: WS_A, padName: 'pad', src: 'https://x/p/pad' }),
+      mgr.open({ workspaceId: WS_A, padName: 'pad', src: 'https://x/p/pad' }),
+    ];
+    resolveCreate(fakeView());
+    const results = await Promise.all(opens);
+    const ids = new Set(results.map((t) => t.tabId));
+    expect(ids.size).toBe(1);
+    expect(factory.create).toHaveBeenCalledTimes(1);
+  });
+
+  it('after a coalesced open finishes, a later open with the same key returns the same tab', async () => {
+    const a = await mgr.open({ workspaceId: WS_A, padName: 'p', src: 'https://x/p/p' });
+    const b = await mgr.open({ workspaceId: WS_A, padName: 'p', src: 'https://x/p/p' });
+    expect(b.tabId).toBe(a.tabId);
+    // The inflight map should be empty after each open() resolves —
+    // verified indirectly by factory.create being called exactly once
+    // across two completed (non-overlapping) opens.
     expect(factory.create).toHaveBeenCalledTimes(1);
   });
 
