@@ -25,6 +25,7 @@ jobs:
   e2e:
     runs-on: ubuntu-latest
     needs: lint-typecheck-test
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -35,6 +36,12 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm build
+      # Warm the npx cache for the etherpad-lite tarball BEFORE the test
+      # run so the global-setup wait doesn't race the download. Without
+      # this, cold runners spend 4-5 minutes fetching + extracting the
+      # tarball inside waitForReady's window.
+      - name: Pre-warm etherpad-lite npx cache
+        run: pnpm dlx etherpad-lite@latest --help || true
       - run: pnpm test:e2e
         env:
           CI: 'true'
