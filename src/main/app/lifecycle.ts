@@ -90,7 +90,7 @@ export async function boot(): Promise<void> {
   // intercepting once a real quit is in progress.
   let allowQuit = false;
 
-  const trayIconPath = join(__dirname, '../../build/icons/icon-32.png');
+  const trayIconPath = join(__dirname, '../../build/icons/tray-icon.png');
 
   const windowManager = new WindowManager<AppWindow>({
     factory: (opts) => {
