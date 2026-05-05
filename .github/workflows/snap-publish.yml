@@ -61,7 +61,12 @@ jobs:
           # electron-builder's snap target invokes snapcraft under the hood; in
           # CI we want destructive-mode (no LXD container).
           SNAPCRAFT_BUILD_ENVIRONMENT: 'host'
-        run: pnpm exec electron-builder --linux snap --config build/electron-builder.yml
+        # --publish never: electron-builder otherwise tries to push to the
+        # Snap Store during build when it sees a git tag, but
+        # SNAPCRAFT_STORE_CREDENTIALS is only available in the publish-*
+        # jobs below. Disable implicit publish; the dedicated job uses
+        # snapcore/action-publish with the credentials properly scoped.
+        run: pnpm exec electron-builder --linux snap --config build/electron-builder.yml --publish never
 
       - name: Locate snap file
         id: find
