@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1](https://github.com/ether/etherpad-desktop/compare/v0.3.0...v0.3.1) (2026-05-05)
+
+
+### Bug Fixes
+
+* **snap:** remove duplicate + invalid plug entries ([#15](https://github.com/ether/etherpad-desktop/issues/15)) ([08f92be](https://github.com/ether/etherpad-desktop/commit/08f92be9cc6cc6035d8fdd4ee2d4bc578ecb15bc))
+
 ## [0.3.0](https://github.com/ether/etherpad-desktop/compare/v0.2.1...v0.3.0) (2026-05-05)
 
 
