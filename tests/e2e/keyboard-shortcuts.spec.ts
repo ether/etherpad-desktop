@@ -95,6 +95,63 @@ test('Ctrl+, equivalent — menu.settings opens Settings dialog', async () => {
   }
 });
 
+// FEATURE: 2026-05-05 — Ctrl/Cmd+1..9 fast-switch to the Nth pad of the
+// active workspace, matching browser tab-switch shortcuts. The shortcut
+// is a renderer-side keydown listener (not a native menu accelerator),
+// so we simulate the keypress via Playwright's keyboard API.
+test('Ctrl+1 focuses the first pad of the active workspace', async () => {
+  const h = await launchApp();
+  try {
+    await setupOneWorkspace(h, 'KbdNum');
+    await openPad(h, 'pad-1');
+    await openPad(h, 'pad-2');
+    await openPad(h, 'pad-3');
+    // pad-3 is the latest opened, likely active. Press Ctrl+1.
+    await h.shell.keyboard.press('Control+1');
+    // Active tab is pad-1 — its tab should carry aria-selected=true.
+    const tab1 = h.shell.getByRole('tab', { name: /pad-1/ });
+    await expect(tab1).toHaveAttribute('aria-selected', 'true');
+  } finally {
+    await h.close();
+  }
+});
+
+test('Ctrl+9 jumps to the LAST pad (browser convention)', async () => {
+  const h = await launchApp();
+  try {
+    await setupOneWorkspace(h, 'KbdNum9');
+    await openPad(h, 'pad-a');
+    await openPad(h, 'pad-b');
+    await openPad(h, 'pad-c');
+    // Switch back to pad-a first so we have something to switch FROM.
+    await h.shell.getByRole('tab', { name: /pad-a/ }).click();
+    await expect(h.shell.getByRole('tab', { name: /pad-a/ })).toHaveAttribute('aria-selected', 'true');
+    // Now Ctrl+9 → last pad (pad-c).
+    await h.shell.keyboard.press('Control+9');
+    await expect(h.shell.getByRole('tab', { name: /pad-c/ })).toHaveAttribute('aria-selected', 'true');
+  } finally {
+    await h.close();
+  }
+});
+
+test('Ctrl+1 is a no-op when typing in an input field', async () => {
+  const h = await launchApp();
+  try {
+    await setupOneWorkspace(h, 'KbdNumInput');
+    await openPad(h, 'pad-1');
+    await openPad(h, 'pad-2');
+    // Open a dialog with an input (Open Pad)
+    await h.shell.getByRole('button', { name: /new pad/i }).click();
+    const padNameInput = h.shell.getByLabel(/pad name/i);
+    await padNameInput.fill('test1');
+    // Inside the input, Ctrl+1 must NOT switch tabs — the dialog stays.
+    await padNameInput.press('Control+1');
+    await expect(h.shell.getByRole('heading', { name: /open a pad/i })).toBeVisible();
+  } finally {
+    await h.close();
+  }
+});
+
 test('Ctrl+W equivalent — close tab via IPC removes the tab', async () => {
   // Ctrl+W uses role:'close' on the menu item which maps to BrowserWindow close.
   // In tests we verify the tab.close IPC path directly from the renderer,

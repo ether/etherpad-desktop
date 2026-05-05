@@ -133,19 +133,38 @@ export function App(): React.JSX.Element {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      // Ctrl+K (or Cmd+K) and Ctrl+F (or Cmd+F) open the quick switcher unless
-      // an input/textarea already has focus (we don't want to swallow user typing in dialogs).
+      const target = e.target as HTMLElement | null;
+      const inEditable = !!(target && (
+        target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.isContentEditable
+      ));
+
+      // Ctrl/Cmd + 1..9 — fast switch to the Nth pad of the active workspace,
+      // matching Chrome / Firefox tab-switching shortcuts. 9 jumps to the
+      // last open pad (browser convention). Skipped when an input is focused
+      // so users can still type "1" in fields.
+      if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && /^[1-9]$/.test(e.key)) {
+        if (inEditable) return;
+        const state = useShellStore.getState();
+        const wsId = state.activeWorkspaceId;
+        if (!wsId) return;
+        const padsForWs = state.tabs.filter((t) => t.workspaceId === wsId);
+        if (padsForWs.length === 0) return;
+        const n = Number(e.key);
+        const target = n === 9 ? padsForWs[padsForWs.length - 1] : padsForWs[n - 1];
+        if (!target) return;
+        e.preventDefault();
+        void ipc.tab.focus({ tabId: target.tabId });
+        return;
+      }
+
+      // Ctrl/Cmd + K or F — open the quick switcher.
       const isK = e.key === 'k' || e.key === 'K';
       const isF = e.key === 'f' || e.key === 'F';
       if (!isK && !isF) return;
       if (!(e.ctrlKey || e.metaKey)) return;
-      const target = e.target as HTMLElement | null;
-      if (
-        target &&
-        (target.tagName === 'INPUT' ||
-          target.tagName === 'TEXTAREA' ||
-          target.isContentEditable)
-      ) {
+      if (inEditable) {
         // If the quick switcher itself is open, that's fine — the dialog will see Esc.
         if (useShellStore.getState().openDialog !== 'quickSwitcher') return;
       }
