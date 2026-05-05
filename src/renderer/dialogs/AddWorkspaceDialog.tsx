@@ -44,25 +44,25 @@ export function AddWorkspaceDialog({ dismissable }: { dismissable: boolean }): R
     <div role="dialog" aria-modal="true" aria-labelledby="add-ws-title" style={overlayStyle}>
       <div style={panelStyle}>
         <h2 id="add-ws-title">{t.addWorkspace.title}</h2>
-        <label>
-          {t.addWorkspace.nameLabel}
+        <label className="dialog-field">
+          <span className="dialog-label">{t.addWorkspace.nameLabel}</span>
           <input value={name} onChange={(e) => setName(e.target.value)} autoFocus required />
         </label>
-        <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+        <label className="dialog-field-inline">
           <input
             type="checkbox"
             checked={useEmbedded}
             onChange={(e) => setUseEmbedded(e.target.checked)}
           />
-          {t.addWorkspace.embeddedToggle}
+          <span>{t.addWorkspace.embeddedToggle}</span>
         </label>
         {useEmbedded ? (
           <p style={{ margin: 0, fontSize: '0.875em', color: 'var(--panel-fg)', opacity: 0.75 }}>
             {t.addWorkspace.embeddedHint}
           </p>
         ) : (
-          <label>
-            {t.addWorkspace.serverUrlLabel}
+          <label className="dialog-field">
+            <span className="dialog-label">{t.addWorkspace.serverUrlLabel}</span>
             <input
               value={serverUrl}
               onChange={(e) => setServerUrl(e.target.value)}

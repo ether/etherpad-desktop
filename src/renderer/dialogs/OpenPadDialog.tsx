@@ -26,8 +26,8 @@ export function OpenPadDialog(): React.JSX.Element {
     <div role="dialog" aria-modal="true" aria-labelledby="open-pad-title" style={overlayStyle}>
       <div style={panelStyle}>
         <h2 id="open-pad-title">{t.openPad.title}</h2>
-        <label>
-          {t.openPad.label}
+        <label className="dialog-field">
+          <span className="dialog-label">{t.openPad.label}</span>
           <input value={name} onChange={(e) => setName(e.target.value)} autoFocus />
         </label>
         {matches.length > 0 && (
@@ -41,9 +41,9 @@ export function OpenPadDialog(): React.JSX.Element {
             ))}
           </ul>
         )}
-        <label>
+        <label className="dialog-field-inline">
           <input type="checkbox" checked={createMode} onChange={(e) => setCreateMode(e.target.checked)} />
-          {t.openPad.create}
+          <span>{t.openPad.create}</span>
         </label>
         <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
           <button className="btn-primary" onClick={() => void submit()} disabled={!name}>

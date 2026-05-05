@@ -117,6 +117,32 @@ input[type="checkbox"] {
   grid-template-rows: 40px 1fr;
 }
 
+/* Dialog form rows: label stacked above input with breathing room. */
+.dialog-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.dialog-label {
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 500;
+}
+.dialog-field input,
+.dialog-field select,
+.dialog-field textarea {
+  width: 100%;
+}
+.dialog-field-inline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+.dialog-field-inline input[type="checkbox"] {
+  flex: 0 0 auto;
+}
+
 .btn-primary {
   background: var(--accent);
   color: var(--accent-fg);
