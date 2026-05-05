@@ -318,14 +318,24 @@ some are signals of intent.
 - **Drag-tab-to-reorder** in the tab strip.
 - **Drag-tab-to-tear-off** into a new window.
 
+### Code signing — explicit non-goal
+
+We will **never** pay code-signing fees to ship Etherpad Desktop. Apple's
+$99/yr Developer ID and Microsoft's EV / Azure Trusted Signing programs
+exist to gate independent open-source software behind a recurring tax,
+and we're not paying it. Windows users will see the SmartScreen warning
+on first run; macOS users will need to right-click → Open the first
+time. Both work fine after that.
+
+If a third party (an enterprise, distribution, fork, or anyone else)
+wants to **roll out their own signed build** of this codebase, you're
+absolutely welcome to. Apache-2.0 lets you do exactly that — clone,
+re-brand, sign with your own developer ID, ship it under your own
+publisher name. Open-source means the option is there for whoever
+values the warning-free first launch enough to fund it themselves.
+
 ### Later
 
-- **Code-signed + notarised macOS builds.** Current DMGs are unsigned
-  so Gatekeeper warns on first launch; proper distribution needs an
-  Apple Developer ID + notarisation tickets.
-- **Code-signed Windows builds.** Current Windows binaries are unsigned;
-  signing requires an EV cert (or Azure Trusted Signing) and removes
-  the SmartScreen warning on first run.
 - **Offline editing / local pad cache.** When an instance is unreachable,
   open the most recently cached version of pads and queue local edits for
   replay when the server returns.
