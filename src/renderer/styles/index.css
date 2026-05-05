@@ -292,6 +292,13 @@ input[type="checkbox"] {
   color: var(--accent);
 }
 
+/* ── Pad sidebar scrollable list ── */
+.pad-sidebar-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
 /* ── Sidebar filter ── */
 .sidebar-filter {
   width: 100%;

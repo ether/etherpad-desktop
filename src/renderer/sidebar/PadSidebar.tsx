@@ -24,7 +24,7 @@ export function PadSidebar(): React.JSX.Element {
   return (
     <aside
       aria-label="Pad sidebar"
-      style={{ background: 'var(--sidebar-bg)', height: '100%', padding: 8, overflowY: 'auto' }}
+      style={{ background: 'var(--sidebar-bg)', height: '100%', padding: 8, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
     >
       <button
         className="sidebar-search"
@@ -43,7 +43,7 @@ export function PadSidebar(): React.JSX.Element {
         + {t.sidebar.newPad}
       </button>
 
-      <>
+      <div className="pad-sidebar-list">
         {pinned.length > 0 && (
           <section>
             <h3 style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 16 }}>{t.sidebar.pinned}</h3>
@@ -103,7 +103,7 @@ export function PadSidebar(): React.JSX.Element {
             ))}
           </ul>
         </section>
-      </>
+      </div>
     </aside>
   );
 }
