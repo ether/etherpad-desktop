@@ -31,6 +31,33 @@ linux:
       Categories: Office;TextEditor;
       StartupWMClass: etherpad-desktop
 
+win:
+  target:
+    # NSIS — proper installer with shortcuts and an uninstaller.
+    - target: nsis
+      arch: x64
+    # Portable — single-file .exe that runs without installing.
+    # Same binary, no shortcuts, no uninstaller. Useful for testers.
+    - target: portable
+      arch: x64
+  icon: build/icons/icon.ico
+  # Beta: ship UNSIGNED. Windows SmartScreen will warn on first run;
+  # that's expected for an unsigned build. Signing requires an EV
+  # cert — out of scope for v0 beta.
+  signAndEditExecutable: false
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: Etherpad Desktop
+  artifactName: ${productName}-Setup-${version}.${ext}
+
+portable:
+  artifactName: ${productName}-${version}-portable.${ext}
+
 deb:
   packageCategory: editors
   depends:

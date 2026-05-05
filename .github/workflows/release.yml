@@ -32,3 +32,34 @@ jobs:
             release/*.deb
             release/latest-linux.yml
           retention-days: 14
+
+  release-windows:
+    # Runs in parallel with the Linux job on every tag push. Builds an
+    # NSIS installer + a portable .exe on a real Windows runner (we
+    # could cross-compile via Wine on Linux, but Windows runner gives
+    # the most predictable artefacts and avoids electron-builder's
+    # Wine-specific quirks). Both artefacts are UNSIGNED for the v0
+    # beta — Windows SmartScreen will warn the user the first time.
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Install
+        run: pnpm install --frozen-lockfile
+      - name: Build
+        run: pnpm build
+      - name: Package
+        run: pnpm exec electron-builder --win --config build/electron-builder.yml --publish always
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-artifacts
+          path: |
+            release/*.exe
+            release/latest.yml
+          retention-days: 14

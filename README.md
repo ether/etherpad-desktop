@@ -8,9 +8,10 @@ the keyboard shortcuts you'd expect from a modern app.
 > TypeScript strict end-to-end. Apache-2.0, matching upstream Etherpad.
 
 > [!NOTE]
-> **Status: Linux-first MVP.** AppImage, `.deb`, and Snap are the launch
-> targets. Windows and macOS builds are on the roadmap once the Linux release
-> stabilises.
+> **Status: v0 beta.** Linux (AppImage / `.deb` / Snap) and Windows (NSIS
+> installer / portable `.exe`) ship in the same beta release. macOS is
+> on the roadmap. Windows binaries are currently **unsigned** — Windows
+> SmartScreen will warn on first run; click "More info" → "Run anyway."
 
 ![Etherpad Desktop main window with two Etherpad instances, sidebar, and an open pad](docs/images/screenshot-main.png)
 
@@ -159,26 +160,28 @@ On macOS, swap `Ctrl` for `Cmd`. Both modifiers are accepted globally.
 
 ---
 
-## Install (Linux)
+## Install
 
 Download the latest release from
-[Releases](https://github.com/ether/etherpad-desktop/releases):
+[Releases](https://github.com/ether/etherpad-desktop/releases).
 
-### AppImage (single-file, no install)
+### Linux
+
+#### AppImage (single-file, no install)
 
 ```bash
 chmod +x Etherpad-Desktop-<version>.AppImage
 ./Etherpad-Desktop-<version>.AppImage
 ```
 
-### `.deb` (Debian / Ubuntu / Mint)
+#### `.deb` (Debian / Ubuntu / Mint)
 
 ```bash
 sudo apt install ./etherpad-desktop_<version>_amd64.deb
 etherpad-desktop
 ```
 
-### Snap (once on the Snap Store)
+#### Snap (once on the Snap Store)
 
 ```bash
 sudo snap install etherpad-desktop
@@ -186,6 +189,21 @@ sudo snap install etherpad-desktop
 
 The snap auto-updates from the channel you subscribe to (`edge` for nightly,
 `stable` for tagged releases).
+
+### Windows
+
+Two flavours, both x64, both **unsigned for v0 beta** (SmartScreen will
+warn on first run; click "More info" → "Run anyway"):
+
+- **`Etherpad Desktop-Setup-<version>.exe`** — NSIS installer with
+  desktop and Start Menu shortcuts and a proper uninstaller. Default
+  install is per-user (no admin needed); the installer offers to change
+  the install location.
+- **`Etherpad Desktop-<version>-portable.exe`** — single-file portable
+  launcher. No install, no shortcuts, no registry writes — useful for
+  testers who don't want anything on their machine.
+
+Both binaries auto-update via electron-updater on tagged releases.
 
 ---
 
@@ -256,9 +274,11 @@ some are signals of intent.
 
 ### Later
 
-- **Windows and macOS builds.** `electron-builder` already supports both;
-  the holdouts are code-signing certificates and per-platform packaging
-  decisions (MSI vs NSIS on Windows; .dmg/.pkg on macOS).
+- **macOS build.** `electron-builder` supports it; what's left is a
+  signed .dmg/.pkg with a notarised developer-ID cert.
+- **Code-signed Windows builds.** Current Windows binaries are unsigned;
+  signing requires an EV cert (or Azure Trusted Signing) and removes
+  the SmartScreen warning on first run.
 - **Offline editing / local pad cache.** When an instance is unreachable,
   open the most recently cached version of pads and queue local edits for
   replay when the server returns.
