@@ -1,6 +1,12 @@
 export const en = {
   app: { title: 'Etherpad Desktop' },
-  rail: { add: 'Add workspace', settings: 'Settings', search: 'Search workspaces and pads (Ctrl+K)' },
+  rail: {
+    add: 'Add workspace',
+    settings: 'Settings',
+    search: 'Search workspaces and pads (Ctrl+K)',
+    collapse: 'Hide workspaces (focus mode)',
+    expand: 'Show workspaces',
+  },
   sidebar: {
     pinned: 'Pinned',
     recent: 'Recent',

@@ -41,6 +41,7 @@ export function App(): React.JSX.Element {
   const openDialog = useShellStore((s) => s.openDialog);
   const activeWorkspaceId = useShellStore((s) => s.activeWorkspaceId);
   const tabs = useShellStore((s) => s.tabs);
+  const railCollapsed = useShellStore((s) => s.railCollapsed);
 
   useEffect(() => {
     void (async () => {
@@ -164,7 +165,7 @@ export function App(): React.JSX.Element {
 
   return (
     <ErrorBoundary onReload={() => void ipc.window.reloadShell()}>
-      <div className="shell-root-wrapper">
+      <div className={`shell-root-wrapper${railCollapsed ? ' rail-collapsed' : ''}`}>
         <UpdaterBanner />
         <div className="shell-root">
           <div style={{ gridColumn: '1', gridRow: '1 / span 2' }}>

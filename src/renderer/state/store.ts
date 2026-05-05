@@ -26,12 +26,15 @@ export type ShellState = {
   openDialog: DialogKind;
   dialogContext: Record<string, unknown>;
   updaterState: UpdaterState;
+  /** Whether the workspace rail is collapsed (session-local, not persisted). */
+  railCollapsed: boolean;
 
   hydrate(input: { workspaces: Workspace[]; workspaceOrder: string[]; settings: Settings }): void;
   setActiveWorkspaceId(id: string | null): void;
   replaceTabs(tabs: OpenTab[]): void;
   setActiveTabId(id: string | null): void;
   setPadHistory(workspaceId: string, entries: PadHistoryEntry[]): void;
+  toggleRailCollapsed(): void;
 };
 
 const initialState = {
@@ -45,6 +48,7 @@ const initialState = {
   openDialog: null as DialogKind,
   dialogContext: {} as Record<string, unknown>,
   updaterState: { kind: 'idle' } as UpdaterState,
+  railCollapsed: false,
 };
 
 export const useShellStore = create<ShellState>()((set) => ({
@@ -61,6 +65,7 @@ export const useShellStore = create<ShellState>()((set) => ({
   setActiveTabId: (id) => set({ activeTabId: id }),
   setPadHistory: (workspaceId, entries) =>
     set((s) => ({ padHistory: { ...s.padHistory, [workspaceId]: entries } })),
+  toggleRailCollapsed: () => set((s) => ({ railCollapsed: !s.railCollapsed })),
 }));
 
 // Allow tests to reset the store to its initial state

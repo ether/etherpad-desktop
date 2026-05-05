@@ -399,6 +399,11 @@ input[type="checkbox"] {
 .updater-banner-warn  { background: rgba(245, 158, 11, 0.10); color: var(--color-warning, #f59e0b); }
 .updater-banner-actions { display: flex; gap: 8px; }
 
+/* ── Rail-collapsed layout override ── */
+.shell-root-wrapper.rail-collapsed .shell-root {
+  grid-template-columns: 36px 240px 1fr;
+}
+
 /* ── Workspace rail ── */
 .workspace-rail {
   background: var(--rail-bg);
@@ -409,6 +414,14 @@ input[type="checkbox"] {
   padding: 8px 0;
   overflow: hidden;
 }
+/* Collapsed variant: narrower, icons hidden, only collapse-toggle shows. */
+.workspace-rail-collapsed {
+  width: 36px;
+}
+.workspace-rail-collapsed .workspace-rail-bottom {
+  padding-top: 4px;
+}
+
 .workspace-rail-scroll {
   display: flex;
   flex-direction: column;
