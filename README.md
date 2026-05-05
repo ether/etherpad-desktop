@@ -15,15 +15,6 @@ the keyboard shortcuts you'd expect from a modern app.
 
 ![Etherpad Desktop main window with two Etherpad instances, sidebar, and an open pad](docs/images/screenshot-main.png)
 
-> _Drop a screenshot at `docs/images/screenshot-main.png` to replace this
-> caption — main window with the rail, pad sidebar, and an open pad._
-
-![Quick switcher with fuzzy content search](docs/images/screenshot-quick-switcher.gif)
-
-> _And a short GIF at `docs/images/screenshot-quick-switcher.gif` showing
-> Ctrl+K opening the quick switcher and `monki` matching `monkey` via fuzzy
-> search._
-
 ---
 
 ## Why use Etherpad Desktop instead of a browser tab?
