@@ -91,8 +91,9 @@ test('Ctrl+F opens quick switcher when focus is outside a pad', async () => {
     await h.shell.getByRole('button', { name: /^add$/i }).click();
     await expect(h.shell.getByRole('button', { name: /open workspace ctrlftest/i })).toBeVisible();
 
-    // Trigger Ctrl+F on the shell window (no pad WebContentsView has focus)
-    await h.shell.press('Control+f');
+    // Trigger Ctrl+F on the shell window (no pad WebContentsView has focus).
+    // Focus the body first to ensure the keydown fires on the shell window.
+    await h.shell.locator('body').press('Control+f');
     await expect(h.shell.getByRole('dialog', { name: /quick switcher/i })).toBeVisible();
   } finally {
     await h.close();

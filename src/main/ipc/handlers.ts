@@ -1,4 +1,5 @@
-import { ipcMain, BrowserWindow, session } from 'electron';
+import { ipcMain, BrowserWindow, session, session as electronSession } from 'electron';
+import { installPermissionHandler } from '../app/permissions.js';
 import { randomUUID } from 'node:crypto';
 import { CH } from '@shared/ipc/channels';
 import { workspaceHandlers } from './workspace-handlers.js';
@@ -75,6 +76,7 @@ export function registerIpc(ctx: AppContext): IpcRegistration {
     probeIsEtherpad,
     emitWorkspacesChanged,
     emitPadHistoryChanged,
+    onWorkspaceAdded: (id) => installPermissionHandler(electronSession.fromPartition(`persist:ws-${id}`)),
     ...(ctx.embeddedServer !== undefined ? { embeddedServer: ctx.embeddedServer } : {}),
     ...(ctx.padContentIndex !== undefined ? { clearPadContentIndex: (id: string) => ctx.padContentIndex!.clear(id) } : {}),
   });

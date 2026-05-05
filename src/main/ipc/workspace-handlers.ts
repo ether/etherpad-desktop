@@ -26,6 +26,8 @@ export type WorkspaceHandlerDeps = {
   emitPadHistoryChanged: () => void;
   embeddedServer?: EmbeddedServerController;
   clearPadContentIndex?: (workspaceId: string) => void;
+  /** Called after a workspace is persisted, e.g. to install a session permission handler. */
+  onWorkspaceAdded?: (workspaceId: string) => void;
 };
 
 export function workspaceHandlers(deps: WorkspaceHandlerDeps) {
@@ -46,6 +48,7 @@ export function workspaceHandlers(deps: WorkspaceHandlerDeps) {
           color: input.color,
           kind: 'embedded',
         });
+        deps.onWorkspaceAdded?.(ws.id);
         deps.emitWorkspacesChanged();
         return ws;
       }
@@ -61,6 +64,7 @@ export function workspaceHandlers(deps: WorkspaceHandlerDeps) {
       }
       if (!ok) throw new NotAnEtherpadServerError(input.serverUrl);
       const ws = deps.workspaces.add({ name: input.name, serverUrl: input.serverUrl, color: input.color });
+      deps.onWorkspaceAdded?.(ws.id);
       deps.emitWorkspacesChanged();
       return ws;
     }),

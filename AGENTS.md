@@ -153,6 +153,17 @@ These are real bugs we've hit and fixed in this codebase. Keep them in mind:
 
 12. **Pad URL must include `?lang=<code>`** to set Etherpad's pad UI language. Pure `webContents.reload()` does NOT pick up a setting change because the URL is unchanged. Use `webContents.loadURL(newUrl)` to apply language changes.
 
+13. **Electron silently denies all permission requests by default.** `session.setPermissionRequestHandler` must be called for plugins like `ep_webrtc` that need camera/mic (`'media'`). See `src/main/app/permissions.ts` and the `installPermissionHandler` call in `lifecycle.ts` (default session) and `workspace-handlers.ts` (per-workspace partitions on add).
+
+### Manual smoke test — plugin permissions (ep_webrtc)
+
+1. Stop your local Etherpad: `pkill -f 'node.*9001'`.
+2. Install the plugin: `cd /home/jose/etherpad/etherpad-lite/src && pnpm add ep_webrtc`.
+3. Restart: `pnpm --filter ep_etherpad-lite run prod -- --settings /tmp/epd-adhoc/settings.json &`.
+4. In the desktop app, open a pad on http://127.0.0.1:9001.
+5. Click the camera icon (ep_webrtc adds one).
+6. Electron should show a permission prompt or grant silently. If camera/mic is silently denied, the per-workspace partition didn't pick up the handler — check `installPermissionHandler` is called for both the default session and `persist:ws-<id>`.
+
 13. **Zustand selectors that build new arrays/objects per call** (e.g. `s => s.padHistory[wsId] ?? []`) cause infinite re-render loops. Use a stable empty-value sentinel: `const EMPTY: never[] = []`; return that instead of `[]` literals. Pattern in `PadSidebar.tsx` and `OpenPadDialog.tsx`.
 
 14. **`window.etherpadDesktop` capture in `renderer/ipc/api.ts` is lazy** (a getter), so test mocks (`window.etherpadDesktop = {…}` in `beforeEach`) take effect on each call. Don't capture eagerly at module top.

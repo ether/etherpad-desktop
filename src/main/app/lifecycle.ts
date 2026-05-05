@@ -1,4 +1,4 @@
-import { app, dialog, Menu, protocol, shell } from 'electron';
+import { app, dialog, Menu, protocol, session as electronSession, shell } from 'electron';
 import { join } from 'node:path';
 import { mkdirSync } from 'node:fs';
 import { paths } from '../storage/paths.js';
@@ -21,6 +21,7 @@ import type { EmbeddedServerController } from '../embedded/embedded-server.js';
 import { createPadContentIndex } from '../pads/pad-content-index.js';
 import type { PadContentIndex } from '../pads/pad-content-index.js';
 import { CH } from '@shared/ipc/channel-names.js';
+import { installPermissionHandler } from './permissions.js';
 
 export type AppContext = {
   windowManager: WindowManager<AppWindow>;
@@ -70,6 +71,9 @@ export async function boot(): Promise<void> {
   const log = await getLogger('lifecycle');
 
   await app.whenReady();
+
+  // Install permission handler on the default session.
+  installPermissionHandler(electronSession.defaultSession);
 
   const workspaces = new WorkspaceStore(ps.workspacesFile);
   const padHistory = new PadHistoryStore(ps.padHistoryFile);
@@ -141,6 +145,12 @@ export async function boot(): Promise<void> {
     void embeddedServer.start().catch((e) => {
       log.warn('failed to start embedded server on boot', { message: (e as Error).message });
     });
+  }
+
+  // Install permission handler on all existing per-workspace sessions.
+  // New partitions get the handler when a workspace is added (via workspace-handlers).
+  for (const ws of workspaces.list()) {
+    installPermissionHandler(electronSession.fromPartition(`persist:ws-${ws.id}`));
   }
 
   const padContentIndex = createPadContentIndex({ log });
