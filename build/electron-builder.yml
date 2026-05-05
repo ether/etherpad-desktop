@@ -58,6 +58,38 @@ nsis:
 portable:
   artifactName: ${productName}-${version}-portable.${ext}
 
+mac:
+  target:
+    # DMG is the canonical macOS distribution format. Build for both
+    # Apple Silicon and Intel so testers on either architecture work.
+    - target: dmg
+      arch:
+        - arm64
+        - x64
+    # Zip is what electron-updater prefers for delta updates on macOS;
+    # smaller and faster to download than the dmg.
+    - target: zip
+      arch:
+        - arm64
+        - x64
+  icon: build/icons/icon.icns
+  category: public.app-category.productivity
+  # Beta: ship UNSIGNED. Without an Apple Developer ID + notarisation,
+  # macOS Gatekeeper will block first launch with "Etherpad Desktop
+  # cannot be opened because the developer cannot be verified" — users
+  # need to Right-click → Open the first time. Signing + notarisation
+  # is on the roadmap for the v1 release.
+  identity: null
+  # Hardened runtime is required for notarisation; with identity:null
+  # we explicitly turn it off so build doesn't try to enable it.
+  hardenedRuntime: false
+  gatekeeperAssess: false
+
+dmg:
+  artifactName: ${productName}-${version}-${arch}.${ext}
+  # Skip code signing the dmg too (paired with mac.identity:null above).
+  sign: false
+
 deb:
   packageCategory: editors
   depends:

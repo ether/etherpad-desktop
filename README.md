@@ -8,10 +8,11 @@ the keyboard shortcuts you'd expect from a modern app.
 > TypeScript strict end-to-end. Apache-2.0, matching upstream Etherpad.
 
 > [!NOTE]
-> **Status: v0 beta.** Linux (AppImage / `.deb` / Snap) and Windows (NSIS
-> installer / portable `.exe`) ship in the same beta release. macOS is
-> on the roadmap. Windows binaries are currently **unsigned** — Windows
-> SmartScreen will warn on first run; click "More info" → "Run anyway."
+> **Status: v0 beta.** Linux (AppImage / `.deb` / Snap), Windows (NSIS
+> installer / portable `.exe`), and macOS (DMG, arm64 + x64) ship in the
+> same beta release. Windows + macOS binaries are currently **unsigned**
+> — SmartScreen and Gatekeeper will warn on first run. On Windows click
+> "More info" → "Run anyway"; on macOS right-click → Open.
 
 ![Etherpad Desktop main window with two Etherpad instances, sidebar, and an open pad](docs/images/screenshot-main.png)
 
@@ -196,6 +197,19 @@ warn on first run; click "More info" → "Run anyway"):
 
 Both binaries auto-update via electron-updater on tagged releases.
 
+### macOS
+
+Two flavours, both **unsigned for v0 beta** (Gatekeeper will block first
+launch — right-click → Open the first time, after which subsequent
+launches just work):
+
+- **`Etherpad Desktop-<version>-arm64.dmg`** — Apple Silicon (M1/M2/M3/M4).
+- **`Etherpad Desktop-<version>-x64.dmg`** — Intel.
+
+Both arches also ship a `*-mac.zip` for electron-updater's delta-update
+feed; you don't need to download those manually unless you're scripting
+auto-update.
+
 ---
 
 ## Develop
@@ -265,8 +279,9 @@ some are signals of intent.
 
 ### Later
 
-- **macOS build.** `electron-builder` supports it; what's left is a
-  signed .dmg/.pkg with a notarised developer-ID cert.
+- **Code-signed + notarised macOS builds.** Current DMGs are unsigned
+  so Gatekeeper warns on first launch; proper distribution needs an
+  Apple Developer ID + notarisation tickets.
 - **Code-signed Windows builds.** Current Windows binaries are unsigned;
   signing requires an EV cert (or Azure Trusted Signing) and removes
   the SmartScreen warning on first run.

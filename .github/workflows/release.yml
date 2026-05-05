@@ -38,6 +38,40 @@ jobs:
             release/latest-linux.yml
           retention-days: 14
 
+  release-macos:
+    # Builds DMG (Apple Silicon + Intel) and ZIP (electron-updater feed)
+    # on a real macOS runner. UNSIGNED for the v0 beta — Gatekeeper
+    # will warn on first launch; users right-click → Open the first
+    # time, after which subsequent launches just work.
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Install
+        run: pnpm install --frozen-lockfile
+      - name: Build
+        run: pnpm build
+      - name: Package
+        # --mac builds DMG + ZIP for both arm64 and x64. CSC_IDENTITY_AUTO_DISCOVERY=false
+        # tells electron-builder NOT to sniff the keychain for a signing
+        # identity (we don't have one for the beta).
+        run: pnpm exec electron-builder --mac --config build/electron-builder.yml --publish always
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-artifacts
+          path: |
+            release/*.dmg
+            release/*-mac.zip
+            release/latest-mac.yml
+          retention-days: 14
+
   release-windows:
     # Runs in parallel with the Linux job on every tag push. Builds an
     # NSIS installer + a portable .exe on a real Windows runner (we
