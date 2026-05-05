@@ -130,3 +130,30 @@ describe('setupTray', () => {
     expect(opts.onQuit).toHaveBeenCalledTimes(1);
   });
 });
+
+// REGRESSION: 2026-05-05 the lifecycle references
+// build/icons/tray-icon.png (a black-and-white silhouette derived from
+// icon-32.png). The original commit that introduced the path forgot to
+// generate the file on disk — Tray would have silently appeared blank.
+// Pin the contract: the file must exist AND lifecycle.ts must reference it.
+import { existsSync, readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+
+describe('tray icon asset', () => {
+  it('build/icons/tray-icon.png exists and is a valid PNG', () => {
+    const path = resolve('build/icons/tray-icon.png');
+    expect(existsSync(path)).toBe(true);
+    const buf = readFileSync(path);
+    // PNG magic: 89 50 4E 47 0D 0A 1A 0A
+    expect(buf[0]).toBe(0x89);
+    expect(buf[1]).toBe(0x50);
+    expect(buf[2]).toBe(0x4e);
+    expect(buf[3]).toBe(0x47);
+  });
+
+  it('lifecycle.ts references tray-icon.png (not the colour icon-32.png)', () => {
+    const lifecycle = readFileSync(resolve('src/main/app/lifecycle.ts'), 'utf8');
+    expect(lifecycle).toContain('tray-icon.png');
+    expect(lifecycle).not.toMatch(/trayIconPath\s*=\s*[^;]*icon-32\.png/);
+  });
+});

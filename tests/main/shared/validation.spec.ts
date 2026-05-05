@@ -126,6 +126,13 @@ describe('settingsSchema', () => {
   it('rejects bad colour hex', () => {
     expect(() => settingsSchema.parse({ ...defaultSettings, accentColor: 'red' })).toThrow();
   });
+
+  // REGRESSION: 2026-05-05 user said 'I'm okay with this being normally enabled
+  // by default' for minimize-to-tray. The default flipped from false → true.
+  // Pin the contract so a future schema edit doesn't silently revert.
+  it('defaults minimizeToTray to true', () => {
+    expect(defaultSettings.minimizeToTray).toBe(true);
+  });
 });
 
 import { windowStateSchema } from '@shared/validation/window-state';

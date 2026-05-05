@@ -87,7 +87,7 @@ describe('SettingsDialog', () => {
 
   it('toggling rememberOpenTabsOnQuit checkbox is reflected in update call', async () => {
     render(<SettingsDialog />);
-    const checkbox = screen.getByRole('checkbox', { name: /remember open tabs/i });
+    const checkbox = screen.getByRole('checkbox', { name: /remember open pads/i });
     // starts checked=true; uncheck it
     await userEvent.click(checkbox);
     await userEvent.click(screen.getByRole('button', { name: /save/i }));
