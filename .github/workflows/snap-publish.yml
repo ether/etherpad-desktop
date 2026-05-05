@@ -70,9 +70,15 @@ jobs:
 
       - name: Locate snap file
         id: find
+        # Output the BASENAME, not release/<name>.snap. actions/upload-artifact
+        # flattens release/*.snap into the artifact root, so when publish-edge
+        # downloads it the file lands at the workspace root — `release/` doesn't
+        # exist there. Using just the basename keeps the same path valid in
+        # both the build job (after `cd release` is implicit) and the publish
+        # job (after artifact download).
         run: |
           file=$(ls release/*.snap | head -n1)
-          echo "path=$file" >> "$GITHUB_OUTPUT"
+          echo "path=$(basename "$file")" >> "$GITHUB_OUTPUT"
 
       - name: Upload snap artifact
         uses: actions/upload-artifact@v4
