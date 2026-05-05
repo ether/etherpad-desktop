@@ -8,7 +8,6 @@ export function WorkspaceRail(): React.JSX.Element {
   const workspaces = useShellStore((s) => s.workspaces);
   const active = useShellStore((s) => s.activeWorkspaceId);
   const collapsed = useShellStore((s) => s.railCollapsed);
-  const toggleCollapsed = useShellStore((s) => s.toggleRailCollapsed);
   const byId = Object.fromEntries(workspaces.map((w) => [w.id, w]));
 
   const select = async (id: string) => {
@@ -73,14 +72,6 @@ export function WorkspaceRail(): React.JSX.Element {
           </button>
         </div>
       )}
-      <button
-        aria-label={collapsed ? t.rail.expand : t.rail.collapse}
-        title={collapsed ? t.rail.expand : t.rail.collapse}
-        onClick={toggleCollapsed}
-        className="workspace-rail-handle"
-      >
-        {collapsed ? '›' : '‹'}
-      </button>
     </nav>
   );
 }

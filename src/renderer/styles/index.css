@@ -140,8 +140,9 @@ input[type="checkbox"] {
 
 .shell-root {
   display: grid;
-  grid-template-columns: 64px 240px 1fr;
   grid-template-rows: 40px 1fr;
+  /* grid-template-columns set further down via --rail-width / --sidebar-width
+     so the collapse handle can position against the same vars. */
 }
 
 /* ── Dialog shell ── */
@@ -217,6 +218,34 @@ input[type="checkbox"] {
 }
 .btn-secondary:hover {
   background: var(--sidebar-hover);
+}
+
+/* ── Workspace edit row (inside Settings dialog) ── */
+.workspace-edit-row {
+  display: grid;
+  grid-template-columns: 16px 1fr 32px auto;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.workspace-edit-swatch {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  border: 1px solid var(--panel-border);
+  flex-shrink: 0;
+}
+.workspace-edit-name {
+  min-width: 0;
+}
+.workspace-edit-color {
+  width: 32px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--panel-border);
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
 }
 
 /* ── Settings dialog layout ── */
@@ -456,9 +485,64 @@ input[type="checkbox"] {
 .updater-banner-warn  { background: rgba(245, 158, 11, 0.10); color: var(--color-warning, #f59e0b); }
 .updater-banner-actions { display: flex; gap: 8px; }
 
-/* ── Rail-collapsed layout override ── */
-.shell-root-wrapper.rail-collapsed .shell-root {
-  grid-template-columns: 36px 240px 1fr;
+/* ── Shell layout columns (CSS variables) ──
+   Externalised so the collapse handle can position itself at the
+   sidebar/pad boundary using calc() against the same source of truth. */
+.shell-root-wrapper {
+  --rail-width: 64px;
+  --sidebar-width: 240px;
+  position: relative; /* anchors the absolute-positioned collapse handle */
+}
+.shell-root {
+  grid-template-columns: var(--rail-width) var(--sidebar-width) 1fr;
+}
+
+/* ── "Focus mode" — both rail AND sidebar hidden, only the pad shows ── */
+.shell-root-wrapper.rail-collapsed {
+  --rail-width: 0px;
+  --sidebar-width: 0px;
+}
+.shell-root-wrapper.rail-collapsed .workspace-rail,
+.shell-root-wrapper.rail-collapsed aside[aria-label] {
+  display: none;
+}
+
+/* ── Collapse / expand handle ──
+   Anchored vertically at 50% of the shell. Horizontally it tracks the
+   sidebar/pad boundary: when expanded it sits flush with the sidebar's
+   right edge; when collapsed (sidebar+rail hidden) it slides to the left
+   edge of the pad area so the user can re-expand from focus mode. */
+.shell-collapse-handle {
+  position: absolute;
+  top: 50%;
+  left: calc(var(--rail-width) + var(--sidebar-width) - 10px);
+  transform: translateY(-50%);
+  width: 20px;
+  height: 56px;
+  border: 1px solid var(--panel-border);
+  border-radius: 4px;
+  background: var(--sidebar-bg);
+  color: var(--text);
+  opacity: 0.7;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  line-height: 1;
+  box-shadow: 1px 0 4px rgba(0, 0, 0, 0.18);
+  z-index: 5;
+  transition: left 0.15s ease, opacity 0.12s ease;
+}
+.shell-collapse-handle:hover { opacity: 1; }
+.shell-collapse-handle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  opacity: 1;
+}
+.shell-root-wrapper.rail-collapsed .shell-collapse-handle {
+  /* Both columns are 0; hold the handle at the viewport's left edge. */
+  left: 0;
 }
 
 /* ── Workspace rail ── */
@@ -471,47 +555,6 @@ input[type="checkbox"] {
   padding: 8px 0;
   overflow: visible; /* allow the collapse handle to overflow the rail's right edge */
   position: relative;
-}
-
-/* Vertically-centred, right-aligned collapse/expand handle.
-   Sits on the rail's right edge so it reads as the standard "drag to resize"
-   affordance from IDEs/file managers, not a button buried at the bottom. */
-.workspace-rail-handle {
-  position: absolute;
-  top: 50%;
-  right: -10px;
-  transform: translateY(-50%);
-  width: 20px;
-  height: 44px;
-  border: none;
-  border-radius: 4px;
-  background: var(--rail-bg);
-  color: var(--rail-fg);
-  opacity: 0.55;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  line-height: 1;
-  box-shadow: 1px 0 2px rgba(0, 0, 0, 0.18);
-  z-index: 2;
-}
-.workspace-rail-handle:hover {
-  opacity: 1;
-  background: var(--sidebar-hover, var(--rail-bg));
-}
-.workspace-rail-handle:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-  opacity: 1;
-}
-/* Collapsed variant: narrower, icons hidden, only collapse-toggle shows. */
-.workspace-rail-collapsed {
-  width: 36px;
-}
-.workspace-rail-collapsed .workspace-rail-bottom {
-  padding-top: 4px;
 }
 
 .workspace-rail-scroll {

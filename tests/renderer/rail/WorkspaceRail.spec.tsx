@@ -109,51 +109,29 @@ describe('WorkspaceRail', () => {
     expect(screen.getByRole('button', { name: /open workspace hello/i })).toHaveTextContent('HE');
   });
 
-  it('default: workspace icons are visible, collapse toggle shows "‹"', () => {
+  // The collapse / expand handle USED to live inside WorkspaceRail. It now
+  // lives in App.tsx (anchored at the rail+sidebar/pad boundary so focus
+  // mode hides BOTH rail and sidebar). The rail no longer renders a toggle.
+  it('does NOT render a hide-workspaces toggle (handle moved to App)', () => {
     useShellStore.setState({
       workspaces: [{ id: 'a', name: 'Alpha', serverUrl: 'https://a', color: '#000', createdAt: 1 }],
       workspaceOrder: ['a'],
     });
     render(<WorkspaceRail />);
-    expect(screen.getByRole('button', { name: /open workspace alpha/i })).toBeInTheDocument();
-    const toggle = screen.getByTitle(/hide workspaces/i);
-    expect(toggle).toHaveTextContent('‹');
+    expect(screen.queryByTitle(/hide workspaces/i)).not.toBeInTheDocument();
+    expect(screen.queryByTitle(/show workspaces/i)).not.toBeInTheDocument();
   });
 
-  it('clicking the collapse toggle hides workspace icons and changes label', async () => {
+  it('hides its content (icons, search, settings) when railCollapsed=true', () => {
     useShellStore.setState({
       workspaces: [{ id: 'a', name: 'Alpha', serverUrl: 'https://a', color: '#000', createdAt: 1 }],
       workspaceOrder: ['a'],
+      railCollapsed: true,
     });
     render(<WorkspaceRail />);
-    const toggle = screen.getByTitle(/hide workspaces/i);
-    await userEvent.click(toggle);
-    // State is now collapsed
-    expect(useShellStore.getState().railCollapsed).toBe(true);
-    // Workspace icon should be gone
+    // No workspace icons rendered
     expect(screen.queryByRole('button', { name: /open workspace alpha/i })).not.toBeInTheDocument();
-    // Toggle label becomes "Show workspaces"
-    expect(screen.getByTitle(/show workspaces/i)).toBeInTheDocument();
-    expect(screen.getByTitle(/show workspaces/i)).toHaveTextContent('›');
-  });
-
-  it('clicking the toggle again expands the rail', async () => {
-    useShellStore.setState({
-      workspaces: [{ id: 'a', name: 'Alpha', serverUrl: 'https://a', color: '#000', createdAt: 1 }],
-      workspaceOrder: ['a'],
-    });
-    render(<WorkspaceRail />);
-    // Collapse
-    await userEvent.click(screen.getByTitle(/hide workspaces/i));
-    // Expand
-    await userEvent.click(screen.getByTitle(/show workspaces/i));
-    expect(useShellStore.getState().railCollapsed).toBe(false);
-    expect(screen.getByRole('button', { name: /open workspace alpha/i })).toBeInTheDocument();
-  });
-
-  it('search and settings buttons are hidden when rail is collapsed', async () => {
-    render(<WorkspaceRail />);
-    await userEvent.click(screen.getByTitle(/hide workspaces/i));
+    // No search / settings cogs rendered
     expect(screen.queryByRole('button', { name: /^settings$/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /search workspaces and pads/i })).not.toBeInTheDocument();
   });

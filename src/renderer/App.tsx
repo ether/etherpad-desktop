@@ -18,6 +18,7 @@ import { TabStrip } from './tabs/TabStrip.js';
 import { EmptyState } from './components/EmptyState.js';
 import { TabErrorOverlay } from './components/TabErrorOverlay.js';
 import { UpdaterBanner } from './components/UpdaterBanner.js';
+import { t } from './i18n/index.js';
 import type { UpdaterState } from '@shared/types/updater';
 
 // E2E test seam — attached only when the preload sets E2E_TEST=1.
@@ -163,6 +164,8 @@ export function App(): React.JSX.Element {
     ? tabs.filter((t) => t.workspaceId === activeWorkspaceId)
     : [];
 
+  const toggleRailCollapsed = useShellStore((s) => s.toggleRailCollapsed);
+
   return (
     <ErrorBoundary onReload={() => void ipc.window.reloadShell()}>
       <div className={`shell-root-wrapper${railCollapsed ? ' rail-collapsed' : ''}`}>
@@ -182,6 +185,19 @@ export function App(): React.JSX.Element {
             <TabErrorOverlay />
           </div>
         </div>
+        {/* Vertically-centred collapse/expand handle. When expanded it sits
+            on the right edge of the pad sidebar; when collapsed it sits on
+            the left edge of the (now full-width) pad area. CSS resolves the
+            position from the --rail-width / --sidebar-width vars below. */}
+        <button
+          type="button"
+          className="shell-collapse-handle"
+          aria-label={railCollapsed ? t.rail.expand : t.rail.collapse}
+          title={railCollapsed ? t.rail.expand : t.rail.collapse}
+          onClick={toggleRailCollapsed}
+        >
+          {railCollapsed ? '›' : '‹'}
+        </button>
       </div>
       {openDialog === 'addWorkspace' && <AddWorkspaceDialog dismissable={workspaces.length > 0} />}
       {openDialog === 'openPad' && <OpenPadDialog />}
