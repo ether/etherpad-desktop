@@ -18,7 +18,7 @@ export const defaultSettings: Settings = {
   accentColor: '#3366cc',
   language: 'en',
   rememberOpenTabsOnQuit: true,
-  minimizeToTray: false,
+  minimizeToTray: true,
   themePreference: 'auto',
   userName: '',
 };

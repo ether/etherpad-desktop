@@ -64,13 +64,14 @@ describe('settings.update', () => {
   });
 
   it('calls onMinimizeToTrayChanged when minimizeToTray changes', async () => {
-    await h.update(undefined, { minimizeToTray: true });
-    expect(onMinimizeToTrayChanged).toHaveBeenCalledWith(true);
+    // default is now true; patching to false is a change
+    await h.update(undefined, { minimizeToTray: false });
+    expect(onMinimizeToTrayChanged).toHaveBeenCalledWith(false);
   });
 
   it('does NOT call onMinimizeToTrayChanged when minimizeToTray is unchanged', async () => {
-    // default is false; patching with false again should not fire
-    await h.update(undefined, { minimizeToTray: false });
+    // default is true; patching with true again should not fire
+    await h.update(undefined, { minimizeToTray: true });
     expect(onMinimizeToTrayChanged).not.toHaveBeenCalled();
   });
 
