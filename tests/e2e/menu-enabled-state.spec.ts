@@ -43,7 +43,7 @@ test('menu items reflect contextual availability across the lifecycle', async ()
     await h.shell.getByLabel(/name/i).fill('MenuState');
     await h.shell.getByLabel(/etherpad url/i).fill('http://127.0.0.1:9003');
     await h.shell.getByRole('button', { name: /^add$/i }).click();
-    await expect(h.shell.getByRole('button', { name: /open workspace menustate/i })).toBeVisible();
+    await expect(h.shell.getByRole('button', { name: /open instance menustate/i })).toBeVisible();
 
     // After the workspace exists newTab + openPad should enable; closeTab + reload still disabled.
     const afterWorkspace = await readMenuEnabledState(h);

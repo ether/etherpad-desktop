@@ -5,7 +5,7 @@ async function setupOneWorkspace(h: Awaited<ReturnType<typeof launchApp>>, name:
   await h.shell.getByLabel(/name/i).fill(name);
   await h.shell.getByLabel(/etherpad url/i).fill('http://127.0.0.1:9003');
   await h.shell.getByRole('button', { name: /^add$/i }).click();
-  await expect(h.shell.getByRole('button', { name: new RegExp(`open workspace ${name}`, 'i') })).toBeVisible();
+  await expect(h.shell.getByRole('button', { name: new RegExp(`open instance ${name}`, 'i') })).toBeVisible();
 }
 
 async function openPad(h: Awaited<ReturnType<typeof launchApp>>, name: string) {
@@ -26,7 +26,7 @@ test('rapid dialog open/close 10x does not hang', async () => {
       await expect(h.shell.getByRole('dialog')).toHaveCount(0);
     }
     // Final sanity: rail still responsive
-    await expect(h.shell.getByRole('button', { name: /open workspace stress/i })).toBeVisible();
+    await expect(h.shell.getByRole('button', { name: /open instance stress/i })).toBeVisible();
   } finally {
     await h.close();
   }
@@ -73,11 +73,11 @@ test('switching workspaces with dialog open does not crash', async () => {
   try {
     await setupOneWorkspace(h, 'A');
     // Add second workspace via the "Add workspace" rail button
-    await h.shell.getByRole('button', { name: /add workspace/i }).click();
+    await h.shell.getByRole('button', { name: /add etherpad instance/i }).click();
     await h.shell.getByLabel(/name/i).fill('B');
     await h.shell.getByLabel(/etherpad url/i).fill('http://127.0.0.1:9003');
     await h.shell.getByRole('button', { name: /^add$/i }).click();
-    await expect(h.shell.getByRole('button', { name: /open workspace b/i })).toBeVisible();
+    await expect(h.shell.getByRole('button', { name: /open instance b/i })).toBeVisible();
 
     // Open OpenPadDialog in workspace B context
     await h.shell.getByRole('button', { name: /new pad/i }).click();
@@ -88,8 +88,8 @@ test('switching workspaces with dialog open does not crash', async () => {
     await expect(h.shell.getByRole('dialog')).toHaveCount(0);
 
     // Now switch to workspace A — app must remain alive and responsive.
-    await h.shell.getByRole('button', { name: /open workspace a/i }).click();
-    await expect(h.shell.getByRole('button', { name: /open workspace a/i })).toBeVisible();
+    await h.shell.getByRole('button', { name: /open instance a/i }).click();
+    await expect(h.shell.getByRole('button', { name: /open instance a/i })).toBeVisible();
   } finally {
     await h.close();
   }

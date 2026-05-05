@@ -8,7 +8,7 @@ test('clicking between tabs switches the visible pad', async () => {
     await h.shell.getByLabel(/name/i).fill('Switcher');
     await h.shell.getByLabel(/etherpad url/i).fill('http://127.0.0.1:9003');
     await h.shell.getByRole('button', { name: /^add$/i }).click();
-    await expect(h.shell.getByRole('button', { name: /open workspace switcher/i })).toBeVisible();
+    await expect(h.shell.getByRole('button', { name: /open instance switcher/i })).toBeVisible();
 
     // Open first pad
     await h.shell.getByRole('button', { name: /new pad/i }).click();

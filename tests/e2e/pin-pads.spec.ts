@@ -7,7 +7,7 @@ test('pinning a pad moves it to the Pinned section', async () => {
     await h.shell.getByLabel(/name/i).fill('PinTest');
     await h.shell.getByLabel(/etherpad url/i).fill('http://127.0.0.1:9003');
     await h.shell.getByRole('button', { name: /^add$/i }).click();
-    await expect(h.shell.getByRole('button', { name: /open workspace pintest/i })).toBeVisible();
+    await expect(h.shell.getByRole('button', { name: /open instance pintest/i })).toBeVisible();
 
     // Open a pad to populate history
     await h.shell.getByRole('button', { name: /new pad/i }).click();

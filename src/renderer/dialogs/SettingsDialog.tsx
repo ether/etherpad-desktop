@@ -191,7 +191,7 @@ export function SettingsDialog(): React.JSX.Element | null {
       </label>
       <button onClick={() => void ipc.padHistory.clearAll()}>{t.settings.clearAllHistory}</button>
       <section>
-        <h3>Workspaces</h3>
+        <h3>{t.workspaceRow.sectionHeading}</h3>
         {workspaces.map((ws) => (
           <WorkspaceEditRow key={ws.id} workspace={ws} />
         ))}

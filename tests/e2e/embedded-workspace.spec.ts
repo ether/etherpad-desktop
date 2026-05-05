@@ -37,7 +37,7 @@ test.describe.serial('embedded workspace', () => {
 
       // The embedded server takes time to start on a cold cache; allow up to 4 minutes.
       await expect(
-        h.shell.getByRole('button', { name: /open workspace local/i }),
+        h.shell.getByRole('button', { name: /open instance local/i }),
       ).toBeVisible({ timeout: 240_000 });
 
       // Open a pad

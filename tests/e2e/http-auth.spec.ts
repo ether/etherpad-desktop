@@ -8,7 +8,7 @@ test('HTTP auth dialog opens and shows "Authentication required" heading', async
     await h.shell.getByLabel(/name/i).fill('Fixture');
     await h.shell.getByLabel(/etherpad url/i).fill('http://127.0.0.1:9003');
     await h.shell.getByRole('button', { name: /^add$/i }).click();
-    await expect(h.shell.getByRole('button', { name: /open workspace fixture/i })).toBeVisible();
+    await expect(h.shell.getByRole('button', { name: /open instance fixture/i })).toBeVisible();
 
     // Trigger the http-auth dialog via the test seam
     await h.shell.evaluate(() => {

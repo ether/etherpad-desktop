@@ -8,7 +8,7 @@ test('with 30 workspaces, the rail scrolls and the settings cog stays pinned to 
     await h.shell.getByLabel(/name/i).fill('seed');
     await h.shell.getByLabel(/etherpad url/i).fill('http://127.0.0.1:9003');
     await h.shell.getByRole('button', { name: /^add$/i }).click();
-    await expect(h.shell.getByRole('button', { name: /open workspace seed/i })).toBeVisible();
+    await expect(h.shell.getByRole('button', { name: /open instance seed/i })).toBeVisible();
 
     // Seed 30 fake workspaces via the store
     await h.shell.evaluate(() => {

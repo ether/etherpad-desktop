@@ -32,7 +32,7 @@ async function setupOneWorkspace(h: AppHandle, name: string) {
   await h.shell.getByLabel(/name/i).fill(name);
   await h.shell.getByLabel(/etherpad url/i).fill('http://127.0.0.1:9003');
   await h.shell.getByRole('button', { name: /^add$/i }).click();
-  await expect(h.shell.getByRole('button', { name: new RegExp(`open workspace ${name}`, 'i') })).toBeVisible();
+  await expect(h.shell.getByRole('button', { name: new RegExp(`open instance ${name}`, 'i') })).toBeVisible();
 }
 
 async function openPad(h: AppHandle, name: string) {

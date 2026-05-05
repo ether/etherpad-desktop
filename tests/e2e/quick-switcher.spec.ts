@@ -14,7 +14,7 @@ async function setupWorkspace(h: AppHandle, name: string) {
   await h.shell.getByLabel(/etherpad url/i).fill('http://127.0.0.1:9003');
   await h.shell.getByRole('button', { name: /^add$/i }).click();
   await expect(
-    h.shell.getByRole('button', { name: new RegExp(`open workspace ${name}`, 'i') }),
+    h.shell.getByRole('button', { name: new RegExp(`open instance ${name}`, 'i') }),
   ).toBeVisible();
 }
 
@@ -76,9 +76,9 @@ test('clicking the rail search button opens the quick switcher', async () => {
     await h.shell.getByLabel(/name/i).fill('SearchTest');
     await h.shell.getByLabel(/etherpad url/i).fill('http://127.0.0.1:9003');
     await h.shell.getByRole('button', { name: /^add$/i }).click();
-    await expect(h.shell.getByRole('button', { name: /open workspace searchtest/i })).toBeVisible();
+    await expect(h.shell.getByRole('button', { name: /open instance searchtest/i })).toBeVisible();
 
-    await h.shell.getByRole('button', { name: /search workspaces and pads/i }).click();
+    await h.shell.getByRole('button', { name: /search instances and pads/i }).click();
     await expect(h.shell.getByRole('dialog', { name: /quick switcher/i })).toBeVisible();
   } finally { await h.close(); }
 });
@@ -89,7 +89,7 @@ test('Ctrl+F opens quick switcher when focus is outside a pad', async () => {
     await h.shell.getByLabel(/name/i).fill('CtrlFTest');
     await h.shell.getByLabel(/etherpad url/i).fill('http://127.0.0.1:9003');
     await h.shell.getByRole('button', { name: /^add$/i }).click();
-    await expect(h.shell.getByRole('button', { name: /open workspace ctrlftest/i })).toBeVisible();
+    await expect(h.shell.getByRole('button', { name: /open instance ctrlftest/i })).toBeVisible();
 
     // Trigger Ctrl+F on the shell window (no pad WebContentsView has focus).
     // Focus the body first to ensure the keydown fires on the shell window.
@@ -107,7 +107,7 @@ test('Quick Switcher pad selection switches workspace and opens pad', async () =
     await setupWorkspace(h, 'Alpha');
 
     // Add second workspace
-    await h.shell.getByRole('button', { name: /add workspace/i }).click();
+    await h.shell.getByRole('button', { name: /add etherpad instance/i }).click();
     await setupWorkspace(h, 'Beta');
 
     // Open a pad in Beta workspace (which should now be active)
@@ -117,7 +117,7 @@ test('Quick Switcher pad selection switches workspace and opens pad', async () =
     await expect(h.shell.getByRole('tab', { name: /beta-pad/ })).toBeVisible();
 
     // Switch to Alpha workspace
-    await h.shell.getByRole('button', { name: /open workspace alpha/i }).click();
+    await h.shell.getByRole('button', { name: /open instance alpha/i }).click();
     // beta-pad tab should not be visible in Alpha
     await expect(h.shell.getByRole('tab', { name: /beta-pad/ })).toHaveCount(0);
 

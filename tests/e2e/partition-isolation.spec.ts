@@ -16,12 +16,12 @@ type AppHandle = Awaited<ReturnType<typeof launchApp>>;
 
 async function addWorkspace(h: AppHandle, name: string, isFirst = false) {
   if (!isFirst) {
-    await h.shell.getByRole('button', { name: /add workspace/i }).click();
+    await h.shell.getByRole('button', { name: /add etherpad instance/i }).click();
   }
   await h.shell.getByLabel(/name/i).fill(name);
   await h.shell.getByLabel(/etherpad url/i).fill('http://127.0.0.1:9003');
   await h.shell.getByRole('button', { name: /^add$/i }).click();
-  await expect(h.shell.getByRole('button', { name: new RegExp(`open workspace ${name}`, 'i') })).toBeVisible();
+  await expect(h.shell.getByRole('button', { name: new RegExp(`open instance ${name}`, 'i') })).toBeVisible();
 }
 
 async function openPad(h: AppHandle, padName: string) {
@@ -47,11 +47,11 @@ test('same pad name in two workspaces produces two independent tabs', async () =
     await openPad(h, 'samepad');
 
     // Switch back to workspace A — it should have its own 'samepad' tab
-    await h.shell.getByRole('button', { name: /open workspace iso-a/i }).click();
+    await h.shell.getByRole('button', { name: /open instance iso-a/i }).click();
     await expect(h.shell.getByRole('tab', { name: /samepad/ })).toBeVisible();
 
     // Switch to workspace B — it also has its own 'samepad' tab
-    await h.shell.getByRole('button', { name: /open workspace iso-b/i }).click();
+    await h.shell.getByRole('button', { name: /open instance iso-b/i }).click();
     await expect(h.shell.getByRole('tab', { name: /samepad/ })).toBeVisible();
 
     // Total tab count across the two workspaces should be 2
@@ -76,7 +76,7 @@ test('removing workspace A clears its history but not workspace B history', asyn
     await expect(h.shell.locator('.pad-open', { hasText: 'pad-b' })).toBeVisible();
 
     // Switch to workspace A and verify pad-a is in its history
-    await h.shell.getByRole('button', { name: /open workspace rm-a/i }).click();
+    await h.shell.getByRole('button', { name: /open instance rm-a/i }).click();
     await expect(h.shell.locator('.pad-open', { hasText: 'pad-a' })).toBeVisible();
 
     // Remove workspace A via Settings
@@ -89,10 +89,10 @@ test('removing workspace A clears its history but not workspace B history', asyn
     await h.shell.getByRole('button', { name: /^remove$/i }).click();
 
     // Workspace A rail button should be gone
-    await expect(h.shell.getByRole('button', { name: /open workspace rm-a/i })).toHaveCount(0);
+    await expect(h.shell.getByRole('button', { name: /open instance rm-a/i })).toHaveCount(0);
 
     // Switch to workspace B — its history (pad-b) must still be intact
-    await h.shell.getByRole('button', { name: /open workspace rm-b/i }).click();
+    await h.shell.getByRole('button', { name: /open instance rm-b/i }).click();
     await expect(h.shell.locator('.pad-open', { hasText: 'pad-b' })).toBeVisible();
   } finally {
     await h.close();

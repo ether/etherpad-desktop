@@ -8,7 +8,7 @@ test('relaunching restores workspaces, the active workspace, and open tabs', asy
   await h1.shell.getByLabel(/name/i).fill('Sticky');
   await h1.shell.getByLabel(/etherpad url/i).fill('http://127.0.0.1:9003');
   await h1.shell.getByRole('button', { name: /^add$/i }).click();
-  await expect(h1.shell.getByRole('button', { name: /open workspace sticky/i })).toBeVisible();
+  await expect(h1.shell.getByRole('button', { name: /open instance sticky/i })).toBeVisible();
 
   await h1.shell.getByRole('button', { name: /new pad/i }).click();
   await h1.shell.getByLabel(/pad name/i).fill('survives-restart');
@@ -23,7 +23,7 @@ test('relaunching restores workspaces, the active workspace, and open tabs', asy
   const h2 = await launchApp({ userDataDir });
   try {
     // Workspace should be restored from disk
-    await expect(h2.shell.getByRole('button', { name: /open workspace sticky/i })).toBeVisible();
+    await expect(h2.shell.getByRole('button', { name: /open instance sticky/i })).toBeVisible();
     // Tab should be restored via tabsChanged after setActiveWorkspace
     await expect(h2.shell.getByRole('tab', { name: /survives-restart/ })).toBeVisible({ timeout: 30_000 });
   } finally {

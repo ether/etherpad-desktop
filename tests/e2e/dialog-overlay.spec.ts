@@ -8,7 +8,7 @@ test('opening a dialog while a pad is loaded shows the dialog (no grey screen)',
     await h.shell.getByLabel(/name/i).fill('Test');
     await h.shell.getByLabel(/etherpad url/i).fill('http://127.0.0.1:9003');
     await h.shell.getByRole('button', { name: /^add$/i }).click();
-    await expect(h.shell.getByRole('button', { name: /open workspace test/i })).toBeVisible();
+    await expect(h.shell.getByRole('button', { name: /open instance test/i })).toBeVisible();
 
     // Open a pad
     await h.shell.getByRole('button', { name: /new pad/i }).click();

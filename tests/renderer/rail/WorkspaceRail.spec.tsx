@@ -26,7 +26,7 @@ describe('WorkspaceRail', () => {
       workspaceOrder: ['b', 'a'],
     });
     render(<WorkspaceRail />);
-    const ids = screen.getAllByRole('button', { name: /open workspace/i }).map((b) => b.getAttribute('data-ws-id'));
+    const ids = screen.getAllByRole('button', { name: /open instance/i }).map((b) => b.getAttribute('data-ws-id'));
     expect(ids).toEqual(['b', 'a']);
   });
 
@@ -52,7 +52,7 @@ describe('WorkspaceRail', () => {
 
   it('+ button opens AddWorkspaceDialog', async () => {
     render(<WorkspaceRail />);
-    await userEvent.click(screen.getByRole('button', { name: /add workspace/i }));
+    await userEvent.click(screen.getByRole('button', { name: /add etherpad instance/i }));
     expect(useShellStore.getState().openDialog).toBe('addWorkspace');
   });
 
@@ -64,13 +64,13 @@ describe('WorkspaceRail', () => {
 
   it('clicking the search button opens the quick switcher', async () => {
     render(<WorkspaceRail />);
-    await userEvent.click(screen.getByRole('button', { name: /search workspaces and pads/i }));
+    await userEvent.click(screen.getByRole('button', { name: /search instances and pads/i }));
     expect(useShellStore.getState().openDialog).toBe('quickSwitcher');
   });
 
   it('+ add button has a title attribute for tooltip', () => {
     render(<WorkspaceRail />);
-    expect(screen.getByRole('button', { name: /add workspace/i })).toHaveAttribute('title');
+    expect(screen.getByRole('button', { name: /add etherpad instance/i })).toHaveAttribute('title');
   });
 
   it('settings cog button has a title attribute for tooltip', () => {
@@ -80,7 +80,7 @@ describe('WorkspaceRail', () => {
 
   it('search button has a title attribute for tooltip', () => {
     render(<WorkspaceRail />);
-    expect(screen.getByRole('button', { name: /search workspaces and pads/i })).toHaveAttribute('title');
+    expect(screen.getByRole('button', { name: /search instances and pads/i })).toHaveAttribute('title');
   });
 
   it('active workspace button has a visual ring (boxShadow)', () => {
@@ -93,8 +93,8 @@ describe('WorkspaceRail', () => {
       activeWorkspaceId: 'a',
     });
     render(<WorkspaceRail />);
-    const activeBtn = screen.getByRole('button', { name: /open workspace alpha/i });
-    const inactiveBtn = screen.getByRole('button', { name: /open workspace beta/i });
+    const activeBtn = screen.getByRole('button', { name: /open instance alpha/i });
+    const inactiveBtn = screen.getByRole('button', { name: /open instance beta/i });
     // Active: has a ring shadow; inactive: no shadow
     expect(activeBtn).toHaveStyle({ boxShadow: '0 0 0 2px var(--accent)' });
     expect(inactiveBtn).toHaveStyle({ boxShadow: 'none' });
@@ -106,7 +106,7 @@ describe('WorkspaceRail', () => {
       workspaceOrder: ['a'],
     });
     render(<WorkspaceRail />);
-    expect(screen.getByRole('button', { name: /open workspace hello/i })).toHaveTextContent('HE');
+    expect(screen.getByRole('button', { name: /open instance hello/i })).toHaveTextContent('HE');
   });
 
   // The collapse / expand handle USED to live inside WorkspaceRail. It now
@@ -130,9 +130,9 @@ describe('WorkspaceRail', () => {
     });
     render(<WorkspaceRail />);
     // No workspace icons rendered
-    expect(screen.queryByRole('button', { name: /open workspace alpha/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /open instance alpha/i })).not.toBeInTheDocument();
     // No search / settings cogs rendered
     expect(screen.queryByRole('button', { name: /^settings$/i })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /search workspaces and pads/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /search instances and pads/i })).not.toBeInTheDocument();
   });
 });

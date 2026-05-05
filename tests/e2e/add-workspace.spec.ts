@@ -9,7 +9,7 @@ test('adding a workspace pointing at the fixture Etherpad succeeds and shows in 
     await h.shell.getByRole('button', { name: /^add$/i }).click();
 
     // Dialog dismisses; rail now contains a button for "Fixture".
-    await expect(h.shell.getByRole('button', { name: /open workspace fixture/i })).toBeVisible();
+    await expect(h.shell.getByRole('button', { name: /open instance fixture/i })).toBeVisible();
     await expect(h.shell.getByRole('heading', { name: /add a workspace/i })).toBeHidden();
   } finally {
     await h.close();

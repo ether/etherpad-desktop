@@ -23,7 +23,7 @@ async function setupWorkspace(h: AppHandle, name = 'MenuTest') {
   await h.shell.getByLabel(/etherpad url/i).fill('http://127.0.0.1:9003');
   await h.shell.getByRole('button', { name: /^add$/i }).click();
   await expect(
-    h.shell.getByRole('button', { name: new RegExp(`open workspace ${name}`, 'i') }),
+    h.shell.getByRole('button', { name: new RegExp(`open instance ${name}`, 'i') }),
   ).toBeVisible();
 }
 
@@ -196,7 +196,7 @@ test('File > Close Pad closes the active pad, leaves app and other pads alive', 
     await expect(h.shell.getByRole('tab', { name: /alpha/ })).toBeVisible();
 
     // Sanity: workspace rail still rendered = renderer still alive
-    await expect(h.shell.getByRole('button', { name: /open workspace closetabregression/i })).toBeVisible();
+    await expect(h.shell.getByRole('button', { name: /open instance closetabregression/i })).toBeVisible();
   } finally {
     await h.close();
   }

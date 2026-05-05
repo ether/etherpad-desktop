@@ -8,7 +8,7 @@ test('with 50+ pads in history, sidebar scrolls and last pad is reachable', asyn
     await h.shell.getByLabel(/name/i).fill('Many');
     await h.shell.getByLabel(/etherpad url/i).fill('http://127.0.0.1:9003');
     await h.shell.getByRole('button', { name: /^add$/i }).click();
-    await expect(h.shell.getByRole('button', { name: /open workspace many/i })).toBeVisible();
+    await expect(h.shell.getByRole('button', { name: /open instance many/i })).toBeVisible();
 
     // Seed 50 pads in history via the test seam (faster than opening 50 pads through the UI)
     await h.shell.evaluate(() => {

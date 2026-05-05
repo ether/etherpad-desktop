@@ -8,7 +8,7 @@ test('tab error overlay shows Retry and Close tab buttons when a tab enters erro
     await h.shell.getByLabel(/name/i).fill('Fixture');
     await h.shell.getByLabel(/etherpad url/i).fill('http://127.0.0.1:9003');
     await h.shell.getByRole('button', { name: /^add$/i }).click();
-    await expect(h.shell.getByRole('button', { name: /open workspace fixture/i })).toBeVisible();
+    await expect(h.shell.getByRole('button', { name: /open instance fixture/i })).toBeVisible();
 
     await h.shell.getByRole('button', { name: /new pad/i }).click();
     await h.shell.getByLabel(/pad name/i).fill('error-overlay-test');

@@ -8,7 +8,7 @@ test('opening a pad creates a tab and lands on the Etherpad page', async () => {
     await h.shell.getByLabel(/name/i).fill('Fixture');
     await h.shell.getByLabel(/etherpad url/i).fill('http://127.0.0.1:9003');
     await h.shell.getByRole('button', { name: /^add$/i }).click();
-    await expect(h.shell.getByRole('button', { name: /open workspace fixture/i })).toBeVisible();
+    await expect(h.shell.getByRole('button', { name: /open instance fixture/i })).toBeVisible();
 
     // Open a pad via the sidebar "New Pad" button
     await h.shell.getByRole('button', { name: /new pad/i }).click();

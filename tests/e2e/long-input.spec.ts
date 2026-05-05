@@ -15,7 +15,7 @@ async function setupOneWorkspace(h: AppHandle, name: string) {
   await h.shell.getByLabel(/name/i).fill(name);
   await h.shell.getByLabel(/etherpad url/i).fill('http://127.0.0.1:9003');
   await h.shell.getByRole('button', { name: /^add$/i }).click();
-  await expect(h.shell.getByRole('button', { name: new RegExp(`open workspace ${name}`, 'i') })).toBeVisible();
+  await expect(h.shell.getByRole('button', { name: new RegExp(`open instance ${name}`, 'i') })).toBeVisible();
 }
 
 test('long pad name (200 chars) opens successfully', async () => {
@@ -70,12 +70,12 @@ test('workspace name with emoji renders in the rail', async () => {
 
     // The workspace button uses aria-label="Open workspace <name>"
     await expect(
-      h.shell.getByRole('button', { name: /open workspace my pads/i }),
+      h.shell.getByRole('button', { name: /open instance my pads/i }),
     ).toBeVisible();
 
     // The rail button text content is the first 2 chars of the name
     // ("MY" from toUpperCase()) — verify it's present and the app didn't crash
-    const railBtn = h.shell.getByRole('button', { name: /open workspace my pads/i });
+    const railBtn = h.shell.getByRole('button', { name: /open instance my pads/i });
     await expect(railBtn).toBeVisible();
   } finally {
     await h.close();

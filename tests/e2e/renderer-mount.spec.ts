@@ -51,7 +51,7 @@ test('shell renderer mounts and exposes window.etherpadDesktop', async () => {
     //    one of the two valid initial states. If both are absent the
     //    renderer is in a broken in-between state.
     const dialogVisible = await h.shell.getByRole('dialog').isVisible().catch(() => false);
-    const railAddVisible = await h.shell.getByRole('button', { name: /add workspace/i }).isVisible().catch(() => false);
+    const railAddVisible = await h.shell.getByRole('button', { name: /add etherpad instance/i }).isVisible().catch(() => false);
     expect(
       dialogVisible || railAddVisible,
       'Neither the AddWorkspaceDialog nor the rail "+ add" button is visible — renderer is in a broken state',
