@@ -65,8 +65,10 @@ export const en = {
   },
   workspaceRow: {
     nameLabel: 'Workspace name',
+    urlLabel: 'Etherpad URL',
     colorLabel: 'Workspace colour',
     remove: 'Remove',
+    urlInvalid: 'Enter a valid http(s) URL.',
   },
   httpAuth: {
     title: 'Authentication required',

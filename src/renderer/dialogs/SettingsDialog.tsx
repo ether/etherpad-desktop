@@ -3,8 +3,102 @@ import { ipc } from '../ipc/api.js';
 import { dialogActions, useShellStore } from '../state/store.js';
 import { t } from '../i18n/index.js';
 import type { Settings } from '@shared/types/settings';
+import type { Workspace } from '@shared/types/workspace';
 import { ETHERPAD_LOCALES, localeDisplayName } from '@shared/locales/etherpad-locales';
 import { DialogShell } from '../components/DialogShell.js';
+
+/**
+ * Per-workspace inline editor inside the Settings dialog. Name + colour
+ * autosave on every change (cheap, label-only mutations); the URL field
+ * autosaves on blur after a quick http(s) validity check, so transient
+ * invalid values mid-typing don't get persisted.
+ */
+function WorkspaceEditRow({ workspace }: { workspace: Workspace }): React.JSX.Element {
+  const [draftUrl, setDraftUrl] = useState(workspace.serverUrl);
+  const [urlError, setUrlError] = useState<string | null>(null);
+
+  // Keep the local URL draft in sync if the workspace is updated from
+  // elsewhere (another window, IPC event) while this dialog is open.
+  useEffect(() => {
+    setDraftUrl(workspace.serverUrl);
+  }, [workspace.serverUrl]);
+
+  const commitUrl = () => {
+    if (draftUrl === workspace.serverUrl) {
+      setUrlError(null);
+      return;
+    }
+    try {
+      const parsed = new URL(draftUrl);
+      if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+        throw new Error('protocol');
+      }
+    } catch {
+      setUrlError(t.workspaceRow.urlInvalid);
+      return;
+    }
+    setUrlError(null);
+    void ipc.workspace.update({ id: workspace.id, serverUrl: draftUrl });
+  };
+
+  return (
+    <>
+      <div className="workspace-edit-row">
+        <span
+          className="workspace-edit-swatch"
+          style={{ background: workspace.color }}
+          aria-hidden="true"
+        />
+        <input
+          className="workspace-edit-name"
+          type="text"
+          value={workspace.name}
+          aria-label={t.workspaceRow.nameLabel}
+          onChange={(e) => {
+            void ipc.workspace.update({ id: workspace.id, name: e.target.value });
+          }}
+        />
+        <input
+          className="workspace-edit-color"
+          type="color"
+          value={workspace.color}
+          aria-label={t.workspaceRow.colorLabel}
+          title={t.workspaceRow.colorLabel}
+          onChange={(e) => {
+            void ipc.workspace.update({ id: workspace.id, color: e.target.value });
+          }}
+        />
+        <button
+          className="btn-secondary"
+          onClick={() => dialogActions.openDialog('removeWorkspace', { workspaceId: workspace.id })}
+        >
+          {t.workspaceRow.remove}
+        </button>
+      </div>
+      <div className="workspace-edit-url-row">
+        <input
+          className="workspace-edit-url"
+          type="url"
+          value={draftUrl}
+          aria-label={t.workspaceRow.urlLabel}
+          aria-invalid={urlError !== null}
+          placeholder="https://pads.example.com"
+          onChange={(e) => setDraftUrl(e.target.value)}
+          onBlur={commitUrl}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              commitUrl();
+            }
+          }}
+        />
+        {urlError && (
+          <span role="alert" className="workspace-edit-url-error">{urlError}</span>
+        )}
+      </div>
+    </>
+  );
+}
 
 export function SettingsDialog(): React.JSX.Element | null {
   const settings = useShellStore((s) => s.settings);
@@ -95,41 +189,7 @@ export function SettingsDialog(): React.JSX.Element | null {
       <section>
         <h3>Workspaces</h3>
         {workspaces.map((ws) => (
-          <div
-            key={ws.id}
-            className="workspace-edit-row"
-          >
-            <span
-              className="workspace-edit-swatch"
-              style={{ background: ws.color }}
-              aria-hidden="true"
-            />
-            <input
-              className="workspace-edit-name"
-              type="text"
-              value={ws.name}
-              aria-label={t.workspaceRow.nameLabel}
-              onChange={(e) => {
-                void ipc.workspace.update({ id: ws.id, name: e.target.value });
-              }}
-            />
-            <input
-              className="workspace-edit-color"
-              type="color"
-              value={ws.color}
-              aria-label={t.workspaceRow.colorLabel}
-              title={t.workspaceRow.colorLabel}
-              onChange={(e) => {
-                void ipc.workspace.update({ id: ws.id, color: e.target.value });
-              }}
-            />
-            <button
-              className="btn-secondary"
-              onClick={() => dialogActions.openDialog('removeWorkspace', { workspaceId: ws.id })}
-            >
-              {t.workspaceRow.remove}
-            </button>
-          </div>
+          <WorkspaceEditRow key={ws.id} workspace={ws} />
         ))}
       </section>
       <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>

@@ -247,6 +247,24 @@ input[type="checkbox"] {
   background: transparent;
   cursor: pointer;
 }
+.workspace-edit-url-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0 0 12px 24px; /* indent under the name row's swatch */
+}
+.workspace-edit-url {
+  width: 100%;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+}
+.workspace-edit-url[aria-invalid="true"] {
+  border-color: var(--error);
+}
+.workspace-edit-url-error {
+  font-size: 11px;
+  color: var(--error);
+}
 
 /* ── Settings dialog layout ── */
 .settings-row {
