@@ -69,6 +69,7 @@ const api = {
       const channels = [
         'menu.newTab',
         'menu.openPad',
+        'menu.closeTab',
         'menu.reload',
         'menu.settings',
         'menu.about',

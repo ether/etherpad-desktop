@@ -8,11 +8,13 @@ function makeCallbacks() {
   return {
     newTab: vi.fn(),
     openPad: vi.fn(),
+    closeTab: vi.fn(),
     reload: vi.fn(),
     settings: vi.fn(),
     quit: vi.fn(),
     about: vi.fn(),
     openLogs: vi.fn(),
+    quickSwitcher: vi.fn(),
   };
 }
 
@@ -116,10 +118,22 @@ describe('buildMenuTemplate', () => {
     expect(roles).toEqual(expect.arrayContaining(['minimize', 'close']));
   });
 
-  it('File > Close Tab has role=close', () => {
-    const t = buildMenuTemplate(makeCallbacks());
+  // REGRESSION: File > Close Tab MUST NOT use role: 'close'. role: 'close'
+  // closes the focused BaseWindow which on Linux fires window-all-closed and
+  // quits the entire app. The user reported "File > Close Tab closes entire
+  // app". This test pins the contract: the item must have a click callback
+  // bound to cb.closeTab(), not a role.
+  it('File > Close Tab uses cb.closeTab() click and has NO role: close', () => {
+    const cb = makeCallbacks();
+    const t = buildMenuTemplate(cb);
     const closeTab = getSubmenu(t, 'File').find((m) => m.label === 'Close Tab');
-    expect(closeTab?.role).toBe('close');
+    expect(closeTab).toBeDefined();
+    expect(closeTab?.role).toBeUndefined();
+    expect(closeTab?.accelerator).toBe('CmdOrCtrl+W');
+    expect(typeof closeTab?.click).toBe('function');
+    closeTab?.click?.();
+    expect(cb.closeTab).toHaveBeenCalledTimes(1);
+    expect(cb.quit).not.toHaveBeenCalled();
   });
 
   it('reload-able items have stable IDs for runtime enable/disable', () => {

@@ -218,6 +218,7 @@ export async function boot(): Promise<void> {
     buildMenuTemplate({
       newTab: () => ipcRef.current?.broadcastShell('menu.newTab'),
       openPad: () => ipcRef.current?.broadcastShell('menu.openPad'),
+      closeTab: () => ipcRef.current?.broadcastShell('menu.closeTab'),
       reload: () => ipcRef.current?.broadcastShell('menu.reload'),
       settings: () => ipcRef.current?.broadcastShell('menu.settings'),
       quit: () => app.quit(),

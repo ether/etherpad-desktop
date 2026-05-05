@@ -3,6 +3,7 @@ import type { Menu, MenuItemConstructorOptions } from 'electron';
 export type MenuCallbacks = {
   newTab: () => void;
   openPad: () => void;
+  closeTab: () => void;
   reload: () => void;
   settings: () => void;
   quit: () => void;
@@ -29,7 +30,11 @@ export function buildMenuTemplate(cb: MenuCallbacks): MenuItemConstructorOptions
         { type: 'separator' },
         { label: 'Settings', accelerator: 'CmdOrCtrl+,', click: () => cb.settings() },
         { type: 'separator' },
-        { id: MENU_IDS.closeTab, label: 'Close Tab', accelerator: 'CmdOrCtrl+W', role: 'close' },
+        // Close the active TAB, NOT the window. Using `role: 'close'` here
+        // closes the BaseWindow which on Linux triggers `window-all-closed`
+        // and quits the whole app — definitely not what File > Close Tab
+        // should do.
+        { id: MENU_IDS.closeTab, label: 'Close Tab', accelerator: 'CmdOrCtrl+W', click: () => cb.closeTab() },
         { label: 'Quit', accelerator: 'CmdOrCtrl+Q', click: () => cb.quit() },
       ],
     },

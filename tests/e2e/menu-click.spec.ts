@@ -154,6 +154,42 @@ test('View > Reload Pad menu item exists and fires reload callback', async () =>
   }
 });
 
+// REGRESSION: File > Close Tab must close the active TAB, not the window
+// (and definitely not the entire app). Using role: 'close' on the menu item
+// triggered Linux's window-all-closed → app.quit() → app exited. Reported by
+// user 2026-05-05.
+test('File > Close Tab closes the active tab, leaves app and other tabs alive', async () => {
+  const h = await launchApp();
+  try {
+    await setupWorkspace(h, 'CloseTabRegression');
+
+    // Open two pads so we have something to close
+    await h.shell.getByRole('button', { name: /new pad/i }).click();
+    await h.shell.getByLabel(/pad name/i).fill('alpha');
+    await h.shell.getByRole('button', { name: /^open$/i }).click();
+    await expect(h.shell.getByRole('tab', { name: /alpha/ })).toBeVisible();
+
+    await h.shell.getByRole('button', { name: /new pad/i }).click();
+    await h.shell.getByLabel(/pad name/i).fill('bravo');
+    await h.shell.getByRole('button', { name: /^open$/i }).click();
+    await expect(h.shell.getByRole('tab', { name: /bravo/ })).toBeVisible();
+
+    // Click File > Close Tab via the actual menu item
+    const ok = await clickFileMenuItem(h, 'Close Tab');
+    expect(ok).toBe(true);
+
+    // The app must still be alive — the window remains visible AND so does
+    // the alpha tab (only the active 'bravo' tab should have closed).
+    await expect(h.shell.getByRole('tab', { name: /bravo/ })).toHaveCount(0);
+    await expect(h.shell.getByRole('tab', { name: /alpha/ })).toBeVisible();
+
+    // Sanity: workspace rail still rendered = renderer still alive
+    await expect(h.shell.getByRole('button', { name: /open workspace closetabregression/i })).toBeVisible();
+  } finally {
+    await h.close();
+  }
+});
+
 test('File > Quit menu item exists and fires quit callback', async () => {
   const h = await launchApp();
   try {
