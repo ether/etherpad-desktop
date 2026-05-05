@@ -299,6 +299,63 @@ input[type="checkbox"] {
   overflow-y: auto;
 }
 
+/* ── Sidebar action buttons (Search all pads, + New Pad) ── */
+.sidebar-action {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  margin-bottom: 6px;
+  background: transparent;
+  color: var(--sidebar-fg);
+  border: 1px solid var(--panel-border);
+  border-radius: 6px;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+}
+.sidebar-action:hover {
+  background: var(--sidebar-hover);
+  border-color: var(--accent);
+}
+.sidebar-action:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent);
+}
+.sidebar-action-icon {
+  flex: 0 0 auto;
+  width: 18px;
+  text-align: center;
+  font-size: 14px;
+  line-height: 1;
+  color: var(--text-muted);
+}
+.sidebar-action-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sidebar-action-primary {
+  background: var(--accent);
+  color: var(--accent-fg);
+  border-color: var(--accent);
+}
+.sidebar-action-primary:hover {
+  filter: brightness(1.08);
+  background: var(--accent);
+  color: var(--accent-fg);
+  border-color: var(--accent);
+}
+.sidebar-action-primary .sidebar-action-icon {
+  color: var(--accent-fg);
+  font-weight: 600;
+}
+
 /* ── Sidebar filter ── */
 .sidebar-filter {
   width: 100%;
@@ -412,7 +469,42 @@ input[type="checkbox"] {
   flex-direction: column;
   align-items: center;
   padding: 8px 0;
-  overflow: hidden;
+  overflow: visible; /* allow the collapse handle to overflow the rail's right edge */
+  position: relative;
+}
+
+/* Vertically-centred, right-aligned collapse/expand handle.
+   Sits on the rail's right edge so it reads as the standard "drag to resize"
+   affordance from IDEs/file managers, not a button buried at the bottom. */
+.workspace-rail-handle {
+  position: absolute;
+  top: 50%;
+  right: -10px;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 44px;
+  border: none;
+  border-radius: 4px;
+  background: var(--rail-bg);
+  color: var(--rail-fg);
+  opacity: 0.55;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  line-height: 1;
+  box-shadow: 1px 0 2px rgba(0, 0, 0, 0.18);
+  z-index: 2;
+}
+.workspace-rail-handle:hover {
+  opacity: 1;
+  background: var(--sidebar-hover, var(--rail-bg));
+}
+.workspace-rail-handle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  opacity: 1;
 }
 /* Collapsed variant: narrower, icons hidden, only collapse-toggle shows. */
 .workspace-rail-collapsed {

@@ -1,7 +1,7 @@
 import React from 'react';
 import { useShellStore, dialogActions } from '../state/store.js';
 import { ipc } from '../ipc/api.js';
-import { t } from '../i18n/index.js';
+import { t, fmt } from '../i18n/index.js';
 
 export function WorkspaceRail(): React.JSX.Element {
   const order = useShellStore((s) => s.workspaceOrder);
@@ -19,7 +19,7 @@ export function WorkspaceRail(): React.JSX.Element {
   return (
     <nav
       className={`workspace-rail${collapsed ? ' workspace-rail-collapsed' : ''}`}
-      aria-label="Workspace rail"
+      aria-label={t.rail.label}
     >
       {!collapsed && (
         <div className="workspace-rail-scroll">
@@ -30,7 +30,7 @@ export function WorkspaceRail(): React.JSX.Element {
               <button
                 key={id}
                 data-ws-id={id}
-                aria-label={`Open workspace ${ws.name}`}
+                aria-label={fmt(t.rail.openWorkspace, { name: ws.name })}
                 title={ws.name}
                 onClick={() => void select(id)}
                 className="workspace-rail-icon"
@@ -53,36 +53,34 @@ export function WorkspaceRail(): React.JSX.Element {
           </button>
         </div>
       )}
-      <div className="workspace-rail-bottom">
-        <button
-          aria-label={collapsed ? t.rail.expand : t.rail.collapse}
-          title={collapsed ? t.rail.expand : t.rail.collapse}
-          onClick={toggleCollapsed}
-          className="workspace-rail-cog"
-        >
-          {collapsed ? '›' : '‹'}
-        </button>
-        {!collapsed && (
-          <>
-            <button
-              aria-label={t.rail.search}
-              title={t.rail.search}
-              onClick={() => dialogActions.openDialog('quickSwitcher')}
-              className="workspace-rail-cog"
-            >
-              🔍
-            </button>
-            <button
-              aria-label={t.rail.settings}
-              title={t.rail.settings}
-              onClick={() => dialogActions.openDialog('settings')}
-              className="workspace-rail-cog"
-            >
-              ⚙
-            </button>
-          </>
-        )}
-      </div>
+      {!collapsed && (
+        <div className="workspace-rail-bottom">
+          <button
+            aria-label={t.rail.search}
+            title={t.rail.search}
+            onClick={() => dialogActions.openDialog('quickSwitcher')}
+            className="workspace-rail-cog"
+          >
+            🔍
+          </button>
+          <button
+            aria-label={t.rail.settings}
+            title={t.rail.settings}
+            onClick={() => dialogActions.openDialog('settings')}
+            className="workspace-rail-cog"
+          >
+            ⚙
+          </button>
+        </div>
+      )}
+      <button
+        aria-label={collapsed ? t.rail.expand : t.rail.collapse}
+        title={collapsed ? t.rail.expand : t.rail.collapse}
+        onClick={toggleCollapsed}
+        className="workspace-rail-handle"
+      >
+        {collapsed ? '›' : '‹'}
+      </button>
     </nav>
   );
 }

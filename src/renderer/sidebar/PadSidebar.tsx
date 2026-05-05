@@ -1,7 +1,7 @@
 import React from 'react';
 import { useShellStore, dialogActions } from '../state/store.js';
 import { ipc } from '../ipc/api.js';
-import { t } from '../i18n/index.js';
+import { t, fmt } from '../i18n/index.js';
 import type { PadHistoryEntry } from '@shared/types/pad-history';
 
 const EMPTY_HISTORY: never[] = [];
@@ -11,7 +11,7 @@ export function PadSidebar(): React.JSX.Element {
   const history = useShellStore((s) => (wsId ? s.padHistory[wsId] ?? EMPTY_HISTORY : EMPTY_HISTORY));
 
   if (!wsId) {
-    return <aside style={{ background: 'var(--sidebar-bg)', height: '100%' }} aria-label="Pad sidebar" />;
+    return <aside style={{ background: 'var(--sidebar-bg)', height: '100%' }} aria-label={t.sidebar.label} />;
   }
 
   const pinned = history.filter((e: PadHistoryEntry) => e.pinned);
@@ -23,24 +23,27 @@ export function PadSidebar(): React.JSX.Element {
 
   return (
     <aside
-      aria-label="Pad sidebar"
+      aria-label={t.sidebar.label}
       style={{ background: 'var(--sidebar-bg)', height: '100%', padding: 8, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
     >
       <button
-        className="sidebar-search"
+        className="sidebar-action sidebar-action-search"
         aria-label={t.sidebar.searchAllPads}
         title={t.sidebar.searchAllPads}
         onClick={() => dialogActions.openDialog('quickSwitcher')}
       >
-        🔍 {t.sidebar.searchAllPads}
+        <span className="sidebar-action-icon" aria-hidden="true">🔍</span>
+        <span className="sidebar-action-label">{t.sidebar.searchAllPads}</span>
       </button>
 
       <button
+        className="sidebar-action sidebar-action-primary"
         onClick={() => dialogActions.openDialog('openPad')}
         aria-label={t.sidebar.newPad}
         title={t.sidebar.newPad}
       >
-        + {t.sidebar.newPad}
+        <span className="sidebar-action-icon" aria-hidden="true">+</span>
+        <span className="sidebar-action-label">{t.sidebar.newPad}</span>
       </button>
 
       <div className="pad-sidebar-list">
@@ -59,9 +62,9 @@ export function PadSidebar(): React.JSX.Element {
                   </button>
                   <button
                     className="pad-pin"
-                    aria-label={`Unpin ${e.padName}`}
+                    aria-label={fmt(t.sidebar.unpinPad, { name: e.padName })}
                     aria-pressed={true}
-                    title={`Unpin ${e.padName}`}
+                    title={fmt(t.sidebar.unpinPad, { name: e.padName })}
                     onClick={(ev) => {
                       ev.stopPropagation();
                       void ipc.padHistory.unpin(wsId, e.padName);
@@ -89,9 +92,9 @@ export function PadSidebar(): React.JSX.Element {
                 </button>
                 <button
                   className="pad-pin"
-                  aria-label={`Pin ${e.padName}`}
+                  aria-label={fmt(t.sidebar.pinPad, { name: e.padName })}
                   aria-pressed={false}
-                  title={`Pin ${e.padName}`}
+                  title={fmt(t.sidebar.pinPad, { name: e.padName })}
                   onClick={(ev) => {
                     ev.stopPropagation();
                     void ipc.padHistory.pin(wsId, e.padName);
