@@ -20,6 +20,7 @@ import { createEmbeddedServer } from '../embedded/embedded-server.js';
 import type { EmbeddedServerController } from '../embedded/embedded-server.js';
 import { createPadContentIndex } from '../pads/pad-content-index.js';
 import type { PadContentIndex } from '../pads/pad-content-index.js';
+import { PadSyncService } from '../pads/pad-sync-service.js';
 import { CH } from '@shared/ipc/channel-names.js';
 import { installPermissionHandler } from './permissions.js';
 
@@ -208,6 +209,7 @@ export async function boot(): Promise<void> {
   if (saved.windows.length === 0) {
     windowManager.create({ bounds: defaultBounds() });
   } else {
+    const padSync = new PadSyncService();
     for (const ws of saved.windows) {
       const win = windowManager.create({ bounds: ws.bounds });
       win.tabManager.setActiveWorkspace(ws.activeWorkspaceId);
@@ -215,10 +217,21 @@ export async function boot(): Promise<void> {
       for (const t of activeTabs) {
         const wsObj = workspaces.byId(t.workspaceId);
         if (!wsObj) continue;
+        // IMPORTANT: route through PadSyncService so restored tabs carry
+        // ?lang= and ?userName= just like freshly-opened ones. A hand-built
+        // URL here would silently drop the user's language preference for
+        // every tab restored at boot.
+        const src = padSync.resolveSrc({
+          kind: 'remote',
+          serverUrl: wsObj.serverUrl,
+          padName: t.padName,
+          lang: settings.get().language,
+          userName: settings.get().userName,
+        });
         await win.tabManager.open({
           workspaceId: t.workspaceId,
           padName: t.padName,
-          src: `${wsObj.serverUrl}/p/${encodeURIComponent(t.padName)}`,
+          src,
         });
       }
     }
