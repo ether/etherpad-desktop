@@ -1,15 +1,18 @@
 {
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
-    "baseUrl": ".",
     "rootDir": ".",
     "outDir": "out/main",
     "lib": ["ES2022"],
     "types": ["node"],
     "composite": true,
     "noEmit": true,
+    // baseUrl was deprecated in TS 6.0 and removed in 7.0. With
+    // moduleResolution: "bundler" (set in tsconfig.base.json), `paths`
+    // entries can be relative to the tsconfig directory directly —
+    // no baseUrl needed.
     "paths": {
-      "@shared/*": ["src/shared/*"]
+      "@shared/*": ["./src/shared/*"]
     }
   },
   "include": ["src/main/**/*.ts"],
