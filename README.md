@@ -151,6 +151,50 @@ On macOS, swap `Ctrl` for `Cmd`. Both modifiers are accepted globally.
 
 ## Install
 
+### One-liners
+
+If you just want it running fast, paste the line for your OS. Each one
+fetches the *latest release* and runs the installer/AppImage. Manual
+download links are in the per-OS sections below.
+
+**Linux (AppImage, no install):**
+
+```bash
+curl -fsSL "$(curl -sSL https://api.github.com/repos/ether/etherpad-desktop/releases/latest | jq -r '.assets[] | select(.name | endswith(".AppImage")) | .browser_download_url')" -o ~/etherpad-desktop.AppImage && chmod +x ~/etherpad-desktop.AppImage && ~/etherpad-desktop.AppImage
+```
+
+**Linux (deb, system install):**
+
+```bash
+F=$(mktemp --suffix=.deb) && curl -fsSL "$(curl -sSL https://api.github.com/repos/ether/etherpad-desktop/releases/latest | jq -r '.assets[] | select(.name | endswith("amd64.deb")) | .browser_download_url')" -o "$F" && sudo apt install -y "$F" && rm "$F"
+```
+
+**Linux (snap, once the store listing is public):**
+
+```bash
+sudo snap install etherpad-desktop
+```
+
+**macOS** (auto-detects Apple Silicon vs Intel):
+
+```bash
+A=$([ "$(uname -m)" = arm64 ] && echo arm64 || echo x64) && F=$(mktemp /tmp/epd.XXXXX.dmg) && curl -fsSL "$(curl -sSL https://api.github.com/repos/ether/etherpad-desktop/releases/latest | jq -r --arg a "$A" '.assets[] | select(.name | endswith("-" + $a + ".dmg")) | .browser_download_url')" -o "$F" && open "$F"
+```
+
+**Windows (PowerShell, NSIS installer):**
+
+```powershell
+$u = (Invoke-RestMethod https://api.github.com/repos/ether/etherpad-desktop/releases/latest).assets | ? { $_.name -like 'Etherpad-Desktop-Setup-*.exe' } | Select -First 1 -ExpandProperty browser_download_url; $f = "$env:TEMP\etherpad-desktop-setup.exe"; Invoke-WebRequest $u -OutFile $f; Start-Process $f
+```
+
+> The Linux/macOS one-liners need `jq` (preinstalled on most distros and
+> Homebrew). On a stripped-down system: `sudo apt install jq` /
+> `brew install jq` first.
+
+---
+
+### Manual download
+
 Download the latest release from
 [Releases](https://github.com/ether/etherpad-desktop/releases).
 
@@ -274,14 +318,24 @@ some are signals of intent.
 - **Drag-tab-to-reorder** in the tab strip.
 - **Drag-tab-to-tear-off** into a new window.
 
+### Code signing — explicit non-goal
+
+We will **never** pay code-signing fees to ship Etherpad Desktop. Apple's
+$99/yr Developer ID and Microsoft's EV / Azure Trusted Signing programs
+exist to gate independent open-source software behind a recurring tax,
+and we're not paying it. Windows users will see the SmartScreen warning
+on first run; macOS users will need to right-click → Open the first
+time. Both work fine after that.
+
+If a third party (an enterprise, distribution, fork, or anyone else)
+wants to **roll out their own signed build** of this codebase, you're
+absolutely welcome to. Apache-2.0 lets you do exactly that — clone,
+re-brand, sign with your own developer ID, ship it under your own
+publisher name. Open-source means the option is there for whoever
+values the warning-free first launch enough to fund it themselves.
+
 ### Later
 
-- **Code-signed + notarised macOS builds.** Current DMGs are unsigned
-  so Gatekeeper warns on first launch; proper distribution needs an
-  Apple Developer ID + notarisation tickets.
-- **Code-signed Windows builds.** Current Windows binaries are unsigned;
-  signing requires an EV cert (or Azure Trusted Signing) and removes
-  the SmartScreen warning on first run.
 - **Offline editing / local pad cache.** When an instance is unreachable,
   open the most recently cached version of pads and queue local edits for
   replay when the server returns.
