@@ -54,6 +54,9 @@ const api = {
     installAndRestart: () => invoke(CH.UPDATER_INSTALL_AND_RESTART),
     getState: () => invoke(CH.UPDATER_GET_STATE),
   },
+  quickSwitcher: {
+    searchPadContent: (input: { query: string }) => invoke(CH.QUICK_SWITCHER_SEARCH, input),
+  },
   events: {
     onWorkspacesChanged: (l: (p: unknown) => void) => on(CH.EV_WORKSPACES_CHANGED, l),
     onPadHistoryChanged: (l: (p: unknown) => void) => on(CH.EV_PAD_HISTORY_CHANGED, l),

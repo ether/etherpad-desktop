@@ -68,6 +68,12 @@ export const ipc = {
     installAndRestart: () => unwrap<{ ok: true }>(api().updater.installAndRestart() as never),
     getState: () => api().updater.getState() as Promise<unknown>,
   },
+  quickSwitcher: {
+    searchPadContent: (query: string) =>
+      api().quickSwitcher.searchPadContent({ query }) as Promise<
+        Array<{ workspaceId: string; padName: string; snippet: string }>
+      >,
+  },
   get events() {
     return api().events;
   },

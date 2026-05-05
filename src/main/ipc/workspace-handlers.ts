@@ -25,6 +25,7 @@ export type WorkspaceHandlerDeps = {
   emitWorkspacesChanged: () => void;
   emitPadHistoryChanged: () => void;
   embeddedServer?: EmbeddedServerController;
+  clearPadContentIndex?: (workspaceId: string) => void;
 };
 
 export function workspaceHandlers(deps: WorkspaceHandlerDeps) {
@@ -91,6 +92,7 @@ export function workspaceHandlers(deps: WorkspaceHandlerDeps) {
       } catch {
         // Partition wipe failed — log handled by caller; workspace is already gone from view.
       }
+      deps.clearPadContentIndex?.(input.id);
       deps.emitWorkspacesChanged();
       deps.emitPadHistoryChanged();
       return { ok: true } as const;

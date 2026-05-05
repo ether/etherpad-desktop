@@ -18,6 +18,8 @@ import { createUpdater } from './updater.js';
 import type { UpdaterController } from './updater.js';
 import { createEmbeddedServer } from '../embedded/embedded-server.js';
 import type { EmbeddedServerController } from '../embedded/embedded-server.js';
+import { createPadContentIndex } from '../pads/pad-content-index.js';
+import type { PadContentIndex } from '../pads/pad-content-index.js';
 import { CH } from '@shared/ipc/channel-names.js';
 
 export type AppContext = {
@@ -42,6 +44,8 @@ export type AppContext = {
   updater?: UpdaterController;
   /** Embedded Etherpad server controller — present when any workspace has kind: 'embedded'. */
   embeddedServer?: EmbeddedServerController;
+  /** In-memory pad content index for Quick Switcher content search. */
+  padContentIndex?: PadContentIndex;
 };
 
 export async function boot(): Promise<void> {
@@ -139,6 +143,8 @@ export async function boot(): Promise<void> {
     });
   }
 
+  const padContentIndex = createPadContentIndex({ log });
+
   const ctx: AppContext = {
     windowManager,
     workspaces,
@@ -150,6 +156,7 @@ export async function boot(): Promise<void> {
     rendererUrl,
     rendererFile,
     embeddedServer,
+    padContentIndex,
   };
 
   const tray = setupTray({

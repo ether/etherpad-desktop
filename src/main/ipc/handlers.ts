@@ -76,6 +76,7 @@ export function registerIpc(ctx: AppContext): IpcRegistration {
     emitWorkspacesChanged,
     emitPadHistoryChanged,
     ...(ctx.embeddedServer !== undefined ? { embeddedServer: ctx.embeddedServer } : {}),
+    ...(ctx.padContentIndex !== undefined ? { clearPadContentIndex: (id: string) => ctx.padContentIndex!.clear(id) } : {}),
   });
 
   const openInActiveWindow = async (input: { workspaceId: string; padName: string; src: string }) => {
@@ -151,6 +152,16 @@ export function registerIpc(ctx: AppContext): IpcRegistration {
     emitTabsChanged,
     emitPadHistoryChanged,
     getLanguage: () => ctx.settings.get().language,
+    ...(ctx.padContentIndex !== undefined
+      ? {
+          indexPadContent: (workspaceId: string, padName: string) => {
+            const ws = ctx.workspaces.byId(workspaceId);
+            if (ws) {
+              void ctx.padContentIndex!.index(workspaceId, ws.serverUrl, padName);
+            }
+          },
+        }
+      : {}),
   });
 
   const wins = windowHandlers({
@@ -204,6 +215,11 @@ export function registerIpc(ctx: AppContext): IpcRegistration {
   register(CH.PAD_HISTORY_UNPIN, (e, p) => hist.unpin(e, p));
   register(CH.PAD_HISTORY_CLEAR_RECENT, (e, p) => hist.clearRecent(e, p));
   register(CH.PAD_HISTORY_CLEAR_ALL, (e, p) => hist.clearAll(e, p));
+
+  ipcMain.handle(CH.QUICK_SWITCHER_SEARCH, async (_e, payload: unknown) => {
+    const q = (payload as { query?: string })?.query ?? '';
+    return ctx.padContentIndex?.search(q) ?? [];
+  });
 
   ipcMain.handle(CH.UPDATER_CHECK_NOW, async () => {
     await ctx.updater?.check();

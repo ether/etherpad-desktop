@@ -17,6 +17,7 @@ export type TabHandlerDeps = {
   emitTabsChanged: () => void;
   emitPadHistoryChanged: () => void;
   getLanguage: () => string;
+  indexPadContent?: (workspaceId: string, padName: string) => void;
 };
 
 export function tabHandlers(deps: TabHandlerDeps) {
@@ -36,6 +37,7 @@ export function tabHandlers(deps: TabHandlerDeps) {
         src,
       });
       deps.padHistory.touch(input.workspaceId, input.padName);
+      deps.indexPadContent?.(input.workspaceId, input.padName);
       deps.emitTabsChanged();
       deps.emitPadHistoryChanged();
       return tab;

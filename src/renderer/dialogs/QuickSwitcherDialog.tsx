@@ -7,16 +7,24 @@ import type { PadHistoryEntry } from '@shared/types/pad-history';
 
 type WorkspaceResult = { kind: 'workspace'; workspace: Workspace };
 type PadResult = { kind: 'pad'; entry: PadHistoryEntry; workspace: Workspace };
-type Result = WorkspaceResult | PadResult;
+type PadContentResult = {
+  kind: 'pad-content';
+  entry: PadHistoryEntry;
+  workspace: Workspace;
+  snippet: string;
+};
+type Result = WorkspaceResult | PadResult | PadContentResult;
 
 const RESULT_CAP = 30;
 const RECENT_CAP = 10;
+const CONTENT_CAP = 20;
+const CONTENT_DEBOUNCE_MS = 200;
 
 function rankResults(
   query: string,
   workspaces: Workspace[],
   history: Record<string, PadHistoryEntry[]>,
-): Result[] {
+): Array<WorkspaceResult | PadResult> {
   const q = query.trim().toLowerCase();
   const wsById = Object.fromEntries(workspaces.map((w) => [w.id, w]));
 
@@ -55,21 +63,69 @@ export function QuickSwitcherDialog(): React.JSX.Element {
   const padHistory = useShellStore((s) => s.padHistory);
   const [query, setQuery] = useState('');
   const [selected, setSelected] = useState(0);
+  const [contentResults, setContentResults] = useState<PadContentResult[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const results = useMemo(
+  const wsById = useMemo(
+    () => Object.fromEntries(workspaces.map((w) => [w.id, w])),
+    [workspaces],
+  );
+
+  // Build pad-history lookup (flat list keyed by workspaceId::padName)
+  const padByKey = useMemo(() => {
+    const map = new Map<string, PadHistoryEntry>();
+    for (const entries of Object.values(padHistory)) {
+      for (const e of entries) {
+        map.set(`${e.workspaceId}::${e.padName}`, e);
+      }
+    }
+    return map;
+  }, [padHistory]);
+
+  const nameResults = useMemo(
     () => rankResults(query, workspaces, padHistory),
     [query, workspaces, padHistory],
   );
 
+  const allResults: Result[] = [...nameResults, ...contentResults];
+
+  // Debounced content search
+  useEffect(() => {
+    if (!query.trim()) {
+      setContentResults([]);
+      return;
+    }
+    const timer = setTimeout(() => {
+      void ipc.quickSwitcher.searchPadContent(query).then((hits) => {
+        const mapped: PadContentResult[] = hits
+          .slice(0, CONTENT_CAP)
+          .flatMap((h) => {
+            const ws = wsById[h.workspaceId];
+            if (!ws) return [];
+            const entry = padByKey.get(`${h.workspaceId}::${h.padName}`);
+            if (!entry) {
+              // Not in pad history yet — skip rendering
+              return [];
+            }
+            return [{ kind: 'pad-content' as const, entry, workspace: ws, snippet: h.snippet }];
+          });
+        setContentResults(mapped);
+      }).catch(() => {
+        // Content search unavailable (auth required, etc.) — silent fail
+        setContentResults([]);
+      });
+    }, CONTENT_DEBOUNCE_MS);
+    return () => clearTimeout(timer);
+  }, [query, wsById, padByKey]);
+
   // Reset selection when results change
-  useEffect(() => setSelected(0), [results.length, query]);
+  useEffect(() => setSelected(0), [allResults.length, query]);
 
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
 
-  const activate = async (r: Result) => {
+  const activateNameResult = async (r: WorkspaceResult | PadResult) => {
     if (r.kind === 'workspace') {
       useShellStore.getState().setActiveWorkspaceId(r.workspace.id);
       await ipc.window.setActiveWorkspace(r.workspace.id);
@@ -81,16 +137,31 @@ export function QuickSwitcherDialog(): React.JSX.Element {
     dialogActions.closeDialog();
   };
 
+  const activateContentResult = async (r: PadContentResult) => {
+    useShellStore.getState().setActiveWorkspaceId(r.workspace.id);
+    await ipc.window.setActiveWorkspace(r.workspace.id);
+    await ipc.tab.open({ workspaceId: r.workspace.id, padName: r.entry.padName, mode: 'open' });
+    dialogActions.closeDialog();
+  };
+
+  const activate = async (r: Result) => {
+    if (r.kind === 'pad-content') {
+      await activateContentResult(r);
+    } else {
+      await activateNameResult(r);
+    }
+  };
+
   const onKeyDown = async (e: React.KeyboardEvent) => {
     if (e.key === 'ArrowDown') {
       e.preventDefault();
-      setSelected((s) => Math.min(s + 1, Math.max(results.length - 1, 0)));
+      setSelected((s) => Math.min(s + 1, Math.max(allResults.length - 1, 0)));
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
       setSelected((s) => Math.max(s - 1, 0));
     } else if (e.key === 'Enter') {
       e.preventDefault();
-      const r = results[selected];
+      const r = allResults[selected];
       if (r) await activate(r);
     } else if (e.key === 'Escape') {
       e.preventDefault();
@@ -111,14 +182,16 @@ export function QuickSwitcherDialog(): React.JSX.Element {
           onChange={(e) => setQuery(e.target.value)}
           aria-label={t.quickSwitcher.inputAria}
         />
-        {results.length === 0 ? (
+        {allResults.length === 0 ? (
           <p className="qs-empty">{query ? t.quickSwitcher.noMatches : t.quickSwitcher.empty}</p>
         ) : (
           <ul className="qs-results" role="listbox" aria-label={t.quickSwitcher.resultsAria}>
-            {results.map((r, i) => {
+            {allResults.map((r, i) => {
               const id =
                 r.kind === 'workspace'
                   ? `ws-${r.workspace.id}`
+                  : r.kind === 'pad-content'
+                  ? `content-${r.workspace.id}-${r.entry.padName}`
                   : `pad-${r.workspace.id}-${r.entry.padName}`;
               const isSelected = i === selected;
               return (
@@ -140,11 +213,15 @@ export function QuickSwitcherDialog(): React.JSX.Element {
                       ? r.workspace.name
                       : (r.entry.title ?? r.entry.padName)}
                   </span>
-                  <span className="qs-secondary">
-                    {r.kind === 'workspace'
-                      ? t.quickSwitcher.workspaceLabel
-                      : r.workspace.name}
-                  </span>
+                  {r.kind === 'pad-content' ? (
+                    <span className="qs-secondary qs-snippet">{r.snippet}</span>
+                  ) : (
+                    <span className="qs-secondary">
+                      {r.kind === 'workspace'
+                        ? t.quickSwitcher.workspaceLabel
+                        : r.workspace.name}
+                    </span>
+                  )}
                 </li>
               );
             })}

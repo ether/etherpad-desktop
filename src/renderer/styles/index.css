@@ -325,6 +325,14 @@ input[type="checkbox"] {
   font-size: 12px;
   white-space: nowrap;
 }
+.qs-snippet {
+  font-style: italic;
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 360px;
+}
 
 /* ── Updater banner ── */
 .shell-root-wrapper {

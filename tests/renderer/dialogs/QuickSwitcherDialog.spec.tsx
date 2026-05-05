@@ -25,6 +25,7 @@ beforeEach(() => {
   window.etherpadDesktop = {
     window: { setActiveWorkspace: vi.fn().mockResolvedValue({ ok: true, value: { ok: true } }) },
     tab: { open: vi.fn().mockResolvedValue({ ok: true, value: { tabId: 't' } }) },
+    quickSwitcher: { searchPadContent: vi.fn().mockResolvedValue([]) },
   };
 });
 
@@ -104,5 +105,18 @@ describe('QuickSwitcherDialog', () => {
     render(<QuickSwitcherDialog />);
     await userEvent.type(screen.getByRole('textbox'), 'xyznomatch');
     expect(screen.getByText(/no matches/i)).toBeInTheDocument();
+  });
+
+  it('shows content match row with snippet when searchPadContent returns a hit', async () => {
+    // Override to return a content hit for ws-a/standup
+    (window.etherpadDesktop.quickSwitcher.searchPadContent as ReturnType<typeof vi.fn>).mockResolvedValue([
+      { workspaceId: 'a', padName: 'standup', snippet: 'lots of monkey business today' },
+    ]);
+    render(<QuickSwitcherDialog />);
+    await userEvent.type(screen.getByRole('textbox'), 'monkey');
+    // Wait for the debounce + async resolution
+    await vi.waitFor(() => {
+      expect(screen.getByText(/monkey business/i)).toBeInTheDocument();
+    });
   });
 });

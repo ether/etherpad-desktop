@@ -38,4 +38,5 @@ export const CH = {
   UPDATER_INSTALL_AND_RESTART: 'updater.installAndRestart',
   UPDATER_GET_STATE: 'updater.getState',
   EV_UPDATER_STATE: 'event.updaterState',
+  QUICK_SWITCHER_SEARCH: 'quickSwitcher.search',
 } as const;
