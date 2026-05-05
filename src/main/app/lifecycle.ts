@@ -247,7 +247,13 @@ export async function boot(): Promise<void> {
       settings: () => ipcRef.current?.broadcastShell('menu.settings'),
       quit: () => app.quit(),
       about: () => ipcRef.current?.broadcastShell('menu.about'),
-      openLogs: () => void shell.openPath(ps.logsDir),
+      // Under E2E we no-op instead of letting `shell.openPath` invoke
+      // `xdg-open` — that hangs on headless CI runners with no DE,
+      // which then stalls the worker teardown for 120s.
+      openLogs: () =>
+        process.env.E2E_TEST === '1'
+          ? undefined
+          : void shell.openPath(ps.logsDir),
       quickSwitcher: () => ipcRef.current?.broadcastShell('menu.quickSwitcher'),
     }),
   );
