@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/ether/etherpad-desktop/compare/v0.2.1...v0.3.0) (2026-05-05)
+
+
+### Features
+
+* **macos:** add macOS build target — DMG (arm64 + x64) for v0 beta ([a7e88aa](https://github.com/ether/etherpad-desktop/commit/a7e88aa30898cbb9ee5ff4a62c99dd95c4126739))
+
 ## [0.2.1](https://github.com/ether/etherpad-desktop/compare/v0.2.0...v0.2.1) (2026-05-05)
 
 
