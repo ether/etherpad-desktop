@@ -35,6 +35,7 @@ export const en = {
     embeddedToggle: 'Use a local Etherpad server (no remote URL needed)',
     embeddedHint: 'Etherpad will run locally on this machine.',
     embeddedStarting: 'Starting local Etherpad…',
+    embeddedNotReady: 'Local Etherpad embedding is in development — for now please point to a remote URL.',
     errorEmbeddedFailed: 'Could not start the local Etherpad server.',
   },
   openPad: {
@@ -66,6 +67,11 @@ export const en = {
     body: 'This will close any open tabs in this workspace, clear its login state, and delete its pad history.',
     confirm: 'Remove',
     cancel: 'Cancel',
+  },
+  workspaceRow: {
+    nameLabel: 'Workspace name',
+    colorLabel: 'Workspace colour',
+    remove: 'Remove',
   },
   httpAuth: {
     title: 'Authentication required',

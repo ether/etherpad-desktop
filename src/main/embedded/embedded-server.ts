@@ -1,5 +1,5 @@
 import { spawn, type ChildProcess } from 'node:child_process';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync, createWriteStream } from 'node:fs';
 import { join } from 'node:path';
 import type { Logger } from '../logging/logger.js';
 
@@ -59,8 +59,17 @@ export function createEmbeddedServer(opts: {
     let resolveStarting!: () => void;
     startingPromise = new Promise<void>((r) => { resolveStarting = r; });
 
+    // Keep the last 8KB of stderr in memory so a startup failure can be
+    // surfaced to the user (the dialog used to hang silently for 240s on
+    // any failure — npx 404, port collision, missing system deps, etc.).
+    const stderrTailLimit = 8192;
+    let stderrTail = '';
+    let exitedEarly: { code: number | null; signal: NodeJS.Signals | null } | null = null;
+
     try {
       mkdirSync(dataDir, { recursive: true });
+      const logsDir = join(opts.userDataDir, 'logs');
+      mkdirSync(logsDir, { recursive: true });
       const port = await findPort();
       const settings = {
         title: 'Etherpad (embedded)',
@@ -80,6 +89,14 @@ export function createEmbeddedServer(opts: {
       };
       writeFileSync(settingsPath, JSON.stringify(settings, null, 2));
 
+      // Always tee stdout+stderr to userData/logs/embedded-etherpad.log so
+      // users can see what's happening on a hang. Previously this was gated
+      // on EPD_LOG_EMBEDDED which nobody knew to set.
+      const logPath = join(logsDir, 'embedded-etherpad.log');
+      const logStream = createWriteStream(logPath, { flags: 'a' });
+      logStream.write(`\n--- embedded etherpad start @ ${new Date().toISOString()} (port ${port}) ---\n`);
+      opts.log.info('starting embedded etherpad', { port, logPath });
+
       proc = spawnImpl(
         'npx',
         ['--yes', 'etherpad-lite@latest', '--settings', settingsPath],
@@ -89,11 +106,21 @@ export function createEmbeddedServer(opts: {
           env: { ...process.env, NODE_ENV: 'production' },
         },
       );
+      proc.stdout?.on('data', (b: Buffer) => { logStream.write(b); });
       proc.stderr?.on('data', (b: Buffer) => {
-        if (process.env.EPD_LOG_EMBEDDED) process.stderr.write(`[embedded] ${b.toString()}`);
+        logStream.write(b);
+        const chunk = b.toString();
+        stderrTail = (stderrTail + chunk).slice(-stderrTailLimit);
+        if (process.env.EPD_LOG_EMBEDDED) process.stderr.write(`[embedded] ${chunk}`);
       });
-      proc.on('exit', (code) => {
-        opts.log.warn('embedded etherpad exited', { code });
+      proc.on('exit', (code, signal) => {
+        opts.log.warn('embedded etherpad exited', { code, signal });
+        logStream.end(`--- exited code=${code} signal=${signal} ---\n`);
+        if (s.kind === 'starting') {
+          // Exit before readiness — record so waitForReachable can fail fast
+          // instead of polling for the full timeout.
+          exitedEarly = { code, signal };
+        }
         proc = null;
         if (s.kind !== 'idle') {
           s = { kind: 'error', message: `Etherpad exited with code ${code ?? 'null'}` };
@@ -101,12 +128,17 @@ export function createEmbeddedServer(opts: {
       });
 
       const url = `http://127.0.0.1:${port}`;
-      await waitForReachable(url, 240_000);
+      // 8 minutes: cold-start `npx etherpad-lite@latest` downloads a multi-
+      // hundred-MB tarball before the server even begins booting. 240s was
+      // not enough on slower connections — users saw the "Starting…" dialog
+      // hang and gave up.
+      await waitForReachable(url, 480_000, () => exitedEarly, () => stderrTail);
       serverUrl = url;
       s = { kind: 'running', url };
       return url;
     } catch (e) {
-      s = { kind: 'error', message: (e as Error).message };
+      const message = (e as Error).message;
+      s = { kind: 'error', message };
       try {
         proc?.kill('SIGTERM');
       } catch {
@@ -144,9 +176,24 @@ export function createEmbeddedServer(opts: {
   };
 }
 
-async function waitForReachable(url: string, timeoutMs: number): Promise<void> {
+async function waitForReachable(
+  url: string,
+  timeoutMs: number,
+  getExitedEarly: () => { code: number | null; signal: NodeJS.Signals | null } | null = () => null,
+  getStderrTail: () => string = () => '',
+): Promise<void> {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
+    // Fail fast if the child process already died — no point polling 240s
+    // for a server that isn't going to start.
+    const exit = getExitedEarly();
+    if (exit) {
+      const tail = getStderrTail().trim();
+      const tailMsg = tail ? `\n--- stderr tail ---\n${tail}` : '';
+      throw new Error(
+        `embedded etherpad exited before becoming reachable (code=${exit.code ?? 'null'}, signal=${exit.signal ?? 'null'}).${tailMsg}`,
+      );
+    }
     try {
       const r = await fetch(`${url}/api/`);
       if (r.ok) {
@@ -158,7 +205,9 @@ async function waitForReachable(url: string, timeoutMs: number): Promise<void> {
     }
     await new Promise((r) => setTimeout(r, 500));
   }
-  throw new Error(`embedded etherpad did not come up at ${url}`);
+  const tail = getStderrTail().trim();
+  const tailMsg = tail ? `\n--- stderr tail ---\n${tail}` : '';
+  throw new Error(`embedded etherpad did not come up at ${url} within ${timeoutMs}ms.${tailMsg}`);
 }
 
 async function findFreePort(): Promise<number> {

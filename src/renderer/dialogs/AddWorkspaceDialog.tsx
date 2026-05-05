@@ -60,14 +60,19 @@ export function AddWorkspaceDialog({ dismissable }: { dismissable: boolean }): R
         </span>
         <input value={name} onChange={(e) => setName(e.target.value)} autoFocus required />
       </label>
-      <label className="dialog-field-inline">
+      <label className="dialog-field-inline" style={{ opacity: 0.55 }}>
         <input
           type="checkbox"
           checked={useEmbedded}
+          disabled
+          aria-describedby="embedded-not-ready-hint"
           onChange={(e) => setUseEmbedded(e.target.checked)}
         />
         <span>{t.addWorkspace.embeddedToggle}</span>
       </label>
+      <p id="embedded-not-ready-hint" style={{ margin: 0, fontSize: '0.875em', color: 'var(--text-muted)' }}>
+        {t.addWorkspace.embeddedNotReady}
+      </p>
       {useEmbedded ? (
         <p style={{ margin: 0, fontSize: '0.875em', color: 'var(--panel-fg)', opacity: 0.75 }}>
           {t.addWorkspace.embeddedHint}
