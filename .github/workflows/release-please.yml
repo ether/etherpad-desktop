@@ -33,7 +33,7 @@ jobs:
   release-please:
     runs-on: ubuntu-latest
     steps:
-      - uses: googleapis/release-please-action@v4
+      - uses: googleapis/release-please-action@v5
         with:
           # `node` mode keeps package.json's version field as the source
           # of truth and writes a top-level CHANGELOG.md.
