@@ -115,7 +115,9 @@ test('Help > About Etherpad Desktop opens AboutDialog (the user-reported bug)', 
     const ok = await clickHelpMenuItem(h, 'About Etherpad Desktop');
     expect(ok).toBe(true);
     await expect(h.shell.getByRole('heading', { name: /^etherpad desktop$/i })).toBeVisible();
-    await expect(h.shell.getByText(/version 0\.1\.0/i)).toBeVisible();
+    // Match any semver — release-please bumps the version on every
+    // user-visible commit, so a hardcoded literal goes stale fast.
+    await expect(h.shell.getByText(/version \d+\.\d+\.\d+/i)).toBeVisible();
   } finally {
     await h.close();
   }
