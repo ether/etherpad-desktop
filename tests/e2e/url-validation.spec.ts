@@ -45,7 +45,7 @@ test('empty URL disables the Add button', async () => {
   const h = await launchApp();
   try {
     // First launch shows AddWorkspaceDialog
-    await expect(h.shell.getByRole('heading', { name: /add a workspace/i })).toBeVisible();
+    await expect(h.shell.getByRole('heading', { name: /add an etherpad instance/i })).toBeVisible();
 
     // Fill in the name but leave URL empty
     await h.shell.getByLabel(/name/i).fill('NoUrl');
@@ -61,7 +61,7 @@ test('empty URL disables the Add button', async () => {
 test('empty name also disables the Add button', async () => {
   const h = await launchApp();
   try {
-    await expect(h.shell.getByRole('heading', { name: /add a workspace/i })).toBeVisible();
+    await expect(h.shell.getByRole('heading', { name: /add an etherpad instance/i })).toBeVisible();
 
     // Fill URL but leave name empty
     await h.shell.getByLabel(/etherpad url/i).fill('http://127.0.0.1:9003');
@@ -76,7 +76,7 @@ test('empty name also disables the Add button', async () => {
 test('malformed URL shows URL validation error', async () => {
   const h = await launchApp();
   try {
-    await expect(h.shell.getByRole('heading', { name: /add a workspace/i })).toBeVisible();
+    await expect(h.shell.getByRole('heading', { name: /add an etherpad instance/i })).toBeVisible();
 
     await h.shell.getByLabel(/name/i).fill('Bad');
     await h.shell.getByLabel(/etherpad url/i).fill('not a url');
@@ -94,7 +94,7 @@ test('reachable server that is not Etherpad shows not-etherpad error', async () 
   const fake = await startFakeServer();
   const h = await launchApp();
   try {
-    await expect(h.shell.getByRole('heading', { name: /add a workspace/i })).toBeVisible();
+    await expect(h.shell.getByRole('heading', { name: /add an etherpad instance/i })).toBeVisible();
 
     await h.shell.getByLabel(/name/i).fill('FakeServer');
     await h.shell.getByLabel(/etherpad url/i).fill(fake.url);
@@ -112,7 +112,7 @@ test('reachable server that is not Etherpad shows not-etherpad error', async () 
 test('unreachable server shows unreachable error', async () => {
   const h = await launchApp();
   try {
-    await expect(h.shell.getByRole('heading', { name: /add a workspace/i })).toBeVisible();
+    await expect(h.shell.getByRole('heading', { name: /add an etherpad instance/i })).toBeVisible();
 
     await h.shell.getByLabel(/name/i).fill('Dead');
     // Port 1 is reserved and always refused

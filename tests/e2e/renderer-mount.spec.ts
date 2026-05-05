@@ -45,7 +45,7 @@ test('shell renderer mounts and exposes window.etherpadDesktop', async () => {
     //    infinite window. The shell renders the workspace rail at the top
     //    level regardless of state, so it's the canonical "did React mount"
     //    sentinel.
-    await expect(h.shell.getByRole('navigation', { name: /workspace rail/i })).toBeVisible({ timeout: 10_000 });
+    await expect(h.shell.getByRole('navigation', { name: /etherpad instance rail/i })).toBeVisible({ timeout: 10_000 });
 
     // 3. The first-run dialog OR the rail's add button is visible — i.e.,
     //    one of the two valid initial states. If both are absent the

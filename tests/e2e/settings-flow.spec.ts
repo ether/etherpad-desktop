@@ -84,7 +84,7 @@ test('Settings → Remove workspace shows RemoveWorkspaceDialog', async () => {
     await h.shell.getByRole('button', { name: /^remove$/i }).click();
 
     // RemoveWorkspaceDialog should be visible
-    await expect(h.shell.getByRole('heading', { name: /remove workspace/i })).toBeVisible();
+    await expect(h.shell.getByRole('heading', { name: /remove this etherpad instance/i })).toBeVisible();
   } finally {
     await h.close();
   }

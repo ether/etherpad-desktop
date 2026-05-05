@@ -39,12 +39,12 @@ test('AddWorkspaceDialog (first-run, dismissable=false): Escape does NOT close',
   const h = await launchApp();
   try {
     // First launch with no workspaces → dismissable=false modal.
-    await expect(h.shell.getByRole('heading', { name: /add a workspace/i })).toBeVisible();
+    await expect(h.shell.getByRole('heading', { name: /add an etherpad instance/i })).toBeVisible();
     // Cancel button should not even be shown.
     await expect(h.shell.getByRole('button', { name: /cancel/i })).toHaveCount(0);
     // Press Escape — must NOT close (we'd have no workspace and an unusable shell).
     await h.shell.keyboard.press('Escape');
-    await expect(h.shell.getByRole('heading', { name: /add a workspace/i })).toBeVisible();
+    await expect(h.shell.getByRole('heading', { name: /add an etherpad instance/i })).toBeVisible();
   } finally {
     await h.close();
   }

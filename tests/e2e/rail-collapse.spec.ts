@@ -11,13 +11,13 @@ test('workspace rail collapse/expand toggle for focused writing mode', async () 
     await expect(h.shell.getByRole('button', { name: /open instance test/i })).toBeVisible();
 
     // Collapse the rail
-    await h.shell.getByTitle(/hide workspaces/i).click();
+    await h.shell.getByTitle(/hide instances/i).click();
 
     // Workspace icon should no longer be visible
     await expect(h.shell.getByRole('button', { name: /open instance test/i })).not.toBeVisible();
 
     // Expand again
-    await h.shell.getByTitle(/show workspaces/i).click();
+    await h.shell.getByTitle(/show instances/i).click();
 
     // Workspace icon back
     await expect(h.shell.getByRole('button', { name: /open instance test/i })).toBeVisible();

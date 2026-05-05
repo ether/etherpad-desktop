@@ -118,8 +118,8 @@ describe('WorkspaceRail', () => {
       workspaceOrder: ['a'],
     });
     render(<WorkspaceRail />);
-    expect(screen.queryByTitle(/hide workspaces/i)).not.toBeInTheDocument();
-    expect(screen.queryByTitle(/show workspaces/i)).not.toBeInTheDocument();
+    expect(screen.queryByTitle(/hide instances/i)).not.toBeInTheDocument();
+    expect(screen.queryByTitle(/show instances/i)).not.toBeInTheDocument();
   });
 
   it('hides its content (icons, search, settings) when railCollapsed=true', () => {
