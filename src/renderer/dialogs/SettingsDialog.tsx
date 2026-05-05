@@ -44,11 +44,25 @@ function WorkspaceEditRow({ workspace }: { workspace: Workspace }): React.JSX.El
   return (
     <>
       <div className="workspace-edit-row">
-        <span
+        {/* The swatch IS the colour picker — clicking it opens the native
+            colour chooser via the hidden input. Saves a column compared
+            to a dedicated `<input type=color>` and removes the visual
+            collision with the Remove button the user reported. */}
+        <label
           className="workspace-edit-swatch"
           style={{ background: workspace.color }}
-          aria-hidden="true"
-        />
+          title={t.workspaceRow.colorLabel}
+          aria-label={t.workspaceRow.colorLabel}
+        >
+          <input
+            type="color"
+            className="visually-hidden"
+            value={workspace.color}
+            onChange={(e) => {
+              void ipc.workspace.update({ id: workspace.id, color: e.target.value });
+            }}
+          />
+        </label>
         <input
           className="workspace-edit-name"
           type="text"
@@ -56,16 +70,6 @@ function WorkspaceEditRow({ workspace }: { workspace: Workspace }): React.JSX.El
           aria-label={t.workspaceRow.nameLabel}
           onChange={(e) => {
             void ipc.workspace.update({ id: workspace.id, name: e.target.value });
-          }}
-        />
-        <input
-          className="workspace-edit-color"
-          type="color"
-          value={workspace.color}
-          aria-label={t.workspaceRow.colorLabel}
-          title={t.workspaceRow.colorLabel}
-          onChange={(e) => {
-            void ipc.workspace.update({ id: workspace.id, color: e.target.value });
           }}
         />
         <button
