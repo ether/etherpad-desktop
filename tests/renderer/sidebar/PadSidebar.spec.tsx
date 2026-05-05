@@ -154,88 +154,25 @@ describe('PadSidebar', () => {
     expect(window.etherpadDesktop.tab.open).not.toHaveBeenCalled();
   });
 
-  it('typing in the filter narrows the visible pad list', async () => {
-    useShellStore.setState({
-      activeWorkspaceId: 'a',
-      padHistory: {
-        a: [
-          { workspaceId: 'a', padName: 'standup', lastOpenedAt: 2, pinned: false },
-          { workspaceId: 'a', padName: 'retro', lastOpenedAt: 1, pinned: false },
-        ],
-      },
-    });
-    render(<PadSidebar />);
-    expect(screen.getByText('standup')).toBeInTheDocument();
-    expect(screen.getByText('retro')).toBeInTheDocument();
+  // --- NEW: search affordance tests ---
 
-    await userEvent.type(screen.getByRole('textbox', { name: /filter pads/i }), 'stand');
-    expect(screen.getByText('standup')).toBeInTheDocument();
-    expect(screen.queryByText('retro')).not.toBeInTheDocument();
+  it('clicking the "Search all pads…" affordance opens quickSwitcher dialog', async () => {
+    useShellStore.setState({ activeWorkspaceId: 'a' });
+    render(<PadSidebar />);
+    await userEvent.click(screen.getByRole('button', { name: /search all pads/i }));
+    expect(useShellStore.getState().openDialog).toBe('quickSwitcher');
   });
 
-  it('shows "No pads match" when filter has no results', async () => {
-    useShellStore.setState({
-      activeWorkspaceId: 'a',
-      padHistory: { a: [{ workspaceId: 'a', padName: 'standup', lastOpenedAt: 1, pinned: false }] },
-    });
+  it('search affordance has the title attribute for tooltip', () => {
+    useShellStore.setState({ activeWorkspaceId: 'a' });
     render(<PadSidebar />);
-    await userEvent.type(screen.getByRole('textbox', { name: /filter pads/i }), 'xyznomatch');
-    expect(screen.getByText(/no pads match/i)).toBeInTheDocument();
-    expect(screen.queryByText('standup')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /search all pads/i })).toHaveAttribute('title');
   });
 
-  it('clearing the filter restores all pads', async () => {
-    useShellStore.setState({
-      activeWorkspaceId: 'a',
-      padHistory: {
-        a: [
-          { workspaceId: 'a', padName: 'standup', lastOpenedAt: 2, pinned: false },
-          { workspaceId: 'a', padName: 'retro', lastOpenedAt: 1, pinned: false },
-        ],
-      },
-    });
+  it('no per-workspace filter input is rendered', () => {
+    useShellStore.setState({ activeWorkspaceId: 'a' });
     render(<PadSidebar />);
-    const input = screen.getByRole('textbox', { name: /filter pads/i });
-    await userEvent.type(input, 'stand');
-    expect(screen.queryByText('retro')).not.toBeInTheDocument();
-    await userEvent.clear(input);
-    expect(screen.getByText('retro')).toBeInTheDocument();
-  });
-
-  it('+New Pad button stays visible regardless of filter', async () => {
-    useShellStore.setState({ activeWorkspaceId: 'a', padHistory: { a: [] } });
-    render(<PadSidebar />);
-    await userEvent.type(screen.getByRole('textbox', { name: /filter pads/i }), 'anything');
-    expect(screen.getByRole('button', { name: /new pad/i })).toBeInTheDocument();
-  });
-
-  it('filter matches by title as well as padName', async () => {
-    useShellStore.setState({
-      activeWorkspaceId: 'a',
-      padHistory: {
-        a: [
-          { workspaceId: 'a', padName: 'pad-abc', title: 'Weekly Standup', lastOpenedAt: 2, pinned: false },
-          { workspaceId: 'a', padName: 'retro', lastOpenedAt: 1, pinned: false },
-        ],
-      },
-    });
-    render(<PadSidebar />);
-    await userEvent.type(screen.getByRole('textbox', { name: /filter pads/i }), 'weekly');
-    expect(screen.getByText('Weekly Standup')).toBeInTheDocument();
-    expect(screen.queryByText('retro')).not.toBeInTheDocument();
-  });
-
-  it('filter is case-insensitive', async () => {
-    useShellStore.setState({
-      activeWorkspaceId: 'a',
-      padHistory: {
-        a: [
-          { workspaceId: 'a', padName: 'StandUp', lastOpenedAt: 1, pinned: false },
-        ],
-      },
-    });
-    render(<PadSidebar />);
-    await userEvent.type(screen.getByRole('textbox', { name: /filter pads/i }), 'standup');
-    expect(screen.getByText('StandUp')).toBeInTheDocument();
+    // The old filter textbox should be gone
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
   });
 });

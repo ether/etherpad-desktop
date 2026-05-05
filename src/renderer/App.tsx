@@ -130,9 +130,11 @@ export function App(): React.JSX.Element {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      // Ctrl+K (or Cmd+K) opens the quick switcher unless an input/textarea
-      // already has focus (we don't want to swallow user typing in dialogs).
-      if (e.key !== 'k' && e.key !== 'K') return;
+      // Ctrl+K (or Cmd+K) and Ctrl+F (or Cmd+F) open the quick switcher unless
+      // an input/textarea already has focus (we don't want to swallow user typing in dialogs).
+      const isK = e.key === 'k' || e.key === 'K';
+      const isF = e.key === 'f' || e.key === 'F';
+      if (!isK && !isF) return;
       if (!(e.ctrlKey || e.metaKey)) return;
       const target = e.target as HTMLElement | null;
       if (

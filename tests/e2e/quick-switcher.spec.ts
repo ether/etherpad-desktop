@@ -83,6 +83,22 @@ test('clicking the rail search button opens the quick switcher', async () => {
   } finally { await h.close(); }
 });
 
+test('Ctrl+F opens quick switcher when focus is outside a pad', async () => {
+  const h = await launchApp();
+  try {
+    await h.shell.getByLabel(/name/i).fill('CtrlFTest');
+    await h.shell.getByLabel(/etherpad url/i).fill('http://127.0.0.1:9003');
+    await h.shell.getByRole('button', { name: /^add$/i }).click();
+    await expect(h.shell.getByRole('button', { name: /open workspace ctrlftest/i })).toBeVisible();
+
+    // Trigger Ctrl+F on the shell window (no pad WebContentsView has focus)
+    await h.shell.press('Control+f');
+    await expect(h.shell.getByRole('dialog', { name: /quick switcher/i })).toBeVisible();
+  } finally {
+    await h.close();
+  }
+});
+
 test('Quick Switcher pad selection switches workspace and opens pad', async () => {
   const h = await launchApp();
   try {
