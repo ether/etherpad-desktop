@@ -96,10 +96,10 @@ export function AddWorkspaceDialog({ dismissable }: { dismissable: boolean }): R
         </fieldset>
         {error && <p role="alert" style={{ color: 'var(--error)' }}>{error}</p>}
         <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
-          <button className="btn-primary" onClick={() => void submit()} disabled={busy || !canSubmit}>
+          <button className="btn-primary" title={t.addWorkspace.submit} onClick={() => void submit()} disabled={busy || !canSubmit}>
             {busy ? (useEmbedded ? t.addWorkspace.embeddedStarting : t.addWorkspace.probing) : t.addWorkspace.submit}
           </button>
-          {dismissable && <button className="btn-secondary" onClick={() => dialogActions.closeDialog()}>{t.addWorkspace.cancel}</button>}
+          {dismissable && <button className="btn-secondary" title={t.addWorkspace.cancel} onClick={() => dialogActions.closeDialog()}>{t.addWorkspace.cancel}</button>}
         </div>
       </div>
     </div>

@@ -26,8 +26,8 @@ export function HttpAuthDialog(): React.JSX.Element {
         <label>{t.httpAuth.username}<input value={u} onChange={(e) => setU(e.target.value)} autoFocus /></label>
         <label>{t.httpAuth.password}<input type="password" value={p} onChange={(e) => setP(e.target.value)} /></label>
         <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-          <button className="btn-primary" onClick={() => void submit(false)} disabled={!u}>{t.httpAuth.submit}</button>
-          <button className="btn-secondary" onClick={() => void submit(true)}>{t.httpAuth.cancel}</button>
+          <button className="btn-primary" title={t.httpAuth.submit} onClick={() => void submit(false)} disabled={!u}>{t.httpAuth.submit}</button>
+          <button className="btn-secondary" title={t.httpAuth.cancel} onClick={() => void submit(true)}>{t.httpAuth.cancel}</button>
         </div>
       </div>
     </div>

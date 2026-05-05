@@ -175,4 +175,16 @@ describe('PadSidebar', () => {
     // The old filter textbox should be gone
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
   });
+
+  it('pad-open buttons have title attribute for tooltip', () => {
+    useShellStore.setState({
+      activeWorkspaceId: 'a',
+      padHistory: {
+        a: [{ workspaceId: 'a', padName: 'mypad', lastOpenedAt: 1, pinned: false }],
+      },
+    });
+    render(<PadSidebar />);
+    const btn = screen.getByText('mypad').closest('button')!;
+    expect(btn).toHaveAttribute('title');
+  });
 });

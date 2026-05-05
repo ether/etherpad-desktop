@@ -119,4 +119,13 @@ describe('TabStrip', () => {
     render(<TabStrip />);
     expect(screen.queryByLabelText(/error/i)).not.toBeInTheDocument();
   });
+
+  it('close pad button has a title attribute for tooltip', () => {
+    useShellStore.setState({
+      activeWorkspaceId: 'a',
+      tabs: [{ tabId: 't1', workspaceId: 'a', padName: 'p', title: 'p', state: 'loaded' }],
+    });
+    render(<TabStrip />);
+    expect(screen.getByRole('button', { name: /close pad/i })).toHaveAttribute('title');
+  });
 });

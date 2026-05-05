@@ -68,6 +68,21 @@ describe('WorkspaceRail', () => {
     expect(useShellStore.getState().openDialog).toBe('quickSwitcher');
   });
 
+  it('+ add button has a title attribute for tooltip', () => {
+    render(<WorkspaceRail />);
+    expect(screen.getByRole('button', { name: /add workspace/i })).toHaveAttribute('title');
+  });
+
+  it('settings cog button has a title attribute for tooltip', () => {
+    render(<WorkspaceRail />);
+    expect(screen.getByRole('button', { name: /^settings$/i })).toHaveAttribute('title');
+  });
+
+  it('search button has a title attribute for tooltip', () => {
+    render(<WorkspaceRail />);
+    expect(screen.getByRole('button', { name: /search workspaces and pads/i })).toHaveAttribute('title');
+  });
+
   it('active workspace button has a visual ring (boxShadow)', () => {
     useShellStore.setState({
       workspaces: [

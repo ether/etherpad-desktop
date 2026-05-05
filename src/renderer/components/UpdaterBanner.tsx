@@ -36,7 +36,7 @@ export function UpdaterBanner(): React.JSX.Element | null {
     <div role="status" className="updater-banner updater-banner-ready">
       <span>{fmt(t.updater.readyPrefix, { version: s.version })}</span>
       <span className="updater-banner-actions">
-        <button className="btn-primary" onClick={() => void ipc.updater.installAndRestart()}>
+        <button className="btn-primary" title={t.updater.restartNow} onClick={() => void ipc.updater.installAndRestart()}>
           {t.updater.restartNow}
         </button>
       </span>

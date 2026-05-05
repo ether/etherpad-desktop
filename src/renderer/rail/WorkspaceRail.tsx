@@ -39,6 +39,7 @@ export function WorkspaceRail(): React.JSX.Element {
         })}
         <button
           aria-label={t.rail.add}
+          title={t.rail.add}
           onClick={() => dialogActions.openDialog('addWorkspace')}
           className="workspace-rail-add"
         >
@@ -56,6 +57,7 @@ export function WorkspaceRail(): React.JSX.Element {
         </button>
         <button
           aria-label={t.rail.settings}
+          title={t.rail.settings}
           onClick={() => dialogActions.openDialog('settings')}
           className="workspace-rail-cog"
         >

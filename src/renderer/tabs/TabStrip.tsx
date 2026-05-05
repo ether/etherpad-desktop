@@ -19,6 +19,7 @@ export function TabStrip(): React.JSX.Element {
           key={tab.tabId}
           role="tab"
           aria-selected={tab.tabId === activeTabId}
+          title={tab.title ?? tab.padName}
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -44,6 +45,7 @@ export function TabStrip(): React.JSX.Element {
           </span>
           <button
             aria-label={t.tabStrip.close}
+            title={t.tabStrip.close}
             onClick={() => void ipc.tab.close({ tabId: tab.tabId })}
             style={{ border: 'none', background: 'transparent', color: 'var(--text-muted)' }}
           >

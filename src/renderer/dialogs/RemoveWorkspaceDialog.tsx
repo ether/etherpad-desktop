@@ -36,10 +36,10 @@ export function RemoveWorkspaceDialog(): React.JSX.Element | null {
         <p>{t.removeWorkspace.body}</p>
         {error && <p role="alert" style={{ color: 'var(--error)' }}>{error}</p>}
         <div style={{ display: 'flex', gap: 8 }}>
-          <button className="btn-primary" onClick={() => void confirm()} disabled={busy}>
+          <button className="btn-primary" title={t.removeWorkspace.confirm} onClick={() => void confirm()} disabled={busy}>
             {t.removeWorkspace.confirm}
           </button>
-          <button className="btn-secondary" onClick={() => dialogActions.closeDialog()}>{t.removeWorkspace.cancel}</button>
+          <button className="btn-secondary" title={t.removeWorkspace.cancel} onClick={() => dialogActions.closeDialog()}>{t.removeWorkspace.cancel}</button>
         </div>
       </div>
     </div>

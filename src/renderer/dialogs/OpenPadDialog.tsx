@@ -46,10 +46,10 @@ export function OpenPadDialog(): React.JSX.Element {
           <span>{t.openPad.create}</span>
         </label>
         <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-          <button className="btn-primary" onClick={() => void submit()} disabled={!name}>
+          <button className="btn-primary" title={t.openPad.submit} onClick={() => void submit()} disabled={!name}>
             {t.openPad.submit}
           </button>
-          <button className="btn-secondary" onClick={() => dialogActions.closeDialog()}>{t.addWorkspace.cancel}</button>
+          <button className="btn-secondary" title={t.addWorkspace.cancel} onClick={() => dialogActions.closeDialog()}>{t.addWorkspace.cancel}</button>
         </div>
       </div>
     </div>

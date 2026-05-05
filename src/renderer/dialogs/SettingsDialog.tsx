@@ -104,8 +104,8 @@ export function SettingsDialog(): React.JSX.Element | null {
           ))}
         </section>
         <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-          <button className="btn-primary" onClick={() => void save()}>{t.settings.save}</button>
-          <button className="btn-secondary" onClick={() => dialogActions.closeDialog()}>{t.settings.cancel}</button>
+          <button className="btn-primary" title={t.settings.save} onClick={() => void save()}>{t.settings.save}</button>
+          <button className="btn-secondary" title={t.settings.cancel} onClick={() => dialogActions.closeDialog()}>{t.settings.cancel}</button>
         </div>
       </div>
     </div>

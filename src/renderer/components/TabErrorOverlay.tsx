@@ -18,10 +18,10 @@ export function TabErrorOverlay(): React.JSX.Element | null {
       <div style={{ textAlign: 'center', maxWidth: 480 }}>
         <p style={{ color: 'var(--error)', fontWeight: 600 }}>{message}</p>
         <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
-          <button className="btn-primary" onClick={() => void ipc.tab.reload({ tabId: tab.tabId })}>
+          <button className="btn-primary" title={tab.state === 'crashed' ? t.tabError.reload : t.tabError.retry} onClick={() => void ipc.tab.reload({ tabId: tab.tabId })}>
             {tab.state === 'crashed' ? t.tabError.reload : t.tabError.retry}
           </button>
-          <button className="btn-secondary" onClick={() => void ipc.tab.close({ tabId: tab.tabId })}>{t.tabError.closeTab}</button>
+          <button className="btn-secondary" title={t.tabError.closeTab} onClick={() => void ipc.tab.close({ tabId: tab.tabId })}>{t.tabError.closeTab}</button>
         </div>
       </div>
     </div>
