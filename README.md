@@ -4,9 +4,6 @@ Native desktop client for [Etherpad](https://etherpad.org/) — a multi-instance
 thin client with per-instance session isolation, a navigable pad sidebar, and
 the keyboard shortcuts you'd expect from a modern app.
 
-> Built with Electron 41 + electron-vite + Vite 7 + React 19 + Zustand 5 +
-> TypeScript strict end-to-end. Apache-2.0, matching upstream Etherpad.
-
 > [!NOTE]
 > **Status: v0 beta.** Linux (AppImage / `.deb` / Snap), Windows (NSIS
 > installer / portable `.exe`), and macOS (DMG, arm64 + x64) ship in the
