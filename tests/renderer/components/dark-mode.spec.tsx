@@ -1,6 +1,7 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, afterEach } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { applyTheme } from '../../../src/renderer/theme';
 
 // jsdom does not evaluate CSS custom properties via getComputedStyle when CSS
 // is imported as a module (the CSS import is handled by Vite's transform but
@@ -38,5 +39,35 @@ describe('dark mode CSS', () => {
 
   it('color-scheme: light dark is declared', () => {
     expect(css).toMatch(/color-scheme:\s*light dark/);
+  });
+
+  it(':root[data-theme="dark"] manual override rule is defined in CSS', () => {
+    expect(css).toMatch(/:root\[data-theme='dark'\]/);
+  });
+
+  it('@media auto rule targets :root[data-theme="auto"]', () => {
+    expect(css).toMatch(/:root\[data-theme='auto'\]/);
+  });
+});
+
+describe('applyTheme helper', () => {
+  afterEach(() => {
+    // Reset data-theme after each test
+    delete document.documentElement.dataset.theme;
+  });
+
+  it('sets data-theme="dark" on <html>', () => {
+    applyTheme('dark');
+    expect(document.documentElement.dataset.theme).toBe('dark');
+  });
+
+  it('sets data-theme="light" on <html>', () => {
+    applyTheme('light');
+    expect(document.documentElement.dataset.theme).toBe('light');
+  });
+
+  it('sets data-theme="auto" on <html>', () => {
+    applyTheme('auto');
+    expect(document.documentElement.dataset.theme).toBe('auto');
   });
 });

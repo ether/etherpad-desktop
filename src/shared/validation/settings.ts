@@ -8,6 +8,7 @@ export const settingsSchema = z.object({
   language: z.string().min(2).max(35),
   rememberOpenTabsOnQuit: z.boolean(),
   minimizeToTray: z.boolean(),
+  themePreference: z.enum(['light', 'dark', 'auto']).catch('auto'),
 });
 
 export const defaultSettings: Settings = {
@@ -17,4 +18,5 @@ export const defaultSettings: Settings = {
   language: 'en',
   rememberOpenTabsOnQuit: true,
   minimizeToTray: false,
+  themePreference: 'auto',
 };

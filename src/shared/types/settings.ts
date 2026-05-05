@@ -5,4 +5,5 @@ export type Settings = {
   language: string;
   rememberOpenTabsOnQuit: boolean;
   minimizeToTray: boolean;
+  themePreference: 'light' | 'dark' | 'auto';
 };

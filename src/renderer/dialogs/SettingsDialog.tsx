@@ -54,6 +54,17 @@ export function SettingsDialog(): React.JSX.Element | null {
             ))}
           </select>
         </label>
+        <label className="settings-row">
+          <span className="settings-label">{t.settings.theme}</span>
+          <select
+            value={draft.themePreference}
+            onChange={(e) => setDraft({ ...draft, themePreference: e.target.value as 'light' | 'dark' | 'auto' })}
+          >
+            <option value="auto">{t.settings.themeAuto}</option>
+            <option value="light">{t.settings.themeLight}</option>
+            <option value="dark">{t.settings.themeDark}</option>
+          </select>
+        </label>
         <label className="settings-row" style={{ gridTemplateColumns: 'auto 1fr' }}>
           <input
             type="checkbox"

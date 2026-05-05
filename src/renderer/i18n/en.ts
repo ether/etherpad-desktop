@@ -43,6 +43,10 @@ export const en = {
     clearAllHistory: 'Clear all pad history',
     save: 'Save',
     cancel: 'Cancel',
+    theme: 'Appearance',
+    themeAuto: 'Match system',
+    themeLight: 'Light',
+    themeDark: 'Dark',
   },
   removeWorkspace: {
     title: 'Remove workspace?',

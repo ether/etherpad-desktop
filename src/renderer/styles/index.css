@@ -47,8 +47,35 @@
   color-scheme: light dark;
 }
 
+/* Manual override: data-theme='dark' wins regardless of OS setting. */
+:root[data-theme='dark'] {
+  --body-bg: var(--color-secondary-dark);
+  --panel-bg: #1d1d20;
+  --panel-fg: var(--color-secondary);
+  --panel-border: #2e2e32;
+  --panel-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+  --input-bg: #161618;
+  --input-fg: var(--color-secondary);
+  --input-border: #3f3f46;
+  --rail-bg: #161618;
+  --rail-fg: var(--color-secondary);
+  --sidebar-bg: #161618;
+  --sidebar-fg: var(--color-secondary);
+  --sidebar-hover: rgba(68, 180, 146, 0.16);
+  --tab-bg: #1d1d20;
+  --tab-bg-active: #1d1d20;
+  --tab-bg-inactive: #0f1111;
+  --tab-border: #2e2e32;
+  --tab-strip-bg: #0f1111;
+  --text: var(--color-secondary);
+  --text-muted: #9ca3af;
+  --error-overlay-bg: rgba(239, 68, 68, 0.12);
+  --modal-overlay-bg: rgba(0, 0, 0, 0.6);
+}
+
+/* Auto: follow OS only when data-theme is 'auto' (or unset). */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root[data-theme='auto'], :root:not([data-theme]) {
     --body-bg: var(--color-secondary-dark);
     --panel-bg: #1d1d20;
     --panel-fg: var(--color-secondary);

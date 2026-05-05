@@ -11,6 +11,7 @@ const DEFAULT_SETTINGS = {
   language: 'en',
   rememberOpenTabsOnQuit: true,
   minimizeToTray: false,
+  themePreference: 'auto' as const,
 };
 
 beforeEach(() => {
@@ -39,8 +40,10 @@ describe('SettingsDialog', () => {
 
   it('renders a language dropdown with multiple options', () => {
     render(<SettingsDialog />);
-    const select = screen.getByRole('combobox');
-    const options = within(select as HTMLSelectElement).getAllByRole('option');
+    const selects = screen.getAllByRole('combobox');
+    // First select is the language dropdown
+    const langSelect = selects[0]!;
+    const options = within(langSelect as HTMLSelectElement).getAllByRole('option');
     // Should have 115 locale options
     expect(options.length).toBe(115);
     // 'en' should be among them
@@ -51,11 +54,33 @@ describe('SettingsDialog', () => {
 
   it('selecting a language and saving calls settings.update with the new language', async () => {
     render(<SettingsDialog />);
-    const select = screen.getByRole('combobox');
-    await userEvent.selectOptions(select, 'es');
+    const selects = screen.getAllByRole('combobox');
+    // First select is the language dropdown
+    await userEvent.selectOptions(selects[0]!, 'es');
     await userEvent.click(screen.getByRole('button', { name: /save/i }));
     expect(window.etherpadDesktop.settings.update).toHaveBeenCalledWith(
       expect.objectContaining({ language: 'es' }),
+    );
+  });
+
+  it('theme select exists with 3 options (auto/light/dark)', () => {
+    render(<SettingsDialog />);
+    const selects = screen.getAllByRole('combobox');
+    // Second select is the theme dropdown
+    const themeSelect = selects[1]!;
+    const options = within(themeSelect as HTMLSelectElement).getAllByRole('option');
+    expect(options).toHaveLength(3);
+    expect(options.map((o) => (o as HTMLOptionElement).value)).toEqual(['auto', 'light', 'dark']);
+  });
+
+  it('changing theme and saving sends themePreference in the patch', async () => {
+    render(<SettingsDialog />);
+    const selects = screen.getAllByRole('combobox');
+    const themeSelect = selects[1]!;
+    await userEvent.selectOptions(themeSelect, 'dark');
+    await userEvent.click(screen.getByRole('button', { name: /save/i }));
+    expect(window.etherpadDesktop.settings.update).toHaveBeenCalledWith(
+      expect.objectContaining({ themePreference: 'dark' }),
     );
   });
 
