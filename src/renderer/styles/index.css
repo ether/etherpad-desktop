@@ -1,0 +1,703 @@
+:root {
+  /* Etherpad brand palette — same in both modes */
+  --color-primary: #44b492;
+  --color-primary-light: #65d09b;
+  --color-primary-dark: #2d7962;
+  --color-secondary: #f0f0f0;
+  --color-secondary-dark: #0f1111;
+  --color-accent: #2e2e32;
+  --color-info: #3b82f6;
+  --color-error: #ef4444;
+  --color-warning: #f59e0b;
+
+  /* Light-mode surface tokens (default) */
+  --body-bg: #ffffff;
+  --panel-bg: #ffffff;
+  --panel-fg: var(--color-secondary-dark);
+  --panel-border: #e5e7eb;
+  --panel-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+  --input-bg: #ffffff;
+  --input-fg: var(--color-secondary-dark);
+  --input-border: #d1d5db;
+  --input-border-focus: var(--color-primary);
+  --rail-bg: var(--color-accent);
+  --rail-fg: var(--color-secondary);
+  --sidebar-bg: var(--color-secondary);
+  --sidebar-fg: var(--color-secondary-dark);
+  --sidebar-hover: rgba(68, 180, 146, 0.08);
+  --tab-bg: var(--panel-bg);
+  --tab-bg-active: var(--panel-bg);
+  --tab-bg-inactive: #fafafa;
+  --tab-border: #e5e7eb;
+  --tab-strip-bg: #e5e7eb;
+  --text: var(--color-secondary-dark);
+  --text-muted: #6b7280;
+  --accent: var(--color-primary);
+  --accent-fg: #ffffff;
+  --error: var(--color-error);
+  --error-fg: #ffffff;
+  --error-overlay-bg: rgba(239, 68, 68, 0.06);
+  --modal-overlay-bg: rgba(0, 0, 0, 0.4);
+
+  /* Type */
+  --font-sans: Quicksand, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+
+  font-family: var(--font-sans);
+  color-scheme: light dark;
+}
+
+/* Manual override: data-theme='dark' wins regardless of OS setting. */
+:root[data-theme='dark'] {
+  --body-bg: var(--color-secondary-dark);
+  --panel-bg: #1d1d20;
+  --panel-fg: var(--color-secondary);
+  --panel-border: #2e2e32;
+  --panel-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+  --input-bg: #161618;
+  --input-fg: var(--color-secondary);
+  --input-border: #3f3f46;
+  --rail-bg: #161618;
+  --rail-fg: var(--color-secondary);
+  --sidebar-bg: #161618;
+  --sidebar-fg: var(--color-secondary);
+  --sidebar-hover: rgba(68, 180, 146, 0.16);
+  --tab-bg: #1d1d20;
+  --tab-bg-active: #1d1d20;
+  --tab-bg-inactive: #0f1111;
+  --tab-border: #2e2e32;
+  --tab-strip-bg: #0f1111;
+  --text: var(--color-secondary);
+  --text-muted: #9ca3af;
+  --error-overlay-bg: rgba(239, 68, 68, 0.12);
+  --modal-overlay-bg: rgba(0, 0, 0, 0.6);
+}
+
+/* Auto: follow OS only when data-theme is 'auto' (or unset). */
+@media (prefers-color-scheme: dark) {
+  :root[data-theme='auto'], :root:not([data-theme]) {
+    --body-bg: var(--color-secondary-dark);
+    --panel-bg: #1d1d20;
+    --panel-fg: var(--color-secondary);
+    --panel-border: #2e2e32;
+    --panel-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+    --input-bg: #161618;
+    --input-fg: var(--color-secondary);
+    --input-border: #3f3f46;
+    --rail-bg: #161618;
+    --rail-fg: var(--color-secondary);
+    --sidebar-bg: #161618;
+    --sidebar-fg: var(--color-secondary);
+    --sidebar-hover: rgba(68, 180, 146, 0.16);
+    --tab-bg: #1d1d20;
+    --tab-bg-active: #1d1d20;
+    --tab-bg-inactive: #0f1111;
+    --tab-border: #2e2e32;
+    --tab-strip-bg: #0f1111;
+    --text: var(--color-secondary);
+    --text-muted: #9ca3af;
+    --error-overlay-bg: rgba(239, 68, 68, 0.12);
+    --modal-overlay-bg: rgba(0, 0, 0, 0.6);
+  }
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root {
+  margin: 0; padding: 0;
+  height: 100%; width: 100%;
+  overflow: hidden;
+  color: var(--text);
+  background: var(--body-bg);
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+}
+
+input, textarea {
+  font: inherit;
+  background: var(--input-bg);
+  color: var(--input-fg);
+  border: 1px solid var(--input-border);
+  border-radius: 4px;
+  padding: 4px 8px;
+}
+input:focus, textarea:focus {
+  outline: none;
+  border-color: var(--input-border-focus, var(--accent));
+}
+input[type="color"] {
+  padding: 0;
+  height: 28px;
+  width: 48px;
+}
+input[type="checkbox"] {
+  width: auto;
+  height: auto;
+}
+
+.shell-root {
+  display: grid;
+  grid-template-rows: 40px 1fr;
+  /* grid-template-columns set further down via --rail-width / --sidebar-width
+     so the collapse handle can position against the same vars. */
+}
+
+/* ── Dialog shell ── */
+.dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--modal-overlay-bg);
+  display: grid;
+  place-items: center;
+  z-index: 100;
+}
+/* Quick-switcher variant: top-aligned so the results list opens downward. */
+.dialog-overlay.dialog-overlay-top {
+  place-items: start center;
+  padding-top: 100px;
+}
+.dialog-panel {
+  background: var(--panel-bg);
+  color: var(--panel-fg);
+  padding: 24px;
+  border-radius: 12px;
+  /* Cap the panel height so a tall dialog (e.g. Settings with many
+     workspaces) becomes scrollable instead of running off the bottom of
+     a small window. 16px breathing room above the viewport edge top
+     and bottom gives the overlay's modal feel. */
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: var(--panel-shadow);
+  border: 1px solid var(--panel-border);
+}
+
+/* Dialog form rows: label stacked above input with breathing room. */
+.dialog-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.dialog-label {
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 500;
+}
+.dialog-field input,
+.dialog-field select,
+.dialog-field textarea {
+  width: 100%;
+}
+.dialog-field-inline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+.dialog-field-inline input[type="checkbox"] {
+  flex: 0 0 auto;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: var(--accent-fg);
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+}
+.btn-primary:disabled {
+  background: var(--text-muted);
+  color: var(--accent-fg);
+  cursor: not-allowed;
+}
+.btn-secondary {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--panel-border);
+  padding: 8px 16px;
+  border-radius: 6px;
+}
+.btn-secondary:hover {
+  background: var(--sidebar-hover);
+}
+
+/* ── Workspace edit row (inside Settings dialog) ── */
+.workspace-edit-row {
+  display: grid;
+  grid-template-columns: 20px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.workspace-edit-swatch {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  border: 1px solid var(--panel-border);
+  cursor: pointer;
+  display: inline-block;
+  flex-shrink: 0;
+  transition: transform 0.08s ease, box-shadow 0.12s ease;
+}
+.workspace-edit-swatch:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 0 2px var(--accent);
+}
+.workspace-edit-swatch:focus-within {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--accent);
+}
+.workspace-edit-name {
+  min-width: 0;
+}
+/* Visually-hidden input — accessible to screen readers + keyboard, removed
+   from the visual layout. The swatch label is the click target. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.workspace-edit-url-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0 0 12px 30px; /* indent past the swatch column + gap */
+}
+.workspace-edit-url {
+  width: 100%;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+}
+.workspace-edit-url[aria-invalid="true"] {
+  border-color: var(--error);
+}
+.workspace-edit-url-error {
+  font-size: 11px;
+  color: var(--error);
+}
+
+/* ── Settings dialog layout ── */
+.settings-row {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.settings-label {
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 500;
+}
+.settings-row select,
+.settings-row input[type="text"],
+.settings-row input[type="number"] {
+  width: 100%;
+}
+.settings-row input[type="checkbox"] {
+  justify-self: start;
+}
+.settings-row input[type="color"] {
+  justify-self: start;
+}
+.settings-hint {
+  grid-column: 1 / -1;
+  margin: -4px 0 8px 0;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* ── Pad sidebar row layout ── */
+.pad-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.pad-row .pad-open {
+  flex: 1;
+  text-align: left;
+  padding: 4px 8px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: var(--sidebar-fg);
+  min-width: 0; /* allow truncation */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pad-row .pad-open:hover {
+  background: var(--sidebar-hover);
+}
+.pad-row .pad-pin {
+  flex: 0 0 auto;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  border-radius: 4px;
+  font-size: 14px;
+  line-height: 1;
+}
+.pad-row .pad-pin:hover {
+  background: var(--sidebar-hover);
+  color: var(--accent);
+}
+.pad-row .pad-pin[aria-pressed="true"] {
+  color: var(--accent);
+}
+
+/* ── Pad sidebar scrollable list ── */
+.pad-sidebar-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* ── Sidebar action buttons (Search all pads, + New Pad) ── */
+.sidebar-action {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  margin-bottom: 6px;
+  background: transparent;
+  color: var(--sidebar-fg);
+  border: 1px solid var(--panel-border);
+  border-radius: 6px;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+}
+.sidebar-action:hover {
+  background: var(--sidebar-hover);
+  border-color: var(--accent);
+}
+.sidebar-action:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent);
+}
+.sidebar-action-icon {
+  flex: 0 0 auto;
+  width: 18px;
+  text-align: center;
+  font-size: 14px;
+  line-height: 1;
+  color: var(--text-muted);
+}
+.sidebar-action-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sidebar-action-primary {
+  background: var(--accent);
+  color: var(--accent-fg);
+  border-color: var(--accent);
+}
+.sidebar-action-primary:hover {
+  filter: brightness(1.08);
+  background: var(--accent);
+  color: var(--accent-fg);
+  border-color: var(--accent);
+}
+.sidebar-action-primary .sidebar-action-icon {
+  color: var(--accent-fg);
+  font-weight: 600;
+}
+
+/* ── Sidebar filter ── */
+.sidebar-filter {
+  width: 100%;
+  margin-bottom: 8px;
+}
+.sidebar-empty {
+  color: var(--text-muted);
+  font-size: 13px;
+  text-align: center;
+  padding: 12px 0;
+}
+
+/* ── Quick Switcher dialog ── */
+.qs-title {
+  margin: 0 0 4px 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+.qs-input {
+  width: 100%;
+  font-size: 16px;
+  padding: 8px 12px;
+}
+.qs-empty {
+  color: var(--text-muted);
+  margin: 8px 0;
+  text-align: center;
+  font-size: 13px;
+}
+.qs-results {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 360px;
+  overflow-y: auto;
+}
+.qs-row {
+  display: grid;
+  grid-template-columns: 12px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.qs-row-selected {
+  background: var(--sidebar-hover);
+}
+.qs-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.qs-primary {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.qs-secondary {
+  color: var(--text-muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+.qs-snippet {
+  font-style: italic;
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 360px;
+}
+
+/* ── Updater banner ── */
+.shell-root-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+.shell-root {
+  flex: 1;
+  overflow: hidden;
+}
+.updater-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 16px;
+  font-size: 13px;
+  border-bottom: 1px solid var(--panel-border);
+  flex-shrink: 0;
+}
+.updater-banner-ready { background: rgba(68, 180, 146, 0.10); color: var(--accent); }
+.updater-banner-info  { background: var(--sidebar-hover); color: var(--text-muted); }
+.updater-banner-warn  { background: rgba(245, 158, 11, 0.10); color: var(--color-warning, #f59e0b); }
+.updater-banner-actions { display: flex; gap: 8px; }
+
+/* ── Shell layout columns (CSS variables) ──
+   Externalised so the collapse handle can position itself at the
+   sidebar/pad boundary using calc() against the same source of truth. */
+.shell-root-wrapper {
+  --rail-width: 64px;
+  --sidebar-width: 240px;
+  position: relative; /* anchors the absolute-positioned collapse handle */
+}
+.shell-root {
+  grid-template-columns: var(--rail-width) var(--sidebar-width) 1fr;
+}
+
+/* ── "Focus mode" — both rail AND sidebar hidden, only the pad shows ── */
+.shell-root-wrapper.rail-collapsed {
+  --rail-width: 0px;
+  --sidebar-width: 0px;
+  /* Paint the wrapper so the COLLAPSED_LEFT_GUTTER strip on the left of
+     the WebContentsView blends into a thin "rail" with the handle,
+     instead of showing the body's default colour through as a visible
+     slit. The 28px gutter is what the user sees when the rail+sidebar
+     are hidden but the native pad view still leaves room for the DOM
+     handle button. */
+  background: var(--rail-bg);
+}
+/* Hide the wrappers and their children. We had a bug where, with grid
+   columns sized to 0fr, children inside were technically clipped but in
+   some flex/overflow combinations the buttons inside the sidebar (the
+   "+ New Pad" CTA) could still paint. Hiding the wrappers themselves
+   guarantees nothing renders. */
+.shell-root-wrapper.rail-collapsed .rail-cell,
+.shell-root-wrapper.rail-collapsed .sidebar-cell,
+.shell-root-wrapper.rail-collapsed .workspace-rail,
+.shell-root-wrapper.rail-collapsed aside[aria-label] {
+  display: none;
+}
+/* Match the tab strip area in collapsed mode so it doesn't look like a
+   different surface from the pad. */
+.shell-root-wrapper.rail-collapsed .shell-root {
+  background: var(--rail-bg);
+}
+
+/* ── Collapse / expand handle ──
+   Anchored vertically at 50% of the shell. Horizontally it sits INSIDE the
+   sidebar's right edge (not overlapping the boundary) when expanded, so it
+   reads clearly as a sidebar control. When collapsed (sidebar+rail hidden)
+   it slides to the left edge of the pad area so the user can re-expand. */
+.shell-collapse-handle {
+  position: absolute;
+  top: 50%;
+  left: calc(var(--rail-width) + var(--sidebar-width) - 24px);
+  transform: translateY(-50%);
+  width: 22px;
+  height: 64px;
+  border: 1px solid var(--panel-border);
+  border-radius: 4px;
+  background: var(--panel-bg, var(--sidebar-bg));
+  color: var(--text);
+  opacity: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.22);
+  z-index: 5;
+  transition: left 0.15s ease, background-color 0.12s ease, color 0.12s ease;
+}
+.shell-collapse-handle:hover {
+  background: var(--accent);
+  color: var(--accent-fg);
+  border-color: var(--accent);
+}
+.shell-collapse-handle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.shell-root-wrapper.rail-collapsed .shell-collapse-handle {
+  /* Both columns are 0; pin the handle just inside the gutter the main
+     process leaves on the left of the pad WebContentsView (see
+     COLLAPSED_LEFT_GUTTER in app-window.ts — they must agree). */
+  left: 3px;
+}
+
+/* ── Workspace rail ── */
+.workspace-rail {
+  background: var(--rail-bg);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 0;
+  overflow: visible; /* allow the collapse handle to overflow the rail's right edge */
+  position: relative;
+}
+
+.workspace-rail-scroll {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-height: 0; /* lets the flex child shrink + scroll instead of overflowing */
+  overflow-y: auto;
+  width: 100%;
+  /* 4px top/bottom inside the scroll viewport so the first icon's
+     active-state ring (a 2px box-shadow) and the last icon's bottom edge
+     aren't clipped by overflow-y. */
+  padding: 4px 10px;
+  scrollbar-width: thin;
+}
+.workspace-rail-icon {
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+.workspace-rail-add {
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  border: 1px dashed var(--text-muted);
+  background: transparent;
+  color: var(--rail-fg);
+  opacity: 0.6;
+  cursor: pointer;
+}
+.workspace-rail-add:hover { opacity: 1; }
+.workspace-rail-bottom {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding-top: 8px;
+}
+.workspace-rail-cog {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  border: none;
+  background: transparent;
+  color: var(--rail-fg);
+  opacity: 0.6;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+}
+.workspace-rail-cog:hover { opacity: 1; }
+
+/* ── Quick Switcher keyboard hint ── */
+.qs-hint {
+  margin: 8px 0 0;
+  text-align: center;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* Native select styled to match inputs */
+select {
+  font: inherit;
+  background: var(--input-bg);
+  color: var(--input-fg);
+  border: 1px solid var(--input-border);
+  border-radius: 4px;
+  padding: 4px 8px;
+}
+select:focus {
+  outline: none;
+  border-color: var(--input-border-focus, var(--accent));
+}

@@ -1,0 +1,104 @@
+appId: org.etherpad.desktop
+productName: Etherpad Desktop
+copyright: Copyright (c) 2026 The Etherpad Foundation
+
+directories:
+  buildResources: build
+  output: release
+
+files:
+  - 'out/**/*'
+  - 'package.json'
+  - '!**/*.{md,map,ts,tsx}'
+
+asar: true
+asarUnpack:
+  - 'out/preload/index.cjs'
+
+linux:
+  target:
+    - AppImage
+    - deb
+    - snap
+  category: Office
+  icon: build/icons/
+  description: Native desktop client for Etherpad
+  maintainer: Etherpad Foundation <noreply@etherpad.org>
+  desktop:
+    entry:
+      Name: Etherpad Desktop
+      Comment: Native desktop client for Etherpad
+      Categories: Office;TextEditor;
+      StartupWMClass: etherpad-desktop
+
+win:
+  target:
+    # NSIS — proper installer with shortcuts and an uninstaller.
+    - target: nsis
+      arch: x64
+    # Portable — single-file .exe that runs without installing.
+    # Same binary, no shortcuts, no uninstaller. Useful for testers.
+    - target: portable
+      arch: x64
+  icon: build/icons/icon.ico
+  # Beta: ship UNSIGNED. Windows SmartScreen will warn on first run;
+  # that's expected for an unsigned build. Signing requires an EV
+  # cert — out of scope for v0 beta.
+  signAndEditExecutable: false
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: Etherpad Desktop
+  artifactName: ${productName}-Setup-${version}.${ext}
+
+portable:
+  artifactName: ${productName}-${version}-portable.${ext}
+
+deb:
+  packageCategory: editors
+  depends:
+    - libnotify4
+    - libnss3
+    - libxtst6
+    - libgtk-3-0
+    - libasound2
+
+appImage:
+  artifactName: ${productName}-${version}.${ext}
+
+snap:
+  grade: stable
+  confinement: strict
+  # Etherpad Desktop needs network for talking to user-supplied Etherpad
+  # servers, plus the standard Electron desktop plugs.
+  plugs:
+    - default
+    - network
+    - network-bind
+    - home
+    - removable-media
+    - browser-sandbox
+  # The snap-store base. core24 (Ubuntu 24.04) matches our Node 22 baseline.
+  base: core24
+  # Display name in the Snap Store
+  summary: Native desktop client for Etherpad
+  description: |
+    Etherpad Desktop is a native client for Etherpad, the real-time
+    collaborative editor. It provides per-workspace session isolation,
+    native menus and shortcuts, dark mode, multi-window support, and
+    background updates.
+
+    Connect to any Etherpad server, switch between multiple workspaces
+    in a Slack-style sidebar, and pin pads you visit often.
+
+    Upstream: https://etherpad.org
+    Source:   https://github.com/ether/etherpad-desktop
+
+publish:
+  - provider: github
+    owner: ether
+    repo: etherpad-desktop

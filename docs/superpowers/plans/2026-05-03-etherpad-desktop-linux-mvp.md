@@ -200,6 +200,7 @@ Goal: a working monorepo-shape (single package) that compiles, lints, tests, and
 ```json
 {
   "name": "etherpad-desktop",
+  "private": true,
   "version": "0.1.0",
   "description": "Native desktop client for Etherpad",
   "license": "Apache-2.0",
@@ -208,6 +209,7 @@ Goal: a working monorepo-shape (single package) that compiles, lints, tests, and
   "repository": "github:ether/etherpad-desktop",
   "main": "./out/main/index.cjs",
   "type": "module",
+  "packageManager": "pnpm@10.33.0",
   "engines": {
     "node": ">=20"
   },
@@ -215,7 +217,7 @@ Goal: a working monorepo-shape (single package) that compiles, lints, tests, and
     "dev": "electron-vite dev",
     "build": "electron-vite build",
     "typecheck": "tsc -b --pretty",
-    "lint": "eslint --ext .ts,.tsx src tests",
+    "lint": "eslint --ext .ts,.tsx --no-error-on-unmatched-pattern src tests",
     "format": "prettier --write src tests",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -242,7 +244,7 @@ Goal: a working monorepo-shape (single package) that compiles, lints, tests, and
     "@typescript-eslint/eslint-plugin": "^8.10.0",
     "@typescript-eslint/parser": "^8.10.0",
     "@vitejs/plugin-react": "^4.3.0",
-    "electron": "^32.0.0",
+    "electron": "^35.0.0",
     "electron-builder": "^25.0.0",
     "electron-vite": "^2.3.0",
     "eslint": "^8.57.0",
@@ -296,6 +298,8 @@ insert_final_newline = true
 
 ```
 auto-install-peers=true
+prefer-frozen-lockfile=true
+engine-strict=true
 ```
 
 - [ ] **Step 5: Run `pnpm install`**
@@ -319,6 +323,7 @@ git commit -m "chore: initialise package.json and ignore files"
 - Create: `tsconfig.preload.json`
 - Create: `tsconfig.renderer.json`
 - Create: `tsconfig.shared.json`
+- Modify: `.gitignore` (append `*.tsbuildinfo` since `tsc -b` emits per-config build-info files)
 
 - [ ] **Step 1: Create `tsconfig.base.json`**
 
@@ -333,6 +338,8 @@ git commit -m "chore: initialise package.json and ignore files"
     "noImplicitOverride": true,
     "noFallthroughCasesInSwitch": true,
     "exactOptionalPropertyTypes": true,
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
@@ -353,6 +360,7 @@ git commit -m "chore: initialise package.json and ignore files"
     "outDir": "out/shared",
     "composite": true,
     "declaration": true,
+    "tsBuildInfoFile": "out/shared/tsconfig.shared.tsbuildinfo",
     "lib": ["ES2022"]
   },
   "include": ["src/shared/**/*.ts"]
@@ -360,6 +368,8 @@ git commit -m "chore: initialise package.json and ignore files"
 ```
 
 - [ ] **Step 3: Create `tsconfig.main.json`**
+
+`baseUrl: "."` is required because `paths` uses non-relative patterns (`src/shared/*`); TS5090 errors out at parse time otherwise.
 
 ```json
 {
@@ -370,9 +380,13 @@ git commit -m "chore: initialise package.json and ignore files"
     "lib": ["ES2022"],
     "types": ["node"],
     "composite": true,
-    "noEmit": true
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "@shared/*": ["src/shared/*"]
+    }
   },
-  "include": ["src/main/**/*.ts", "src/shared/**/*.ts"],
+  "include": ["src/main/**/*.ts"],
   "references": [{ "path": "./tsconfig.shared.json" }]
 }
 ```
@@ -388,9 +402,13 @@ git commit -m "chore: initialise package.json and ignore files"
     "lib": ["ES2022", "DOM"],
     "types": ["node"],
     "composite": true,
-    "noEmit": true
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "@shared/*": ["src/shared/*"]
+    }
   },
-  "include": ["src/preload/**/*.ts", "src/shared/**/*.ts"],
+  "include": ["src/preload/**/*.ts"],
   "references": [{ "path": "./tsconfig.shared.json" }]
 }
 ```
@@ -407,9 +425,13 @@ git commit -m "chore: initialise package.json and ignore files"
     "jsx": "react-jsx",
     "types": ["vite/client"],
     "composite": true,
-    "noEmit": true
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "@shared/*": ["src/shared/*"]
+    }
   },
-  "include": ["src/renderer/**/*.ts", "src/renderer/**/*.tsx", "src/shared/**/*.ts"],
+  "include": ["src/renderer/**/*.ts", "src/renderer/**/*.tsx"],
   "references": [{ "path": "./tsconfig.shared.json" }]
 }
 ```
@@ -436,15 +458,25 @@ Create `src/shared/types/index.ts`:
 export {};
 ```
 
-- [ ] **Step 8: Verify typecheck passes**
+- [ ] **Step 8: Append `*.tsbuildinfo` to `.gitignore`**
+
+`tsc -b` emits `tsconfig.<variant>.tsbuildinfo` files for incremental compilation. They're per-machine and large; ignore them.
+
+Append to `.gitignore`:
+
+```
+*.tsbuildinfo
+```
+
+- [ ] **Step 9: Verify typecheck passes**
 
 Run: `pnpm typecheck`
 Expected: no errors. (`tsc -b` succeeds across all four configs.)
 
-- [ ] **Step 9: Commit**
+- [ ] **Step 10: Commit**
 
 ```bash
-git add tsconfig*.json src/shared/types/index.ts
+git add tsconfig*.json src/shared/types/index.ts .gitignore
 git commit -m "chore: TypeScript configs (main, preload, renderer, shared)"
 ```
 
@@ -504,12 +536,14 @@ export default defineConfig({
 
 - [ ] **Step 2: Create `src/renderer/index.html`**
 
+`'unsafe-eval'` is required for Vite HMR (its dev runtime evaluates module code via `eval`). `connect-src ws://localhost:* http://localhost:*` lets the HMR WebSocket reach the dev server. The shell renderer never loads untrusted remote content (pads live in separate `WebContentsView`s with isolated sessions), so this relaxation only affects the shell's own bundled code — acceptable for v1. A tighter prod-only CSP can be applied later via `session.webRequest.onHeadersReceived` in lifecycle.
+
 ```html
 <!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; script-src 'self'" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; script-src 'self' 'unsafe-eval'; connect-src 'self' ws://localhost:* http://localhost:*" />
     <title>Etherpad Desktop</title>
   </head>
   <body>
@@ -597,8 +631,11 @@ git commit -m "chore: ESLint + Prettier config"
 
 ### Task 1.5: Vitest config + sanity test
 
+In Vitest 2.x the `workspace` field on `defineConfig` is a **path** to a workspace file, not an inline array — so we split into a base `vitest.config.ts` plus a separate `vitest.workspace.ts` that calls `defineWorkspace`.
+
 **Files:**
-- Create: `vitest.config.ts`
+- Create: `vitest.config.ts` (base, alias + react plugin + globals)
+- Create: `vitest.workspace.ts` (defines the `main` + `renderer` projects)
 - Create: `tests/main/sanity.spec.ts`
 - Create: `tests/renderer/setup.ts`
 
@@ -616,27 +653,34 @@ export default defineConfig({
   },
   test: {
     globals: true,
-    workspace: [
-      {
-        extends: true,
-        test: {
-          name: 'main',
-          environment: 'node',
-          include: ['tests/main/**/*.spec.ts'],
-        },
-      },
-      {
-        extends: true,
-        test: {
-          name: 'renderer',
-          environment: 'jsdom',
-          include: ['tests/renderer/**/*.spec.{ts,tsx}'],
-          setupFiles: ['tests/renderer/setup.ts'],
-        },
-      },
-    ],
   },
 });
+```
+
+- [ ] **Step 1b: Create `vitest.workspace.ts`**
+
+```ts
+import { defineWorkspace } from 'vitest/config';
+
+export default defineWorkspace([
+  {
+    extends: './vitest.config.ts',
+    test: {
+      name: 'main',
+      environment: 'node',
+      include: ['tests/main/**/*.spec.ts'],
+    },
+  },
+  {
+    extends: './vitest.config.ts',
+    test: {
+      name: 'renderer',
+      environment: 'jsdom',
+      include: ['tests/renderer/**/*.spec.{ts,tsx}'],
+      setupFiles: ['tests/renderer/setup.ts'],
+    },
+  },
+]);
 ```
 
 - [ ] **Step 2: Create `tests/renderer/setup.ts`**
@@ -665,7 +709,7 @@ Expected: PASS — 1 test in `main` project, 0 in `renderer` (no specs yet).
 - [ ] **Step 5: Commit**
 
 ```bash
-git add vitest.config.ts tests/main/sanity.spec.ts tests/renderer/setup.ts
+git add vitest.config.ts vitest.workspace.ts tests/main/sanity.spec.ts tests/renderer/setup.ts
 git commit -m "chore: Vitest config with main/renderer projects + sanity test"
 ```
 
@@ -2144,12 +2188,16 @@ Expected: FAIL — module not found.
 
 - [ ] **Step 3: Create `src/main/logging/logger.ts`**
 
+`configureLogging` and `getLogger` are async because `electron-log/main` imports `electron` at module-eval time, which fails when Vitest runs the test in node env. Dynamic-import inside the functions keeps `redactForLog` (the part the tests need) cleanly importable without triggering the electron-log load. Call sites must `await` both.
+
 ```ts
-import log from 'electron-log/main';
+// redactForLog is a pure function with no Electron dependencies — safe to import in tests.
+// electron-log is loaded lazily inside configureLogging / getLogger so that unit tests
+// running under Vitest (node environment, no Electron) can import this module without error.
 
 const REDACTED_KEYS = new Set([
-  'padName',
-  'serverUrl',
+  'padname',
+  'serverurl',
   'password',
   'authorization',
   'cookie',
@@ -2179,7 +2227,8 @@ export type Logger = {
   debug: (msg: string, ...args: unknown[]) => void;
 };
 
-export function configureLogging(logsDir: string): void {
+export async function configureLogging(logsDir: string): Promise<void> {
+  const log = (await import('electron-log/main')).default;
   log.transports.file.resolvePathFn = () => `${logsDir}/main.log`;
   log.transports.file.maxSize = 5 * 1024 * 1024;
   log.transports.file.format = '[{y}-{m}-{d} {h}:{i}:{s}.{ms}] [{level}] {text}';
@@ -2191,7 +2240,8 @@ export function configureLogging(logsDir: string): void {
   }
 }
 
-export function getLogger(scope: string): Logger {
+export async function getLogger(scope: string): Promise<Logger> {
+  const log = (await import('electron-log/main')).default;
   const scoped = log.scope(scope);
   return {
     info: (m, ...a) => scoped.info(m, ...a.map(redactForLog)),
@@ -3999,8 +4049,8 @@ export async function boot(): Promise<void> {
   mkdirSync(userData, { recursive: true });
   const ps = paths(userData);
   mkdirSync(ps.padCacheDir, { recursive: true });
-  configureLogging(ps.logsDir);
-  const log = getLogger('lifecycle');
+  await configureLogging(ps.logsDir);
+  const log = await getLogger('lifecycle');
 
   await app.whenReady();
 

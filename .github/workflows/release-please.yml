@@ -1,0 +1,43 @@
+# Automated version bump + changelog + tag based on conventional commits.
+#
+# How this works:
+#   1. Every push to main runs this workflow.
+#   2. release-please scans new commits since the last release tag.
+#      - feat:  → minor bump
+#      - fix:   → patch bump
+#      - feat!: or BREAKING CHANGE: → major bump
+#   3. It opens (or updates) a single "chore: release vX.Y.Z" PR that bumps
+#      package.json + writes CHANGELOG.md. The PR sits open until you
+#      review/merge it.
+#   4. Merging that PR creates the vX.Y.Z tag, which then triggers
+#      release.yml (electron-builder) and snap-publish.yml automatically.
+#
+# Why a PR instead of direct push: keeps the release auditable, lets you
+# squash unrelated WIP commits out of the changelog, and means "what's in
+# the next release" is always visible at a glance.
+#
+# Ref: https://github.com/googleapis/release-please-action
+
+name: Release Please
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: googleapis/release-please-action@v4
+        with:
+          # `node` mode keeps package.json's version field as the source
+          # of truth and writes a top-level CHANGELOG.md.
+          release-type: node
+          # Use the default GitHub token; release-please opens PRs and
+          # creates tags on the same repo it runs in.
+          token: ${{ secrets.GITHUB_TOKEN }}
