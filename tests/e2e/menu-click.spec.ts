@@ -47,11 +47,11 @@ async function clickFileMenuItem(h: AppHandle, label: string): Promise<boolean> 
   );
 }
 
-test('File > New Tab opens OpenPadDialog', async () => {
+test('File > New Pad opens OpenPadDialog', async () => {
   const h = await launchApp();
   try {
     await setupWorkspace(h, 'MenuNewTab');
-    const ok = await clickFileMenuItem(h, 'New Tab');
+    const ok = await clickFileMenuItem(h, 'New Pad');
     expect(ok).toBe(true);
     await expect(h.shell.getByRole('heading', { name: /open a pad/i })).toBeVisible();
   } finally {
@@ -139,8 +139,8 @@ test('View > Reload Pad menu item exists and fires reload callback', async () =>
   const h = await launchApp();
   try {
     await setupWorkspace(h, 'ViewReloadTest');
-    // Open a pad tab first so there's an active tab to reload
-    const clickedNewTab = await clickFileMenuItem(h, 'New Tab');
+    // Open a pad first so there's an active pad to reload
+    const clickedNewTab = await clickFileMenuItem(h, 'New Pad');
     expect(clickedNewTab).toBe(true);
     await expect(h.shell.getByRole('heading', { name: /open a pad/i })).toBeVisible();
     // Close the dialog
@@ -154,11 +154,11 @@ test('View > Reload Pad menu item exists and fires reload callback', async () =>
   }
 });
 
-// REGRESSION: File > Close Tab must close the active TAB, not the window
+// REGRESSION: File > Close Pad must close the active pad (tab), not the window
 // (and definitely not the entire app). Using role: 'close' on the menu item
 // triggered Linux's window-all-closed → app.quit() → app exited. Reported by
 // user 2026-05-05.
-test('File > Close Tab closes the active tab, leaves app and other tabs alive', async () => {
+test('File > Close Pad closes the active pad, leaves app and other pads alive', async () => {
   const h = await launchApp();
   try {
     await setupWorkspace(h, 'CloseTabRegression');
@@ -174,12 +174,12 @@ test('File > Close Tab closes the active tab, leaves app and other tabs alive', 
     await h.shell.getByRole('button', { name: /^open$/i }).click();
     await expect(h.shell.getByRole('tab', { name: /bravo/ })).toBeVisible();
 
-    // Click File > Close Tab via the actual menu item
-    const ok = await clickFileMenuItem(h, 'Close Tab');
+    // Click File > Close Pad via the actual menu item
+    const ok = await clickFileMenuItem(h, 'Close Pad');
     expect(ok).toBe(true);
 
     // The app must still be alive — the window remains visible AND so does
-    // the alpha tab (only the active 'bravo' tab should have closed).
+    // the alpha pad (only the active 'bravo' pad should have closed).
     await expect(h.shell.getByRole('tab', { name: /bravo/ })).toHaveCount(0);
     await expect(h.shell.getByRole('tab', { name: /alpha/ })).toBeVisible();
 

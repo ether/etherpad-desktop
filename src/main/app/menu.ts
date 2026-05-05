@@ -25,16 +25,16 @@ export function buildMenuTemplate(cb: MenuCallbacks): MenuItemConstructorOptions
     {
       label: 'File',
       submenu: [
-        { id: MENU_IDS.newTab, label: 'New Tab', accelerator: 'CmdOrCtrl+T', click: () => cb.newTab() },
+        { id: MENU_IDS.newTab, label: 'New Pad', accelerator: 'CmdOrCtrl+T', click: () => cb.newTab() },
         { id: MENU_IDS.openPad, label: 'Open Pad…', accelerator: 'CmdOrCtrl+O', click: () => cb.openPad() },
         { type: 'separator' },
         { label: 'Settings', accelerator: 'CmdOrCtrl+,', click: () => cb.settings() },
         { type: 'separator' },
-        // Close the active TAB, NOT the window. Using `role: 'close'` here
+        // Close the active PAD (tab), NOT the window. Using `role: 'close'` here
         // closes the BaseWindow which on Linux triggers `window-all-closed`
-        // and quits the whole app — definitely not what File > Close Tab
+        // and quits the whole app — definitely not what File > Close Pad
         // should do.
-        { id: MENU_IDS.closeTab, label: 'Close Tab', accelerator: 'CmdOrCtrl+W', click: () => cb.closeTab() },
+        { id: MENU_IDS.closeTab, label: 'Close Pad', accelerator: 'CmdOrCtrl+W', click: () => cb.closeTab() },
         { label: 'Quit', accelerator: 'CmdOrCtrl+Q', click: () => cb.quit() },
       ],
     },

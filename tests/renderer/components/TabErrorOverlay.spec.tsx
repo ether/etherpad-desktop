@@ -105,7 +105,7 @@ describe('TabErrorOverlay', () => {
     expect(window.etherpadDesktop.tab.reload).toHaveBeenCalledWith({ tabId: 't1' });
   });
 
-  it('Close tab button calls ipc.tab.close with tabId (error state)', async () => {
+  it('Close pad button calls ipc.tab.close with tabId (error state)', async () => {
     useShellStore.setState({
       activeWorkspaceId: 'ws1',
       workspaces: [WS],
@@ -113,11 +113,11 @@ describe('TabErrorOverlay', () => {
       activeTabId: 't1',
     });
     render(<TabErrorOverlay />);
-    await userEvent.click(screen.getByRole('button', { name: /close tab/i }));
+    await userEvent.click(screen.getByRole('button', { name: /close pad/i }));
     expect(window.etherpadDesktop.tab.close).toHaveBeenCalledWith({ tabId: 't1' });
   });
 
-  it('Close tab button calls ipc.tab.close with tabId (crashed state)', async () => {
+  it('Close pad button calls ipc.tab.close with tabId (crashed state)', async () => {
     useShellStore.setState({
       activeWorkspaceId: 'ws1',
       workspaces: [WS],
@@ -125,7 +125,7 @@ describe('TabErrorOverlay', () => {
       activeTabId: 't1',
     });
     render(<TabErrorOverlay />);
-    await userEvent.click(screen.getByRole('button', { name: /close tab/i }));
+    await userEvent.click(screen.getByRole('button', { name: /close pad/i }));
     expect(window.etherpadDesktop.tab.close).toHaveBeenCalledWith({ tabId: 't1' });
   });
 

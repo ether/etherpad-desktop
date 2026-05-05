@@ -7,7 +7,7 @@ export const en = {
     newPad: 'New Pad',
     searchAllPads: 'Search all pads…',
   },
-  tabStrip: { close: 'Close tab' },
+  tabStrip: { close: 'Close pad' },
   emptyState: { noPads: 'No pads open', openPad: 'Open Pad…' },
   addWorkspace: {
     title: 'Add a workspace',
@@ -37,7 +37,7 @@ export const en = {
     zoom: 'Default zoom',
     accent: 'Accent colour',
     language: 'Language',
-    rememberTabs: 'Remember open tabs on quit',
+    rememberTabs: 'Remember open pads on quit',
     minimizeToTray: 'Minimise to system tray instead of quitting',
     clearAllHistory: 'Clear all pad history',
     save: 'Save',
@@ -66,9 +66,9 @@ export const en = {
   },
   tabError: {
     cantReach: "Couldn't reach {{url}}.",
-    crashed: 'This pad’s view crashed.',
+    crashed: "This pad's view crashed.",
     retry: 'Retry',
-    closeTab: 'Close tab',
+    closeTab: 'Close pad',
     reload: 'Reload',
   },
   errorBoundary: {

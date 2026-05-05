@@ -35,11 +35,11 @@ describe('buildMenuTemplate', () => {
     expect(t.map((m) => m.label)).toEqual(['File', 'Edit', 'View', 'Window', 'Help']);
   });
 
-  it('File menu has New Tab, Open Pad, Settings, Quit accelerators', () => {
+  it('File menu has New Pad, Open Pad, Settings, Quit accelerators', () => {
     const t = buildMenuTemplate(makeCallbacks());
     const items = getSubmenu(t, 'File');
     expect(items).toEqual(expect.arrayContaining([
-      expect.objectContaining({ label: 'New Tab', accelerator: 'CmdOrCtrl+T' }),
+      expect.objectContaining({ label: 'New Pad', accelerator: 'CmdOrCtrl+T' }),
       expect.objectContaining({ label: 'Open Pad…', accelerator: 'CmdOrCtrl+O' }),
       expect.objectContaining({ label: 'Settings', accelerator: 'CmdOrCtrl+,' }),
       expect.objectContaining({ label: 'Quit', accelerator: 'CmdOrCtrl+Q' }),
@@ -48,9 +48,9 @@ describe('buildMenuTemplate', () => {
 
   // --- callback wiring tests ---
 
-  it('File > New Tab click → cb.newTab()', () => {
+  it('File > New Pad click → cb.newTab()', () => {
     const cb = makeCallbacks();
-    clickItem(getSubmenu(buildMenuTemplate(cb), 'File'), 'New Tab');
+    clickItem(getSubmenu(buildMenuTemplate(cb), 'File'), 'New Pad');
     expect(cb.newTab).toHaveBeenCalledTimes(1);
   });
 
@@ -118,15 +118,15 @@ describe('buildMenuTemplate', () => {
     expect(roles).toEqual(expect.arrayContaining(['minimize', 'close']));
   });
 
-  // REGRESSION: File > Close Tab MUST NOT use role: 'close'. role: 'close'
+  // REGRESSION: File > Close Pad MUST NOT use role: 'close'. role: 'close'
   // closes the focused BaseWindow which on Linux fires window-all-closed and
   // quits the entire app. The user reported "File > Close Tab closes entire
   // app". This test pins the contract: the item must have a click callback
   // bound to cb.closeTab(), not a role.
-  it('File > Close Tab uses cb.closeTab() click and has NO role: close', () => {
+  it('File > Close Pad uses cb.closeTab() click and has NO role: close', () => {
     const cb = makeCallbacks();
     const t = buildMenuTemplate(cb);
-    const closeTab = getSubmenu(t, 'File').find((m) => m.label === 'Close Tab');
+    const closeTab = getSubmenu(t, 'File').find((m) => m.label === 'Close Pad');
     expect(closeTab).toBeDefined();
     expect(closeTab?.role).toBeUndefined();
     expect(closeTab?.accelerator).toBe('CmdOrCtrl+W');
@@ -140,9 +140,9 @@ describe('buildMenuTemplate', () => {
     const t = buildMenuTemplate(makeCallbacks());
     const file = getSubmenu(t, 'File') as Array<MenuItem & { id?: string }>;
     const view = getSubmenu(t, 'View') as Array<MenuItem & { id?: string }>;
-    expect(file.find((m) => m.label === 'New Tab')?.id).toBe(MENU_IDS.newTab);
+    expect(file.find((m) => m.label === 'New Pad')?.id).toBe(MENU_IDS.newTab);
     expect(file.find((m) => m.label === 'Open Pad…')?.id).toBe(MENU_IDS.openPad);
-    expect(file.find((m) => m.label === 'Close Tab')?.id).toBe(MENU_IDS.closeTab);
+    expect(file.find((m) => m.label === 'Close Pad')?.id).toBe(MENU_IDS.closeTab);
     expect(view.find((m) => m.label === 'Reload Pad')?.id).toBe(MENU_IDS.reload);
   });
 });

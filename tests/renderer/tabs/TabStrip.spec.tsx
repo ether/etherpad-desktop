@@ -48,7 +48,7 @@ describe('TabStrip', () => {
       tabs: [{ tabId: 't1', workspaceId: 'a', padName: 'p', title: 'p', state: 'loaded' }],
     });
     render(<TabStrip />);
-    await userEvent.click(screen.getByRole('button', { name: /close tab/i }));
+    await userEvent.click(screen.getByRole('button', { name: /close pad/i }));
     expect(window.etherpadDesktop.tab.close).toHaveBeenCalledWith({ tabId: 't1' });
   });
 
