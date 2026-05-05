@@ -134,6 +134,20 @@ test('Ctrl+9 jumps to the LAST pad (browser convention)', async () => {
   }
 });
 
+test('Alt+1 also works for fast-switch (Linux DE convention)', async () => {
+  const h = await launchApp();
+  try {
+    await setupOneWorkspace(h, 'KbdAlt');
+    await openPad(h, 'pad-x');
+    await openPad(h, 'pad-y');
+    // pad-y is active; Alt+1 → pad-x
+    await h.shell.keyboard.press('Alt+1');
+    await expect(h.shell.getByRole('tab', { name: /pad-x/ })).toHaveAttribute('aria-selected', 'true');
+  } finally {
+    await h.close();
+  }
+});
+
 test('Ctrl+1 is a no-op when typing in an input field', async () => {
   const h = await launchApp();
   try {

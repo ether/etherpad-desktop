@@ -140,11 +140,12 @@ export function App(): React.JSX.Element {
         target.isContentEditable
       ));
 
-      // Ctrl/Cmd + 1..9 — fast switch to the Nth pad of the active workspace,
-      // matching Chrome / Firefox tab-switching shortcuts. 9 jumps to the
-      // last open pad (browser convention). Skipped when an input is focused
-      // so users can still type "1" in fields.
-      if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && /^[1-9]$/.test(e.key)) {
+      // Modifier+1..9 — fast switch to the Nth pad of the active workspace.
+      // Accepts Ctrl OR Cmd (browser convention) AND Alt (user-requested,
+      // matches some Linux DE conventions). 9 jumps to the LAST pad. Skipped
+      // when an input is focused so users can still type "1" in fields.
+      const fastSwitchModifier = e.ctrlKey || e.metaKey || e.altKey;
+      if (fastSwitchModifier && !e.shiftKey && /^[1-9]$/.test(e.key)) {
         if (inEditable) return;
         const state = useShellStore.getState();
         const wsId = state.activeWorkspaceId;
@@ -198,10 +199,10 @@ export function App(): React.JSX.Element {
       <div className={`shell-root-wrapper${railCollapsed ? ' rail-collapsed' : ''}`}>
         <UpdaterBanner />
         <div className="shell-root">
-          <div style={{ gridColumn: '1', gridRow: '1 / span 2' }}>
+          <div className="rail-cell" style={{ gridColumn: '1', gridRow: '1 / span 2' }}>
             <WorkspaceRail />
           </div>
-          <div style={{ gridColumn: '2', gridRow: '1 / span 2' }}>
+          <div className="sidebar-cell" style={{ gridColumn: '2', gridRow: '1 / span 2' }}>
             <PadSidebar />
           </div>
           <div style={{ gridColumn: '3', gridRow: '1' }}>

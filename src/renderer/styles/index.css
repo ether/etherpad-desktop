@@ -548,6 +548,13 @@ input[type="checkbox"] {
      handle button. */
   background: var(--rail-bg);
 }
+/* Hide the wrappers and their children. We had a bug where, with grid
+   columns sized to 0fr, children inside were technically clipped but in
+   some flex/overflow combinations the buttons inside the sidebar (the
+   "+ New Pad" CTA) could still paint. Hiding the wrappers themselves
+   guarantees nothing renders. */
+.shell-root-wrapper.rail-collapsed .rail-cell,
+.shell-root-wrapper.rail-collapsed .sidebar-cell,
 .shell-root-wrapper.rail-collapsed .workspace-rail,
 .shell-root-wrapper.rail-collapsed aside[aria-label] {
   display: none;
