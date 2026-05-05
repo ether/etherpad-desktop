@@ -70,6 +70,19 @@ test('Ctrl+K equivalent (menu.quickSwitcher broadcast) opens quick switcher', as
   }
 });
 
+test('clicking the rail search button opens the quick switcher', async () => {
+  const h = await launchApp();
+  try {
+    await h.shell.getByLabel(/name/i).fill('SearchTest');
+    await h.shell.getByLabel(/etherpad url/i).fill('http://127.0.0.1:9003');
+    await h.shell.getByRole('button', { name: /^add$/i }).click();
+    await expect(h.shell.getByRole('button', { name: /open workspace searchtest/i })).toBeVisible();
+
+    await h.shell.getByRole('button', { name: /search workspaces and pads/i }).click();
+    await expect(h.shell.getByRole('dialog', { name: /quick switcher/i })).toBeVisible();
+  } finally { await h.close(); }
+});
+
 test('Quick Switcher pad selection switches workspace and opens pad', async () => {
   const h = await launchApp();
   try {

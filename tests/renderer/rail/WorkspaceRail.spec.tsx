@@ -62,6 +62,12 @@ describe('WorkspaceRail', () => {
     expect(useShellStore.getState().openDialog).toBe('settings');
   });
 
+  it('clicking the search button opens the quick switcher', async () => {
+    render(<WorkspaceRail />);
+    await userEvent.click(screen.getByRole('button', { name: /search workspaces and pads/i }));
+    expect(useShellStore.getState().openDialog).toBe('quickSwitcher');
+  });
+
   it('active workspace button has a visual ring (boxShadow)', () => {
     useShellStore.setState({
       workspaces: [

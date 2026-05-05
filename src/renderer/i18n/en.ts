@@ -1,6 +1,6 @@
 export const en = {
   app: { title: 'Etherpad Desktop' },
-  rail: { add: 'Add workspace', settings: 'Settings' },
+  rail: { add: 'Add workspace', settings: 'Settings', search: 'Search workspaces and pads (Ctrl+K)' },
   sidebar: {
     pinned: 'Pinned',
     recent: 'Recent',
@@ -78,6 +78,7 @@ export const en = {
     workspaceLabel: 'Workspace',
     empty: 'Type to search across all workspaces and recent pads.',
     noMatches: 'No matches',
+    kbdHint: 'Tip: Ctrl+K opens this from anywhere.',
   },
   updater: {
     downloading: 'Downloading update… {{percent}}%',

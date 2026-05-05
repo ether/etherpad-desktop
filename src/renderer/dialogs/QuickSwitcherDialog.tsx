@@ -150,6 +150,7 @@ export function QuickSwitcherDialog(): React.JSX.Element {
             })}
           </ul>
         )}
+        <p className="qs-hint">{t.quickSwitcher.kbdHint}</p>
       </div>
     </div>
   );
