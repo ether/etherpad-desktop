@@ -95,10 +95,39 @@ export function SettingsDialog(): React.JSX.Element | null {
       <section>
         <h3>Workspaces</h3>
         {workspaces.map((ws) => (
-          <div key={ws.id} className="settings-row" style={{ gridTemplateColumns: '1fr auto' }}>
-            <span>{ws.name}</span>
-            <button onClick={() => dialogActions.openDialog('removeWorkspace', { workspaceId: ws.id })}>
-              Remove
+          <div
+            key={ws.id}
+            className="workspace-edit-row"
+          >
+            <span
+              className="workspace-edit-swatch"
+              style={{ background: ws.color }}
+              aria-hidden="true"
+            />
+            <input
+              className="workspace-edit-name"
+              type="text"
+              value={ws.name}
+              aria-label={t.workspaceRow.nameLabel}
+              onChange={(e) => {
+                void ipc.workspace.update({ id: ws.id, name: e.target.value });
+              }}
+            />
+            <input
+              className="workspace-edit-color"
+              type="color"
+              value={ws.color}
+              aria-label={t.workspaceRow.colorLabel}
+              title={t.workspaceRow.colorLabel}
+              onChange={(e) => {
+                void ipc.workspace.update({ id: ws.id, color: e.target.value });
+              }}
+            />
+            <button
+              className="btn-secondary"
+              onClick={() => dialogActions.openDialog('removeWorkspace', { workspaceId: ws.id })}
+            >
+              {t.workspaceRow.remove}
             </button>
           </div>
         ))}

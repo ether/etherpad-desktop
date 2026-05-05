@@ -29,6 +29,7 @@ describe('i18n: en dictionary shape', () => {
         'tabError',
         'tabStrip',
         'updater',
+        'workspaceRow',
       ].sort(),
     );
   });
