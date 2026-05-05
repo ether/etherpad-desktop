@@ -107,7 +107,7 @@ test('Ctrl+W equivalent — close tab via IPC removes the tab', async () => {
 
     // Two tabs open; close the first via the close-tab button (same code path
     // as Ctrl+W closing the active tab)
-    await h.shell.getByRole('button', { name: /close tab/i }).first().click();
+    await h.shell.getByRole('button', { name: /close pad/i }).first().click();
 
     // Only one tab should remain
     const tabs = h.shell.getByRole('tab');

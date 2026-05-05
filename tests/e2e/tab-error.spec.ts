@@ -41,8 +41,8 @@ test('tab error overlay shows Retry and Close tab buttons when a tab enters erro
     await expect(overlay).toBeVisible();
     // Retry button appears for error state (not crashed)
     await expect(overlay.getByRole('button', { name: /retry/i })).toBeVisible();
-    // Close tab button appears (scoped to the overlay to avoid the tab-strip close button)
-    await expect(overlay.getByRole('button', { name: /close tab/i })).toBeVisible();
+    // Close pad button appears (scoped to the overlay to avoid the tab-strip close button)
+    await expect(overlay.getByRole('button', { name: /close pad/i })).toBeVisible();
   } finally {
     await h.close();
   }

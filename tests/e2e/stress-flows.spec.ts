@@ -39,9 +39,9 @@ test('open 5 pads, switch among them, close all', async () => {
     for (let i = 1; i <= 5; i++) await openPad(h, `pad${i}`);
     // Switch to first
     await h.shell.getByRole('tab', { name: /pad1/ }).click();
-    // Close all via the close tab button
+    // Close all via the close pad button (renamed from "close tab" in i18n)
     for (let i = 0; i < 5; i++) {
-      await h.shell.getByRole('button', { name: /close tab/i }).first().click();
+      await h.shell.getByRole('button', { name: /close pad/i }).first().click();
     }
     // No tabs remaining — empty state shows
     await expect(h.shell.getByText(/no pads open/i)).toBeVisible();

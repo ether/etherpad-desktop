@@ -4,6 +4,13 @@ import { launchApp } from './fixtures/launch';
 test('updater banner appears when state.kind === "ready"', async () => {
   const h = await launchApp();
   try {
+    // Wait for the App module's e2e seam to attach. firstWindow() resolves
+    // before the renderer has finished evaluating its scripts, so without
+    // this poll the evaluate below races the seam being set on globalThis.
+    await h.shell.waitForFunction(() => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return Boolean((globalThis as any).__test_useShellStore);
+    });
     await h.shell.evaluate(() => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const g = globalThis as any;
@@ -21,6 +28,13 @@ test('updater banner appears when state.kind === "ready"', async () => {
 test('updater banner disappears when state.kind === "idle"', async () => {
   const h = await launchApp();
   try {
+    // Wait for the App module's e2e seam to attach. firstWindow() resolves
+    // before the renderer has finished evaluating its scripts, so without
+    // this poll the evaluate below races the seam being set on globalThis.
+    await h.shell.waitForFunction(() => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return Boolean((globalThis as any).__test_useShellStore);
+    });
     await h.shell.evaluate(() => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const g = globalThis as any;

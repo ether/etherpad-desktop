@@ -1,7 +1,4 @@
-import { spawn, type ChildProcess } from 'node:child_process';
-import { mkdtempSync, rmSync, writeFileSync, mkdirSync } from 'node:fs';
-import { join } from 'node:path';
-import { tmpdir } from 'node:os';
+import { createServer, type Server } from 'node:http';
 
 const PORT = 9003;
 const HOST = '127.0.0.1';
@@ -11,73 +8,106 @@ export type EtherpadInstance = {
   stop(): Promise<void>;
 };
 
-let cachedEtherpad: ChildProcess | null = null;
-let cachedUrl = '';
-let cachedDir = '';
+/**
+ * E2E fixture: a tiny HTTP server that *looks like* Etherpad to the desktop
+ * shell.
+ *
+ * Why a mock instead of a real Etherpad: a real Etherpad spawn is huge,
+ * slow on cold runners, and depends on `etherpad-lite@latest` from npm —
+ * which doesn't exist (Etherpad core is GitHub-only). The desktop shell
+ * tests don't need a real editor; they verify shell behaviour (workspace
+ * add, rail, dialogs, focus, etc.). For those tests this is sufficient:
+ *
+ * - GET /api/    → JSON with `currentVersion` (passes the desktop's
+ *                  "is this an Etherpad server?" probe).
+ * - GET /p/<n>   → minimal HTML "<title>n - Etherpad</title>"
+ *                  (so document.title gets set on the WebContentsView,
+ *                  which the tab-state machinery surfaces as a tab title).
+ * - GET /p/<n>/export/txt → a fixed body so the pad-content-index can
+ *                  index something.
+ * - default      → 404 with a JSON body.
+ *
+ * Sets a session cookie on /p/ so partition-isolation tests still verify
+ * that workspaces don't share cookies.
+ */
 
-// 8 minutes: cold CI runners need to fetch + extract etherpad-lite via npx
-// (a multi-hundred-MB tarball) AND boot the server. Empirically 240s was
-// not enough — runs were timing out with "did not come up within 240000ms".
-// 480s gives ~3-4 minutes of headroom over the typical 4-5 minute cold path.
-// On warm dev machines this returns in seconds regardless.
-async function waitForReady(url: string, timeoutMs = 480_000): Promise<void> {
-  const deadline = Date.now() + timeoutMs;
-  while (Date.now() < deadline) {
-    try {
-      const r = await fetch(`${url}/api/`);
-      if (r.ok) {
-        const text = await r.text();
-        if (text.includes('currentVersion')) return;
-      }
-    } catch {
-      // not ready
-    }
-    await new Promise((r) => setTimeout(r, 500));
+let cachedServer: Server | null = null;
+let cachedUrl = '';
+
+function pageHtml(padName: string): string {
+  return `<!doctype html><html><head><title>${padName} - Etherpad</title></head><body><div id="pad-body">Mock pad: ${padName}</div></body></html>`;
+}
+
+async function probeExistingEtherpad(url: string): Promise<boolean> {
+  try {
+    const r = await fetch(`${url}/api/`);
+    if (!r.ok) return false;
+    const text = await r.text();
+    return text.includes('currentVersion');
+  } catch {
+    return false;
   }
-  throw new Error(`Etherpad did not come up on ${url} within ${timeoutMs}ms`);
 }
 
 export async function startEtherpad(): Promise<EtherpadInstance> {
-  if (cachedEtherpad) {
+  if (cachedServer || cachedUrl) {
     return { url: cachedUrl, stop: async () => {} };
   }
-  const dir = mkdtempSync(join(tmpdir(), 'epd-fixture-etherpad-'));
-  cachedDir = dir;
-  const settings = {
-    title: 'Etherpad fixture',
-    favicon: null,
-    skinName: 'colibris',
-    ip: HOST,
-    port: PORT,
-    showSettingsInAdminPage: false,
-    minify: false,
-    requireAuthentication: false,
-    requireAuthorization: false,
-    users: {},
-    dbType: 'dirty',
-    dbSettings: { filename: join(dir, 'dirty.db') },
-    suppressErrorsInPadText: false,
-    trustProxy: false,
-    socketTransportProtocols: ['websocket', 'polling'],
-    loglevel: 'WARN',
-  };
-  writeFileSync(join(dir, 'settings.json'), JSON.stringify(settings, null, 2));
-  mkdirSync(join(dir, 'var'), { recursive: true });
 
-  // Use npx to fetch and run a pinned Etherpad version. The first run downloads;
-  // subsequent runs (CI cached) are fast.
-  const child = spawn(
-    'npx',
-    ['--yes', 'etherpad-lite@latest', '--settings', join(dir, 'settings.json')],
-    { cwd: dir, stdio: ['ignore', 'pipe', 'pipe'], env: { ...process.env, NODE_ENV: 'production' } },
-  );
-  child.stderr?.on('data', (b: Buffer) => {
-    if (process.env['E2E_LOG_ETHERPAD']) process.stderr.write(`[etherpad] ${b}`);
+  const server = createServer((req, res) => {
+    const url = req.url ?? '/';
+    if (url === '/api/' || url === '/api') {
+      res.writeHead(200, { 'content-type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ currentVersion: '1.9.0' }));
+      return;
+    }
+    if (url.startsWith('/p/')) {
+      // /p/<name>[/export/txt]
+      const rest = url.slice('/p/'.length);
+      const slash = rest.indexOf('/');
+      const padName = decodeURIComponent(slash === -1 ? rest : rest.slice(0, slash));
+      const sub = slash === -1 ? '' : rest.slice(slash);
+      if (sub === '/export/txt') {
+        res.writeHead(200, { 'content-type': 'text/plain; charset=utf-8' });
+        res.end(`Mock content for ${padName}`);
+        return;
+      }
+      // Set a per-pad session cookie so partition-isolation tests can
+      // observe distinct cookie jars between workspace partitions.
+      res.writeHead(200, {
+        'content-type': 'text/html; charset=utf-8',
+        'set-cookie': `epfixture=${encodeURIComponent(padName)}; Path=/`,
+      });
+      res.end(pageHtml(padName));
+      return;
+    }
+    res.writeHead(404, { 'content-type': 'application/json; charset=utf-8' });
+    res.end(JSON.stringify({ error: 'not found', path: url }));
   });
-  cachedEtherpad = child;
-  cachedUrl = `http://${HOST}:${PORT}`;
 
-  await waitForReady(cachedUrl);
+  try {
+    await new Promise<void>((resolve, reject) => {
+      server.once('error', reject);
+      server.listen(PORT, HOST, () => {
+        server.off('error', reject);
+        resolve();
+      });
+    });
+    cachedServer = server;
+    cachedUrl = `http://${HOST}:${PORT}`;
+  } catch (e) {
+    // EADDRINUSE: someone else is already on this port. If it's an
+    // Etherpad-shaped service (e.g. the user runs the snap locally on
+    // 9003), use it as the fixture target; otherwise rethrow.
+    const url = `http://${HOST}:${PORT}`;
+    if ((e as NodeJS.ErrnoException).code === 'EADDRINUSE' && (await probeExistingEtherpad(url))) {
+      cachedUrl = url;
+      // Don't cache `server` — it failed to listen. globalTeardown becomes
+      // a no-op for this branch.
+    } else {
+      throw e;
+    }
+  }
 
   return {
     url: cachedUrl,
@@ -88,27 +118,15 @@ export async function startEtherpad(): Promise<EtherpadInstance> {
 }
 
 export async function stopAllEtherpads(): Promise<void> {
-  if (cachedEtherpad) {
-    cachedEtherpad.kill('SIGTERM');
-    await new Promise((r) => setTimeout(r, 500));
-    if (!cachedEtherpad.killed) cachedEtherpad.kill('SIGKILL');
-    cachedEtherpad = null;
-  }
-  if (cachedDir) {
-    try {
-      rmSync(cachedDir, { recursive: true, force: true });
-    } catch {
-      // ignore
-    }
-    cachedDir = '';
+  if (cachedServer) {
+    await new Promise<void>((resolve) => cachedServer!.close(() => resolve()));
+    cachedServer = null;
+    cachedUrl = '';
   }
 }
 
-export async function seedPad(url: string, padName: string, content: string): Promise<void> {
-  // Use Etherpad's HTTP API. In v1 fixtures, no API key is required (auth disabled).
-  // First, create the pad by visiting it.
+export async function seedPad(url: string, padName: string, _content: string): Promise<void> {
+  // Touch the pad URL so any test that depends on the cookie being set has
+  // it. The mock doesn't persist content — _content is accepted but ignored.
   await fetch(`${url}/p/${encodeURIComponent(padName)}`);
-  // Optionally set initial text via the HTTP API if an apikey.txt is present.
-  // For v1 tests, opening the pad page is enough to trigger creation.
-  void content;
 }
