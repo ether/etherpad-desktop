@@ -1,7 +1,7 @@
 # Etherpad Desktop
 
-Native desktop client for [Etherpad](https://etherpad.org/) — a multi-workspace
-thin client with per-workspace session isolation, a navigable pad sidebar, and
+Native desktop client for [Etherpad](https://etherpad.org/) — a multi-instance
+thin client with per-instance session isolation, a navigable pad sidebar, and
 the keyboard shortcuts you'd expect from a modern app.
 
 > Built with Electron 41 + electron-vite + Vite 7 + React 19 + Zustand 5 +
@@ -12,7 +12,7 @@ the keyboard shortcuts you'd expect from a modern app.
 > targets. Windows and macOS builds are on the roadmap once the Linux release
 > stabilises.
 
-![Etherpad Desktop main window with two workspaces, sidebar, and an open pad](docs/images/screenshot-main.png)
+![Etherpad Desktop main window with two Etherpad instances, sidebar, and an open pad](docs/images/screenshot-main.png)
 
 > _Drop a screenshot at `docs/images/screenshot-main.png` to replace this
 > caption — main window with the rail, pad sidebar, and an open pad._
@@ -27,14 +27,14 @@ the keyboard shortcuts you'd expect from a modern app.
 
 ## Why use Etherpad Desktop instead of a browser tab?
 
-- **Per-workspace isolation.** Each Etherpad server you add gets its own
+- **Per-instance isolation.** Each Etherpad server you add gets its own
   session partition (cookies, localStorage, IndexedDB). Your work-pads and
-  community-pads stay logged in independently — switching workspaces never
+  community-pads stay logged in independently — switching instances never
   signs you out of either.
 - **Multi-pad workflow inside one window.** Tabs, like a browser, but only for
   pads. `Ctrl+W` closes a pad without quitting the app.
-- **Cross-workspace fuzzy search.** Quick switcher (`Ctrl+K` / `Ctrl+F`)
-  searches pad names AND pad content across every workspace at once. Typo-
+- **Cross-instance fuzzy search.** Quick switcher (`Ctrl+K` / `Ctrl+F`)
+  searches pad names AND pad content across every Etherpad instance at once. Typo-
   tolerant: `monki` finds `monkey`.
 - **Stays out of your way.** Minimise to the system tray, focus mode that
   hides the rail and sidebar to give the pad full width, dark/light/auto
@@ -45,22 +45,22 @@ the keyboard shortcuts you'd expect from a modern app.
 
 ## Features
 
-### Workspaces
+### Etherpad instances
 
-- Add multiple Etherpad server URLs as named workspaces, each with its own
+- Add multiple Etherpad server URLs as named Etherpad instances, each with its own
   colour and isolated session partition (`persist:ws-<uuid>`).
-- Rename, recolour, change the URL, or remove a workspace from
-  Settings → Workspaces. Removing a workspace clears its session storage,
+- Rename, recolour, change the URL, or remove an instance from
+  Settings → Etherpad instances. Removing an instance clears its session storage,
   history, and any open tabs.
-- Workspaces persist across restarts; the rail icons render in the order you
+- Etherpad instances persist across restarts; the rail icons render in the order you
   set.
 
 ### Pads
 
-- "+ New Pad" or `Ctrl+T` opens a pad by name. Same name in two workspaces
+- "+ New Pad" or `Ctrl+T` opens a pad by name. Same name in two instances
   produces two independent tabs.
 - Each pad runs in its own native `WebContentsView`, isolated by the
-  workspace partition. Cookies, localStorage, IndexedDB persist per workspace
+  instance partition. Cookies, localStorage, IndexedDB persist per instance
   — verified by a regression suite (see `tests/e2e/pad-localstorage-persistence.spec.ts`).
 - The pad sidebar shows recent pads and lets you pin favourites (★).
 - The URL passed to Etherpad includes `?lang=…&userName=…` so the pad UI is
@@ -73,14 +73,14 @@ the keyboard shortcuts you'd expect from a modern app.
 - `Ctrl+W` close pad. `Ctrl+T` new pad. `Ctrl+,` settings. `Ctrl+R` reload
   the active pad. `Ctrl+Shift+R` reload the shell.
 - `Ctrl+K` or `Ctrl+F` opens the quick switcher.
-- `Ctrl+1`…`Ctrl+8` jumps to the Nth pad of the active workspace.
+- `Ctrl+1`…`Ctrl+8` jumps to the Nth pad of the active instance.
   `Ctrl+9` jumps to the LAST pad — matches Chrome / Firefox.
-- `Esc` closes any open dialog (except the first-run "Add a Workspace"
+- `Esc` closes any open dialog (except the first-run "Add an Etherpad instance"
   modal, which is dismissable=false on purpose).
 
 ### Quick switcher
 
-- Searches pad NAMES across all workspaces and pad CONTENT (downloaded via
+- Searches pad NAMES across all instances and pad CONTENT (downloaded via
   Etherpad's `/p/<name>/export/txt` endpoint and indexed in memory).
 - Three matching tiers, in order: direct substring → token-prefix →
   one-edit-distance fuzzy. So `monki` matches `monkey`.
@@ -91,8 +91,8 @@ the keyboard shortcuts you'd expect from a modern app.
 - Default zoom, accent colour, theme (light / dark / auto), language
   override, "remember open pads on quit", "minimise to tray", and a
   "Clear all pad history" button.
-- Settings → Workspaces lets you edit the name, colour (click the swatch),
-  and Etherpad URL of each workspace inline. The colour picker is the
+- Settings → Etherpad instances lets you edit the name, colour (click the swatch),
+  and Etherpad URL of each instance inline. The colour picker is the
   swatch itself; URL changes commit on blur or Enter, with inline error
   messaging for invalid URLs.
 
@@ -101,7 +101,7 @@ the keyboard shortcuts you'd expect from a modern app.
 - BaseWindow + WebContentsView per pad, repositioned by the main process
   when the rail collapses so "focus mode" actually fills the freed space
   (no black void).
-- Window state — bounds, active workspace, open tabs — is restored on
+- Window state — bounds, active instance, open tabs — is restored on
   next launch.
 - System tray icon (white silhouette of the Etherpad logo) with
   Show / Quit context menu. Closing the last window minimises to tray
@@ -239,10 +239,10 @@ some are signals of intent.
 - **Permission UX upgrade.** Today the desktop pre-allows the narrow set of
   permissions Etherpad plugins need (camera/mic for `ep_webrtc`, fullscreen,
   clipboard, screen-share). The next iteration will add a deny-by-default
-  prompt-on-request flow with persisted decisions per workspace+origin so
+  prompt-on-request flow with persisted decisions per instance+origin so
   untrusted Etherpad URLs are safe to add.
 - **Real embedded Etherpad server.** A "Use a local Etherpad server" toggle
-  used to live in the Add-Workspace dialog but was removed because the
+  used to live in the Add-Etherpad-instance dialog but was removed because the
   underlying spawn path was broken (`etherpad-lite@latest` doesn't exist on
   npm). The replacement clones `ether/etherpad@vX.Y.Z`, runs `pnpm install`
   + build, and starts via `node`, with a "Manage instance" link that opens
@@ -259,7 +259,7 @@ some are signals of intent.
 - **Windows and macOS builds.** `electron-builder` already supports both;
   the holdouts are code-signing certificates and per-platform packaging
   decisions (MSI vs NSIS on Windows; .dmg/.pkg on macOS).
-- **Offline editing / local pad cache.** When a workspace is unreachable,
+- **Offline editing / local pad cache.** When an instance is unreachable,
   open the most recently cached version of pads and queue local edits for
   replay when the server returns.
 - **`etherpad-app://` deep-link handler.** Scheme is already registered;
@@ -278,7 +278,7 @@ Two layers, both run in CI on every push:
 | Layer | Runner | What it covers |
 |---|---|---|
 | Unit + component | Vitest | Main-process modules (stores, IPC handlers, validation, embedded server, tray, lifecycle). Renderer components (dialogs, rail, sidebar, tab strip) via Testing Library + jsdom. i18n shape contract. |
-| End-to-end | Playwright Electron | Full app launches against an in-process mock Etherpad fixture. Workspace add/remove, tab open/close/switch, partition isolation, dialog dismissal, focus trap, rail collapse, scroll-with-50-pads, scroll-with-30-workspaces, restore-on-relaunch, pad localStorage persistence, keyboard shortcuts. |
+| End-to-end | Playwright Electron | Full app launches against an in-process mock Etherpad fixture. Instance add/remove, tab open/close/switch, partition isolation, dialog dismissal, focus trap, rail collapse, scroll-with-50-pads, scroll-with-30-workspaces, restore-on-relaunch, pad localStorage persistence, keyboard shortcuts. |
 
 The E2E fixture uses a tiny in-process HTTP server that returns the JSON
 shape Etherpad's `/api/` endpoint speaks; tests verify shell behaviour, not

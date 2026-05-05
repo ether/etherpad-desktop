@@ -14,6 +14,7 @@ export type TabHandlerDeps = {
   closeInAnyWindow: (tabId: string) => void;
   focusInAnyWindow: (tabId: string) => void;
   reloadInAnyWindow: (tabId: string) => void;
+  hardReloadInAnyWindow: (tabId: string) => void;
   emitTabsChanged: () => void;
   emitPadHistoryChanged: () => void;
   getLanguage: () => string;
@@ -56,6 +57,10 @@ export function tabHandlers(deps: TabHandlerDeps) {
     }),
     reload: wrapHandler('tab.reload', tabIdPayload, async (input) => {
       deps.reloadInAnyWindow(input.tabId);
+      return { ok: true } as const;
+    }),
+    hardReload: wrapHandler('tab.hardReload', tabIdPayload, async (input) => {
+      deps.hardReloadInAnyWindow(input.tabId);
       return { ok: true } as const;
     }),
   };

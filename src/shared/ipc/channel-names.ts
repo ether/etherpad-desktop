@@ -17,6 +17,7 @@ export const CH = {
   TAB_CLOSE: 'tab.close',
   TAB_FOCUS: 'tab.focus',
   TAB_RELOAD: 'tab.reload',
+  TAB_HARD_RELOAD: 'tab.hardReload',
   WINDOW_SET_ACTIVE_WORKSPACE: 'window.setActiveWorkspace',
   WINDOW_RELOAD_SHELL: 'window.reloadShell',
   WINDOW_GET_INITIAL: 'window.getInitial',

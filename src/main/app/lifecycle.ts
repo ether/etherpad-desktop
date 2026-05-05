@@ -244,6 +244,7 @@ export async function boot(): Promise<void> {
       openPad: () => ipcRef.current?.broadcastShell('menu.openPad'),
       closeTab: () => ipcRef.current?.broadcastShell('menu.closeTab'),
       reload: () => ipcRef.current?.broadcastShell('menu.reload'),
+      hardReload: () => ipcRef.current?.broadcastShell('menu.hardReload'),
       settings: () => ipcRef.current?.broadcastShell('menu.settings'),
       quit: () => app.quit(),
       about: () => ipcRef.current?.broadcastShell('menu.about'),

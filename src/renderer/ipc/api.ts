@@ -34,6 +34,7 @@ export const ipc = {
     close: (input: { tabId: string }) => unwrap<{ ok: true }>(api().tab.close(input) as never),
     focus: (input: { tabId: string }) => unwrap<{ ok: true }>(api().tab.focus(input) as never),
     reload: (input: { tabId: string }) => unwrap<{ ok: true }>(api().tab.reload(input) as never),
+    hardReload: (input: { tabId: string }) => unwrap<{ ok: true }>(api().tab.hardReload(input) as never),
   },
   window: {
     setActiveWorkspace: (workspaceId: string | null) =>

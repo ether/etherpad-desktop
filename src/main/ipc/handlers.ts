@@ -124,6 +124,27 @@ export function registerIpc(ctx: AppContext): IpcRegistration {
     }
   };
 
+  /**
+   * Hard reload bypasses the partition's HTTP cache. We've seen Etherpad
+   * plugin updates (notably ep_webrtc) where stale cached JS / translation
+   * bundles silently break the plugin's UI on the desktop client until a
+   * cache clear. The renderer Ctrl+Shift+R / View → Hard Reload Pad menu
+   * item routes here.
+   */
+  const hardReloadInAnyWindow = (tabId: string) => {
+    for (const w of ctx.windowManager.list()) {
+      const view = w.tabManager.viewFor(tabId);
+      if (!view) continue;
+      const wc = view.webContents as unknown as { reloadIgnoringCache?: () => void; reload(): void };
+      if (typeof wc.reloadIgnoringCache === 'function') {
+        wc.reloadIgnoringCache();
+      } else {
+        wc.reload();
+      }
+      return;
+    }
+  };
+
   const reloadAllPadsWithLanguage = (lang: string) => {
     for (const w of ctx.windowManager.list()) {
       for (const t of w.tabManager.listAll()) {
@@ -151,6 +172,7 @@ export function registerIpc(ctx: AppContext): IpcRegistration {
     closeInAnyWindow,
     focusInAnyWindow,
     reloadInAnyWindow,
+    hardReloadInAnyWindow,
     emitTabsChanged,
     emitPadHistoryChanged,
     getLanguage: () => ctx.settings.get().language,
@@ -211,6 +233,7 @@ export function registerIpc(ctx: AppContext): IpcRegistration {
   register(CH.TAB_CLOSE, (e, p) => tabs.close(e, p));
   register(CH.TAB_FOCUS, (e, p) => tabs.focus(e, p));
   register(CH.TAB_RELOAD, (e, p) => tabs.reload(e, p));
+  register(CH.TAB_HARD_RELOAD, (e, p) => tabs.hardReload(e, p));
   register(CH.WINDOW_SET_ACTIVE_WORKSPACE, (e, p) => wins.setActiveWorkspace(e, p));
   register(CH.WINDOW_RELOAD_SHELL, (e, p) => wins.reloadShell(e, p));
   register(CH.WINDOW_SET_PAD_VIEWS_HIDDEN, (e, p) => wins.setPadViewsHidden(e, p));

@@ -31,6 +31,7 @@ const api = {
     close: (input: { tabId: string }) => invoke(CH.TAB_CLOSE, input),
     focus: (input: { tabId: string }) => invoke(CH.TAB_FOCUS, input),
     reload: (input: { tabId: string }) => invoke(CH.TAB_RELOAD, input),
+    hardReload: (input: { tabId: string }) => invoke(CH.TAB_HARD_RELOAD, input),
   },
   window: {
     setActiveWorkspace: (input: { workspaceId: string | null }) =>
@@ -78,6 +79,7 @@ const api = {
         'menu.openPad',
         'menu.closeTab',
         'menu.reload',
+        'menu.hardReload',
         'menu.settings',
         'menu.about',
         'menu.quickSwitcher',

@@ -143,6 +143,10 @@ export function App(): React.JSX.Element {
           const { activeTabId: activeId } = useShellStore.getState();
           if (activeId) void ipc.tab.reload({ tabId: activeId });
         }
+        if (k === 'menu.hardReload') {
+          const { activeTabId: activeId } = useShellStore.getState();
+          if (activeId) void ipc.tab.hardReload({ tabId: activeId });
+        }
         if (k === 'menu.closeTab') {
           const { activeTabId: activeId } = useShellStore.getState();
           if (activeId) void ipc.tab.close({ tabId: activeId });

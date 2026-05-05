@@ -5,6 +5,7 @@ export type MenuCallbacks = {
   openPad: () => void;
   closeTab: () => void;
   reload: () => void;
+  hardReload: () => void;
   settings: () => void;
   quit: () => void;
   about: () => void;
@@ -20,6 +21,7 @@ export const MENU_IDS = {
   openPad: 'menu.openPad',
   closeTab: 'menu.closeTab',
   reload: 'menu.reload',
+  hardReload: 'menu.hardReload',
 } as const;
 
 export function buildMenuTemplate(cb: MenuCallbacks): MenuItemConstructorOptions[] {
@@ -58,6 +60,11 @@ export function buildMenuTemplate(cb: MenuCallbacks): MenuItemConstructorOptions
       label: 'View',
       submenu: [
         { id: MENU_IDS.reload, label: 'Reload Pad', accelerator: 'CmdOrCtrl+R', click: () => cb.reload() },
+        // Bypass HTTP cache. Etherpad plugins (notably ep_webrtc) sometimes
+        // change their JS/translation bundles between releases, and our
+        // per-partition cache can serve stale ones long after the server
+        // has updated. Hard reload forces a fresh fetch.
+        { id: MENU_IDS.hardReload, label: 'Hard Reload Pad', accelerator: 'CmdOrCtrl+Shift+R', click: () => cb.hardReload() },
         { type: 'separator' },
         { label: 'Quick Switcher…', accelerator: 'CmdOrCtrl+K', click: () => cb.quickSwitcher() },
         { type: 'separator' },
@@ -103,6 +110,7 @@ export function computeMenuEnabled(ctx: MenuContext): Record<keyof typeof MENU_I
     closeTab: ctx.hasActiveTab,
     // Reload only makes sense if there's a pad to reload.
     reload: ctx.hasActiveTab,
+    hardReload: ctx.hasActiveTab,
   };
 }
 

@@ -630,7 +630,10 @@ input[type="checkbox"] {
   min-height: 0; /* lets the flex child shrink + scroll instead of overflowing */
   overflow-y: auto;
   width: 100%;
-  padding: 0 10px;
+  /* 4px top/bottom inside the scroll viewport so the first icon's
+     active-state ring (a 2px box-shadow) and the last icon's bottom edge
+     aren't clipped by overflow-y. */
+  padding: 4px 10px;
   scrollbar-width: thin;
 }
 .workspace-rail-icon {
