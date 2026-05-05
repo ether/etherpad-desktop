@@ -29,7 +29,12 @@ export type ShellState = {
   /** Whether the workspace rail is collapsed (session-local, not persisted). */
   railCollapsed: boolean;
 
-  hydrate(input: { workspaces: Workspace[]; workspaceOrder: string[]; settings: Settings }): void;
+  hydrate(input: {
+    workspaces: Workspace[];
+    workspaceOrder: string[];
+    settings: Settings;
+    padHistory?: Record<string, PadHistoryEntry[]>;
+  }): void;
   setActiveWorkspaceId(id: string | null): void;
   replaceTabs(tabs: OpenTab[]): void;
   setActiveTabId(id: string | null): void;
@@ -59,6 +64,7 @@ export const useShellStore = create<ShellState>()((set) => ({
       workspaces: input.workspaces,
       workspaceOrder: input.workspaceOrder,
       settings: input.settings,
+      ...(input.padHistory ? { padHistory: input.padHistory } : {}),
     }),
   setActiveWorkspaceId: (id) => set({ activeWorkspaceId: id }),
   replaceTabs: (tabs) => set({ tabs }),

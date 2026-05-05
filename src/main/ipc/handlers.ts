@@ -195,7 +195,7 @@ export function registerIpc(ctx: AppContext): IpcRegistration {
       ? { onMinimizeToTrayChanged: ctx.onMinimizeToTrayChanged }
       : {}),
   });
-  const state = stateHandlers({ workspaces: ctx.workspaces, settings: ctx.settings });
+  const state = stateHandlers({ workspaces: ctx.workspaces, settings: ctx.settings, padHistory: ctx.padHistory });
   const hist = padHistoryHandlers({ padHistory: ctx.padHistory, emit: emitPadHistoryChanged });
 
   const register = (channel: string, h: (event: unknown, payload: unknown) => Promise<unknown>) => {

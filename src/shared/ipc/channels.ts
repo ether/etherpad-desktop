@@ -77,6 +77,9 @@ export type InitialState = {
   workspaces: Workspace[];
   workspaceOrder: string[];
   settings: Settings;
+  /** Pad history per workspace, eagerly bundled so the sidebar can render
+   *  Recent/Pinned on first paint without waiting for a touch event. */
+  padHistory: Record<string, PadHistoryEntry[]>;
 };
 
 export type TabSummary = OpenTab & { tabId: string };
