@@ -7,6 +7,7 @@ import { ErrorBoundary } from './components/ErrorBoundary.js';
 import { useShellStore, dialogActions } from './state/store.js';
 import { AddWorkspaceDialog } from './dialogs/AddWorkspaceDialog.js';
 import { OpenPadDialog } from './dialogs/OpenPadDialog.js';
+import { OpenByUrlDialog } from './dialogs/OpenByUrlDialog.js';
 import { SettingsDialog } from './dialogs/SettingsDialog.js';
 import { RemoveWorkspaceDialog } from './dialogs/RemoveWorkspaceDialog.js';
 import { HttpAuthDialog } from './dialogs/HttpAuthDialog.js';
@@ -136,6 +137,7 @@ export function App(): React.JSX.Element {
         const k = (p as { kind: string }).kind;
         if (k === 'menu.newWorkspace') dialogActions.openDialog('addWorkspace');
         if (k === 'menu.newTab' || k === 'menu.openPad') dialogActions.openDialog('openPad');
+        if (k === 'menu.openByUrl') dialogActions.openDialog('openByUrl');
         if (k === 'menu.settings') dialogActions.openDialog('settings');
         if (k === 'menu.about') dialogActions.openDialog('about');
         if (k === 'menu.quickSwitcher') dialogActions.openDialog('quickSwitcher');
@@ -255,6 +257,7 @@ export function App(): React.JSX.Element {
       </div>
       {openDialog === 'addWorkspace' && <AddWorkspaceDialog dismissable={workspaces.length > 0} />}
       {openDialog === 'openPad' && <OpenPadDialog />}
+      {openDialog === 'openByUrl' && <OpenByUrlDialog />}
       {openDialog === 'settings' && <SettingsDialog />}
       {openDialog === 'removeWorkspace' && <RemoveWorkspaceDialog />}
       {openDialog === 'httpAuth' && <HttpAuthDialog />}

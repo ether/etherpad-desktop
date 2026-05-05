@@ -242,6 +242,7 @@ export async function boot(): Promise<void> {
       newWorkspace: () => ipcRef.current?.broadcastShell('menu.newWorkspace'),
       newTab: () => ipcRef.current?.broadcastShell('menu.newTab'),
       openPad: () => ipcRef.current?.broadcastShell('menu.openPad'),
+      openByUrl: () => ipcRef.current?.broadcastShell('menu.openByUrl'),
       closeTab: () => ipcRef.current?.broadcastShell('menu.closeTab'),
       reload: () => ipcRef.current?.broadcastShell('menu.reload'),
       hardReload: () => ipcRef.current?.broadcastShell('menu.hardReload'),

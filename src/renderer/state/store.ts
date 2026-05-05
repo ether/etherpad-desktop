@@ -8,6 +8,7 @@ import type { UpdaterState } from '@shared/types/updater';
 export type DialogKind =
   | 'addWorkspace'
   | 'openPad'
+  | 'openByUrl'
   | 'settings'
   | 'removeWorkspace'
   | 'httpAuth'

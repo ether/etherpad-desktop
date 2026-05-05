@@ -3,6 +3,7 @@ import type { Menu, MenuItemConstructorOptions } from 'electron';
 export type MenuCallbacks = {
   newTab: () => void;
   openPad: () => void;
+  openByUrl: () => void;
   closeTab: () => void;
   reload: () => void;
   hardReload: () => void;
@@ -19,6 +20,7 @@ export const MENU_IDS = {
   newWorkspace: 'menu.newWorkspace',
   newTab: 'menu.newTab',
   openPad: 'menu.openPad',
+  openByUrl: 'menu.openByUrl',
   closeTab: 'menu.closeTab',
   reload: 'menu.reload',
   hardReload: 'menu.hardReload',
@@ -33,6 +35,10 @@ export function buildMenuTemplate(cb: MenuCallbacks): MenuItemConstructorOptions
         { type: 'separator' },
         { id: MENU_IDS.newTab, label: 'New Pad', accelerator: 'CmdOrCtrl+T', click: () => cb.newTab() },
         { id: MENU_IDS.openPad, label: 'Open Pad…', accelerator: 'CmdOrCtrl+O', click: () => cb.openPad() },
+        // "Open Pad by URL…" — paste an Etherpad pad URL and we add the
+        // instance + open the pad in one step. Ctrl+L follows the browser
+        // address-bar convention.
+        { id: MENU_IDS.openByUrl, label: 'Open Pad by URL…', accelerator: 'CmdOrCtrl+L', click: () => cb.openByUrl() },
         { type: 'separator' },
         { label: 'Settings', accelerator: 'CmdOrCtrl+,', click: () => cb.settings() },
         { type: 'separator' },
@@ -111,6 +117,8 @@ export function computeMenuEnabled(ctx: MenuContext): Record<keyof typeof MENU_I
     // Reload only makes sense if there's a pad to reload.
     reload: ctx.hasActiveTab,
     hardReload: ctx.hasActiveTab,
+    // Open by URL is always possible — it adds an instance if needed.
+    openByUrl: true,
   };
 }
 

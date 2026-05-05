@@ -39,6 +39,18 @@ export const en = {
     submit: 'Open',
     create: 'Create new',
   },
+  openByUrl: {
+    title: 'Open pad by URL',
+    label: 'Paste an Etherpad pad URL',
+    placeholder: 'https://pad.example.com/p/some-pad',
+    submit: 'Open',
+    cancel: 'Cancel',
+    errorParse: "That doesn't look like a pad URL. Expected something like https://pad.example.com/p/some-pad",
+    errorNotEtherpad: 'That URL is reachable but does not look like Etherpad.',
+    errorUnreachable: 'Could not reach that server.',
+    addingInstance: 'Adding {{host}}…',
+    instanceExists: 'Already added — opening pad…',
+  },
   settings: {
     title: 'Settings',
     zoom: 'Default zoom',

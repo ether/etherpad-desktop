@@ -21,6 +21,7 @@ describe('i18n: en dictionary shape', () => {
         'errorBoundary',
         'httpAuth',
         'openPad',
+        'openByUrl',
         'quickSwitcher',
         'rail',
         'removeWorkspace',

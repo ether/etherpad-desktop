@@ -77,6 +77,7 @@ const api = {
         'menu.newWorkspace',
         'menu.newTab',
         'menu.openPad',
+        'menu.openByUrl',
         'menu.closeTab',
         'menu.reload',
         'menu.hardReload',
