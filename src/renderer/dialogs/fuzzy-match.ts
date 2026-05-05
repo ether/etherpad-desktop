@@ -20,7 +20,7 @@ export function fuzzyMatch(text: string, q: string): { matched: boolean; index: 
 
   // 2 & 3. Token-based fuzzy matching (only for ≥ 3-char queries).
   if (qLower.length >= 3) {
-    const tokens = tLower.split(/[\s.,;:!?()\[\]{}'"]+/);
+    const tokens = tLower.split(/[\s.,;:!?()[\]{}'"]+/);
     let cursor = 0;
     for (const tok of tokens) {
       if (tok.length === 0) {
