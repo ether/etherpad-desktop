@@ -1,7 +1,7 @@
 import { describe, it, expect, afterEach } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { applyTheme } from '../../../src/renderer/theme';
+import { applyTheme, applyAccentColor, applySettings } from '../../../src/renderer/theme';
 
 // jsdom does not evaluate CSS custom properties via getComputedStyle when CSS
 // is imported as a module (the CSS import is handled by Vite's transform but
@@ -69,5 +69,56 @@ describe('applyTheme helper', () => {
   it('sets data-theme="auto" on <html>', () => {
     applyTheme('auto');
     expect(document.documentElement.dataset.theme).toBe('auto');
+  });
+});
+
+describe('applyAccentColor helper', () => {
+  afterEach(() => {
+    document.documentElement.style.removeProperty('--accent');
+  });
+
+  it('sets --accent CSS variable on <html>', () => {
+    applyAccentColor('#ff6600');
+    expect(document.documentElement.style.getPropertyValue('--accent')).toBe('#ff6600');
+  });
+
+  it('overwrites a previously set --accent value', () => {
+    applyAccentColor('#aabbcc');
+    applyAccentColor('#112233');
+    expect(document.documentElement.style.getPropertyValue('--accent')).toBe('#112233');
+  });
+});
+
+describe('applySettings helper', () => {
+  afterEach(() => {
+    delete document.documentElement.dataset.theme;
+    document.documentElement.style.removeProperty('--accent');
+  });
+
+  it('sets both data-theme and --accent from a Settings object', () => {
+    applySettings({
+      schemaVersion: 1,
+      defaultZoom: 1,
+      accentColor: '#3366cc',
+      language: 'en',
+      rememberOpenTabsOnQuit: true,
+      minimizeToTray: false,
+      themePreference: 'dark',
+    } as Parameters<typeof applySettings>[0]);
+    expect(document.documentElement.dataset.theme).toBe('dark');
+    expect(document.documentElement.style.getPropertyValue('--accent')).toBe('#3366cc');
+  });
+
+  it('applies a custom accent colour from settings', () => {
+    applySettings({
+      schemaVersion: 1,
+      defaultZoom: 1,
+      accentColor: '#ff0000',
+      language: 'en',
+      rememberOpenTabsOnQuit: false,
+      minimizeToTray: false,
+      themePreference: 'light',
+    } as Parameters<typeof applySettings>[0]);
+    expect(document.documentElement.style.getPropertyValue('--accent')).toBe('#ff0000');
   });
 });

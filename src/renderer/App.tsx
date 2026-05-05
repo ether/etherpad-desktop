@@ -2,7 +2,7 @@ import React from 'react';
 import { useEffect } from 'react';
 import type { Settings } from '@shared/types/settings';
 import { ipc } from './ipc/api.js';
-import { applyTheme } from './theme.js';
+import { applySettings } from './theme.js';
 import { ErrorBoundary } from './components/ErrorBoundary.js';
 import { useShellStore, dialogActions } from './state/store.js';
 import { AddWorkspaceDialog } from './dialogs/AddWorkspaceDialog.js';
@@ -48,7 +48,7 @@ export function App(): React.JSX.Element {
       useShellStore.getState().hydrate(initial);
       const { setLanguage } = await import('./i18n/index.js');
       setLanguage(initial.settings.language);
-      applyTheme(initial.settings.themePreference);
+      applySettings(initial.settings);
       if (initial.workspaces.length === 0) {
         dialogActions.openDialog('addWorkspace');
       } else if (initial.workspaceOrder[0]) {
@@ -101,7 +101,7 @@ export function App(): React.JSX.Element {
         useShellStore.setState({ settings: newSettings });
         // Apply renderer-side i18n change immediately
         void import('./i18n/index.js').then(({ setLanguage }) => setLanguage(newSettings.language));
-        applyTheme(newSettings.themePreference);
+        applySettings(newSettings);
       }),
       ipc.events.onHttpLoginRequest((p) => {
         dialogActions.openDialog('httpAuth', p as Record<string, unknown>);
