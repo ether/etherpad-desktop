@@ -545,8 +545,10 @@ input[type="checkbox"] {
   outline-offset: 2px;
 }
 .shell-root-wrapper.rail-collapsed .shell-collapse-handle {
-  /* Both columns are 0; pin the handle just inside the pad's left edge. */
-  left: 4px;
+  /* Both columns are 0; pin the handle just inside the gutter the main
+     process leaves on the left of the pad WebContentsView (see
+     COLLAPSED_LEFT_GUTTER in app-window.ts — they must agree). */
+  left: 3px;
 }
 
 /* ── Workspace rail ── */

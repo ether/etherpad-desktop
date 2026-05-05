@@ -8,18 +8,28 @@ export const SIDEBAR_WIDTH = 240;
 export const TAB_STRIP_HEIGHT = 40;
 
 /**
+ * Width reserved on the left of the pad area when the rail+sidebar are
+ * collapsed, so the DOM-rendered expand handle isn't painted over by the
+ * native WebContentsView (which sits *above* the shell renderer in the
+ * z-order). Without this gap, "focus mode" hides the only way back out.
+ */
+export const COLLAPSED_LEFT_GUTTER = 28;
+
+/**
  * Compute the rectangle the pad WebContentsView should occupy.
  *
  * When `railCollapsed` is true the renderer's CSS hides both the rail and
- * the sidebar, so the pad fills the full window width minus the tab strip.
- * Without this the WebContentsView stays at x=304 and a "black void" the
- * width of the rail+sidebar shows where they used to be.
+ * the sidebar, so the pad fills the full window width minus the tab strip
+ * — except for a thin gutter on the left that leaves room for the
+ * expand-handle button. Without this the WebContentsView either covers
+ * the handle (focus mode becomes a one-way trip) or, before this fix,
+ * stayed at x=304 leaving a "black void" the width of the rail+sidebar.
  */
 export function computeMainAreaRect(
   content: { width: number; height: number },
   opts: { railCollapsed?: boolean } = {},
 ) {
-  const x = opts.railCollapsed ? 0 : RAIL_WIDTH + SIDEBAR_WIDTH;
+  const x = opts.railCollapsed ? COLLAPSED_LEFT_GUTTER : RAIL_WIDTH + SIDEBAR_WIDTH;
   const y = TAB_STRIP_HEIGHT;
   const width = Math.max(0, content.width - x);
   const height = Math.max(0, content.height - y);
