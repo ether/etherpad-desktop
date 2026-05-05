@@ -6,6 +6,8 @@ export type PadView = {
     on(event: string, listener: (...args: unknown[]) => void): void;
     getUserAgent(): string;
     setUserAgent(ua: string): void;
+    /** Move keyboard focus into this WebContents. */
+    focus(): void;
     id: number;
   };
   setBounds(bounds: { x: number; y: number; width: number; height: number }): void;

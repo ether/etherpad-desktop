@@ -169,7 +169,19 @@ export class TabManager {
     for (const t of this.tabs) {
       const visible = t.tab.tabId === this.activeTabId;
       t.view.setVisible(visible);
-      if (visible) t.view.setBounds(this.opts.viewHost.mainArea());
+      if (visible) {
+        t.view.setBounds(this.opts.viewHost.mainArea());
+        // Move keyboard focus into the now-visible view. Without this, the
+        // previously-focused (now-hidden) view keeps focus, so the next
+        // Alt+1..9 keystroke is delivered to the wrong WebContents (the
+        // hidden one) and the fast-switch chain falls apart after the
+        // first switch.
+        try {
+          t.view.webContents.focus();
+        } catch {
+          // Defensive — never fail the visibility transition on focus.
+        }
+      }
     }
   }
 
