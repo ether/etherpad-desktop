@@ -1,6 +1,6 @@
 // tests/renderer/dialogs/OpenPadDialog.spec.tsx
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { OpenPadDialog } from '../../../src/renderer/dialogs/OpenPadDialog';
 import { useShellStore, dialogActions } from '../../../src/renderer/state/store';
@@ -107,5 +107,23 @@ describe('OpenPadDialog', () => {
     expect(openBtn).toBeDisabled();
     // Verify IPC not called
     expect(window.etherpadDesktop.tab.open).not.toHaveBeenCalled();
+  });
+
+  it('pressing Escape closes the dialog', () => {
+    dialogActions.openDialog('openPad');
+    const { baseElement } = render(<OpenPadDialog />);
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    baseElement.ownerDocument.defaultView!.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }),
+    );
+    expect(useShellStore.getState().openDialog).toBeNull();
+  });
+
+  it('clicking the overlay closes the dialog', () => {
+    dialogActions.openDialog('openPad');
+    const { container } = render(<OpenPadDialog />);
+    const overlay = container.querySelector('.dialog-overlay')!;
+    fireEvent.mouseDown(overlay, { target: overlay });
+    expect(useShellStore.getState().openDialog).toBeNull();
   });
 });

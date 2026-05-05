@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ipc } from '../ipc/api.js';
 import { dialogActions, useShellStore } from '../state/store.js';
 import { t } from '../i18n/index.js';
+import { DialogShell } from '../components/DialogShell.js';
 
 export function RemoveWorkspaceDialog(): React.JSX.Element | null {
   const workspaceId = useShellStore((s) => (s.dialogContext as { workspaceId?: string }).workspaceId);
@@ -27,42 +28,19 @@ export function RemoveWorkspaceDialog(): React.JSX.Element | null {
   };
 
   return (
-    <div role="dialog" aria-modal="true" aria-labelledby="rm-ws-title" style={overlayStyle}>
-      <div style={panelStyle}>
-        <h2 id="rm-ws-title">{t.removeWorkspace.title}</h2>
-        <p>
-          <strong>{ws.name}</strong>
-        </p>
-        <p>{t.removeWorkspace.body}</p>
-        {error && <p role="alert" style={{ color: 'var(--error)' }}>{error}</p>}
-        <div style={{ display: 'flex', gap: 8 }}>
-          <button className="btn-primary" title={t.removeWorkspace.confirm} onClick={() => void confirm()} disabled={busy}>
-            {t.removeWorkspace.confirm}
-          </button>
-          <button className="btn-secondary" title={t.removeWorkspace.cancel} onClick={() => dialogActions.closeDialog()}>{t.removeWorkspace.cancel}</button>
-        </div>
+    <DialogShell labelledBy="rm-ws-title">
+      <h2 id="rm-ws-title">{t.removeWorkspace.title}</h2>
+      <p>
+        <strong>{ws.name}</strong>
+      </p>
+      <p>{t.removeWorkspace.body}</p>
+      {error && <p role="alert" style={{ color: 'var(--error)' }}>{error}</p>}
+      <div style={{ display: 'flex', gap: 8 }}>
+        <button className="btn-primary" title={t.removeWorkspace.confirm} onClick={() => void confirm()} disabled={busy}>
+          {t.removeWorkspace.confirm}
+        </button>
+        <button className="btn-secondary" title={t.removeWorkspace.cancel} onClick={() => dialogActions.closeDialog()}>{t.removeWorkspace.cancel}</button>
       </div>
-    </div>
+    </DialogShell>
   );
 }
-
-const overlayStyle: React.CSSProperties = {
-  position: 'fixed',
-  inset: 0,
-  background: 'var(--modal-overlay-bg)',
-  display: 'grid',
-  placeItems: 'center',
-  zIndex: 100,
-};
-const panelStyle: React.CSSProperties = {
-  background: 'var(--panel-bg)',
-  color: 'var(--panel-fg)',
-  padding: 24,
-  borderRadius: 12,
-  width: 420,
-  display: 'flex',
-  flexDirection: 'column',
-  gap: 8,
-  boxShadow: 'var(--panel-shadow)',
-  border: '1px solid var(--panel-border)',
-};

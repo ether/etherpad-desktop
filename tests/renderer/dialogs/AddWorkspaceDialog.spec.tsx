@@ -1,6 +1,6 @@
 // tests/renderer/dialogs/AddWorkspaceDialog.spec.tsx
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { AddWorkspaceDialog } from '../../../src/renderer/dialogs/AddWorkspaceDialog';
 import { useShellStore, dialogActions } from '../../../src/renderer/state/store';
@@ -182,5 +182,42 @@ describe('AddWorkspaceDialog', () => {
     await userEvent.click(screen.getByRole('button', { name: /^add$/i }));
     // After success, dialog closes
     await vi.waitFor(() => expect(useShellStore.getState().openDialog).toBeNull());
+  });
+
+  it('pressing Escape closes the dialog when dismissable=true', async () => {
+    dialogActions.openDialog('addWorkspace');
+    const { baseElement } = render(<AddWorkspaceDialog dismissable={true} />);
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    // fireEvent at window level to match the capture-phase listener in DialogShell
+    baseElement.ownerDocument.defaultView!.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }),
+    );
+    expect(useShellStore.getState().openDialog).toBeNull();
+  });
+
+  it('pressing Escape does NOT close the dialog when dismissable=false (first run)', async () => {
+    dialogActions.openDialog('addWorkspace');
+    const { baseElement } = render(<AddWorkspaceDialog dismissable={false} />);
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    baseElement.ownerDocument.defaultView!.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }),
+    );
+    expect(useShellStore.getState().openDialog).toBe('addWorkspace');
+  });
+
+  it('clicking the overlay closes the dialog when dismissable=true', () => {
+    dialogActions.openDialog('addWorkspace');
+    const { container } = render(<AddWorkspaceDialog dismissable={true} />);
+    const overlay = container.querySelector('.dialog-overlay')!;
+    fireEvent.mouseDown(overlay, { target: overlay });
+    expect(useShellStore.getState().openDialog).toBeNull();
+  });
+
+  it('clicking the overlay does NOT close the dialog when dismissable=false', () => {
+    dialogActions.openDialog('addWorkspace');
+    const { container } = render(<AddWorkspaceDialog dismissable={false} />);
+    const overlay = container.querySelector('.dialog-overlay')!;
+    fireEvent.mouseDown(overlay, { target: overlay });
+    expect(useShellStore.getState().openDialog).toBe('addWorkspace');
   });
 });

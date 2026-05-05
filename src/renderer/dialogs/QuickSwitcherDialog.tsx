@@ -4,6 +4,7 @@ import { dialogActions, useShellStore } from '../state/store.js';
 import { t } from '../i18n/index.js';
 import type { Workspace } from '@shared/types/workspace';
 import type { PadHistoryEntry } from '@shared/types/pad-history';
+import { DialogShell } from '../components/DialogShell.js';
 
 type WorkspaceResult = { kind: 'workspace'; workspace: Workspace };
 type PadResult = { kind: 'pad'; entry: PadHistoryEntry; workspace: Workspace };
@@ -163,15 +164,19 @@ export function QuickSwitcherDialog(): React.JSX.Element {
       e.preventDefault();
       const r = allResults[selected];
       if (r) await activate(r);
-    } else if (e.key === 'Escape') {
-      e.preventDefault();
-      dialogActions.closeDialog();
     }
+    // Escape is handled by DialogShell at window capture — no need to handle here.
   };
 
   return (
-    <div role="dialog" aria-modal="true" aria-labelledby="qs-title" style={overlayStyle}>
-      <div style={panelStyle} onKeyDown={(e) => void onKeyDown(e)}>
+    <DialogShell
+      labelledBy="qs-title"
+      width={540}
+      dismissOnEscape={true}
+      dismissOnOverlayClick={true}
+      overlayClassName="dialog-overlay-top"
+    >
+      <div onKeyDown={(e) => void onKeyDown(e)} style={{ display: 'contents' }}>
         <h2 id="qs-title" className="qs-title">{t.quickSwitcher.title}</h2>
         <input
           ref={inputRef}
@@ -229,29 +234,6 @@ export function QuickSwitcherDialog(): React.JSX.Element {
         )}
         <p className="qs-hint">{t.quickSwitcher.kbdHint}</p>
       </div>
-    </div>
+    </DialogShell>
   );
 }
-
-const overlayStyle: React.CSSProperties = {
-  position: 'fixed',
-  inset: 0,
-  background: 'var(--modal-overlay-bg)',
-  display: 'grid',
-  placeItems: 'start center',
-  paddingTop: 100,
-  zIndex: 100,
-};
-
-const panelStyle: React.CSSProperties = {
-  background: 'var(--panel-bg)',
-  color: 'var(--panel-fg)',
-  padding: 16,
-  borderRadius: 12,
-  width: 540,
-  display: 'flex',
-  flexDirection: 'column',
-  gap: 8,
-  boxShadow: 'var(--panel-shadow)',
-  border: '1px solid var(--panel-border)',
-};
