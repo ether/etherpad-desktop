@@ -105,15 +105,24 @@ appImage:
 snap:
   grade: stable
   confinement: strict
-  # Etherpad Desktop needs network for talking to user-supplied Etherpad
-  # servers, plus the standard Electron desktop plugs.
+  # The Snap Store auto-rejects builds with duplicate plug entries in
+  # snap.json. electron-builder injects a default plug set that already
+  # covers desktop / x11 / wayland / unity7 / browser-support / network /
+  # home / etc. — listing the same plugs again here produces the
+  # "['network', 'home', ...] has non-unique elements" rejection.
+  #
+  # Only list plugs that AREN'T in electron-builder's default set:
+  #   - network-bind: needed if we ever bind a port (embedded Etherpad).
+  #   - removable-media: read pads stored on a USB drive / SD card.
+  #
+  # The previous list also included `browser-sandbox`, which is NOT a
+  # real Snap interface — manual store reviewers flag invalid plug
+  # names as "potentially malicious" because they look like attempts
+  # to request undeclared capabilities.
   plugs:
     - default
-    - network
     - network-bind
-    - home
     - removable-media
-    - browser-sandbox
   # The snap-store base. core24 (Ubuntu 24.04) matches our Node 22 baseline.
   base: core24
   # Display name in the Snap Store
