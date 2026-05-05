@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/ether/etherpad-desktop/compare/v0.2.0...v0.2.1) (2026-05-05)
+
+
+### Bug Fixes
+
+* **release:** scope snap to snap-publish.yml + don't double-publish ([#11](https://github.com/ether/etherpad-desktop/issues/11)) ([b1a90ba](https://github.com/ether/etherpad-desktop/commit/b1a90baf989a7e34a1574f9d354b1ddb49276d77))
+
 ## [0.2.0](https://github.com/ether/etherpad-desktop/compare/v0.1.0...v0.2.0) (2026-05-05)
 
 
