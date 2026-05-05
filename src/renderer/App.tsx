@@ -37,6 +37,27 @@ if (typeof window !== 'undefined' && window.etherpadDesktop?.e2eFlags?.enabled) 
   };
 }
 
+/**
+ * Resolve a "1".."9" digit to a pad of the active workspace and focus it.
+ * Returns true if a focus call was issued (caller may want to preventDefault),
+ * false if there was no eligible pad.
+ *
+ * Shared by both the shell's keydown listener and the onPadFastSwitch IPC
+ * event so the two paths produce identical behaviour.
+ */
+function applyFastSwitch(key: string): boolean {
+  const state = useShellStore.getState();
+  const wsId = state.activeWorkspaceId;
+  if (!wsId) return false;
+  const padsForWs = state.tabs.filter((t) => t.workspaceId === wsId);
+  if (padsForWs.length === 0) return false;
+  const n = Number(key);
+  const target = n === 9 ? padsForWs[padsForWs.length - 1] : padsForWs[n - 1];
+  if (!target) return false;
+  void ipc.tab.focus({ tabId: target.tabId });
+  return true;
+}
+
 export function App(): React.JSX.Element {
   const workspaces = useShellStore((s) => s.workspaces);
   const openDialog = useShellStore((s) => s.openDialog);
@@ -127,6 +148,12 @@ export function App(): React.JSX.Element {
           if (activeId) void ipc.tab.close({ tabId: activeId });
         }
       }),
+      // Forwarded from a focused pad view via main-process before-input-event.
+      // Runs the same fast-switch logic as the shell-level keydown listener.
+      ipc.events.onPadFastSwitch(({ key }) => {
+        if (!/^[1-9]$/.test(key)) return;
+        applyFastSwitch(key);
+      }),
     ];
     return () => offs.forEach((o) => o());
   }, []);
@@ -144,19 +171,14 @@ export function App(): React.JSX.Element {
       // Accepts Ctrl OR Cmd (browser convention) AND Alt (user-requested,
       // matches some Linux DE conventions). 9 jumps to the LAST pad. Skipped
       // when an input is focused so users can still type "1" in fields.
+      // Mirrors the onPadFastSwitch path so a key from a focused pad view
+      // (forwarded by main) runs the exact same logic as a key in the shell.
       const fastSwitchModifier = e.ctrlKey || e.metaKey || e.altKey;
       if (fastSwitchModifier && !e.shiftKey && /^[1-9]$/.test(e.key)) {
         if (inEditable) return;
-        const state = useShellStore.getState();
-        const wsId = state.activeWorkspaceId;
-        if (!wsId) return;
-        const padsForWs = state.tabs.filter((t) => t.workspaceId === wsId);
-        if (padsForWs.length === 0) return;
-        const n = Number(e.key);
-        const target = n === 9 ? padsForWs[padsForWs.length - 1] : padsForWs[n - 1];
-        if (!target) return;
-        e.preventDefault();
-        void ipc.tab.focus({ tabId: target.tabId });
+        if (applyFastSwitch(e.key)) {
+          e.preventDefault();
+        }
         return;
       }
 

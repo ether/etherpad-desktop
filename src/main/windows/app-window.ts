@@ -1,6 +1,7 @@
-import { BaseWindow, WebContentsView } from 'electron';
+import { BaseWindow, Menu, WebContentsView } from 'electron';
 import { TabManager, type ViewHost } from '../tabs/tab-manager.js';
 import { PadViewFactory } from '../pads/pad-view-factory.js';
+import type { PadView } from '../pads/pad-view-factory.js';
 import type { OpenTab } from '@shared/types/tab';
 
 export const RAIL_WIDTH = 64;
@@ -99,6 +100,49 @@ export class AppWindow {
       preloadPath: opts.preloadPath,
       onTabsChanged: opts.onTabsChanged,
       onTabState: opts.onTabState as (change: { tabId: string; state: string; errorMessage?: string; title?: string }) => void,
+      // Forward Alt/Ctrl/Cmd+1..9 from a focused pad view up to the shell
+      // renderer. Without this, those shortcuts only work when the shell
+      // has focus.
+      onPadFastSwitch: (key: string) => {
+        this.shellView.webContents.send('shell.padFastSwitch', { key });
+      },
+      // Render a basic context menu when the user right-clicks inside a
+      // pad view. Sandboxed Electron WebContentsViews show no menu by
+      // default; we wire one explicitly with the entries Etherpad users
+      // actually need (clipboard ops, Inspect Element in dev, Reload Pad).
+      onPadContextMenu: (view: PadView, params) => {
+        const wc = view.webContents as unknown as {
+          copy: () => void;
+          cut: () => void;
+          paste: () => void;
+          undo: () => void;
+          redo: () => void;
+          selectAll: () => void;
+          reload: () => void;
+          inspectElement: (x: number, y: number) => void;
+          isDevToolsOpened: () => boolean;
+        };
+        const isDev = process.env.NODE_ENV !== 'production';
+        const template: Electron.MenuItemConstructorOptions[] = [
+          { label: 'Undo', accelerator: 'CmdOrCtrl+Z', click: () => wc.undo(), enabled: params.isEditable },
+          { label: 'Redo', accelerator: 'CmdOrCtrl+Shift+Z', click: () => wc.redo(), enabled: params.isEditable },
+          { type: 'separator' },
+          { label: 'Cut', accelerator: 'CmdOrCtrl+X', click: () => wc.cut(), enabled: params.isEditable && params.selectionText.length > 0 },
+          { label: 'Copy', accelerator: 'CmdOrCtrl+C', click: () => wc.copy(), enabled: params.selectionText.length > 0 },
+          { label: 'Paste', accelerator: 'CmdOrCtrl+V', click: () => wc.paste(), enabled: params.isEditable },
+          { label: 'Select All', accelerator: 'CmdOrCtrl+A', click: () => wc.selectAll() },
+          { type: 'separator' },
+          { label: 'Reload Pad', accelerator: 'CmdOrCtrl+R', click: () => wc.reload() },
+        ];
+        if (isDev) {
+          template.push(
+            { type: 'separator' },
+            { label: 'Inspect Element', click: () => wc.inspectElement(params.x, params.y) },
+          );
+        }
+        const menu = Menu.buildFromTemplate(template);
+        menu.popup({ window: this.window as never });
+      },
     });
 
     this.window.on('resize', () => {

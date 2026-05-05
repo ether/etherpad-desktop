@@ -66,6 +66,11 @@ const api = {
     onSettingsChanged: (l: (p: unknown) => void) => on(CH.EV_SETTINGS_CHANGED, l),
     onHttpLoginRequest: (l: (p: unknown) => void) => on(CH.EV_HTTP_LOGIN_REQUEST, l),
     onUpdaterState: (l: (p: unknown) => void) => on(CH.EV_UPDATER_STATE, l),
+    /** Fires when a focused pad WebContentsView intercepts Alt/Ctrl/Cmd+1..9
+     *  and forwards the keystroke up to the shell. The renderer applies
+     *  the same fast-switch logic as its own keydown handler. */
+    onPadFastSwitch: (l: (p: { key: string }) => void) =>
+      on('shell.padFastSwitch', (p: unknown) => l(p as { key: string })),
     onMenuShellMessage: (l: (p: unknown) => void) => {
       const channels = [
         'menu.newWorkspace',

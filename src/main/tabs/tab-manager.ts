@@ -14,6 +14,24 @@ export type TabManagerOptions = {
   preloadPath: string;
   onTabsChanged: (tabs: OpenTab[]) => void;
   onTabState: (change: { tabId: string; state: TabState; errorMessage?: string; title?: string }) => void;
+  /**
+   * Called when a pad WebContentsView intercepts a "fast-switch" key
+   * combo (Alt/Ctrl/Cmd + 1..9) so the main process can forward it to
+   * the shell renderer. Without this hook, those shortcuts only work
+   * when the shell has focus — they're invisible to the renderer's
+   * keydown listener once focus is inside a pad view.
+   */
+  onPadFastSwitch?: (key: string) => void;
+  /**
+   * Called when a pad WebContentsView fires `context-menu`. The host
+   * decides what to render (we do this in main where we have access
+   * to Electron's Menu API). Without a handler, right-click silently
+   * does nothing.
+   */
+  onPadContextMenu?: (
+    view: PadView,
+    params: { x: number; y: number; linkURL: string; selectionText: string; isEditable: boolean },
+  ) => void;
 };
 
 type Internal = {
@@ -156,6 +174,39 @@ export class TabManager {
   }
 
   private wireViewEvents(tabId: string, view: PadView): void {
+    // Fast-switch key forwarding: when focus is inside this pad view, our
+    // shell-renderer keydown listener never sees Alt/Ctrl/Cmd+1..9. Hook
+    // before-input-event to intercept those before Etherpad gets them and
+    // forward to the shell. Native menu accelerators do this automatically
+    // for things like Ctrl+K, but we don't want 9 hidden menu items.
+    type BeforeInputEvent = { preventDefault: () => void };
+    type Input = { type: string; key: string; alt: boolean; control: boolean; meta: boolean; shift: boolean };
+    const onBeforeInput = (event: BeforeInputEvent, input: Input) => {
+      if (input.type !== 'keyDown') return;
+      if (input.shift) return;
+      if (!/^[1-9]$/.test(input.key)) return;
+      if (!(input.alt || input.control || input.meta)) return;
+      event.preventDefault();
+      this.opts.onPadFastSwitch?.(input.key);
+    };
+    view.webContents.on('before-input-event', onBeforeInput as unknown as (...args: unknown[]) => void);
+
+    // Right-click → host-rendered context menu. Without this, sandboxed
+    // Electron WebContentsViews show no menu by default.
+    if (this.opts.onPadContextMenu) {
+      const onContextMenu = (...args: unknown[]) => {
+        const params = args[1] as {
+          x: number;
+          y: number;
+          linkURL: string;
+          selectionText: string;
+          isEditable: boolean;
+        };
+        this.opts.onPadContextMenu?.(view, params);
+      };
+      view.webContents.on('context-menu', onContextMenu);
+    }
+
     view.webContents.on('did-finish-load', () => this.setState(tabId, 'loaded'));
     view.webContents.on('did-fail-load', (...args: unknown[]) => {
       const [, , errorDescription] = args as [unknown, number, string];
