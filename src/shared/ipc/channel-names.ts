@@ -21,6 +21,7 @@ export const CH = {
   WINDOW_RELOAD_SHELL: 'window.reloadShell',
   WINDOW_GET_INITIAL: 'window.getInitial',
   WINDOW_SET_PAD_VIEWS_HIDDEN: 'window.setPadViewsHidden',
+  WINDOW_SET_RAIL_COLLAPSED: 'window.setRailCollapsed',
   PAD_HISTORY_LIST: 'padHistory.list',
   PAD_HISTORY_PIN: 'padHistory.pin',
   PAD_HISTORY_UNPIN: 'padHistory.unpin',

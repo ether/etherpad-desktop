@@ -49,6 +49,8 @@ export const setActiveWorkspacePayload = z.object({
 
 export const setPadViewsHiddenPayload = z.object({ hidden: z.boolean() });
 
+export const setRailCollapsedPayload = z.object({ collapsed: z.boolean() });
+
 export const padHistoryListPayload = z.object({ workspaceId: z.string().uuid() });
 export const padHistoryMutatePayload = z.object({
   workspaceId: z.string().uuid(),

@@ -41,6 +41,8 @@ export const ipc = {
     reloadShell: () => unwrap<{ ok: true }>(api().window.reloadShell() as never),
     setPadViewsHidden: (hidden: boolean) =>
       unwrap<{ ok: true }>(api().window.setPadViewsHidden(hidden) as never),
+    setRailCollapsed: (collapsed: boolean) =>
+      unwrap<{ ok: true }>(api().window.setRailCollapsed(collapsed) as never),
   },
   padHistory: {
     list: (workspaceId: string) =>

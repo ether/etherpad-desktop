@@ -7,8 +7,19 @@ export const RAIL_WIDTH = 64;
 export const SIDEBAR_WIDTH = 240;
 export const TAB_STRIP_HEIGHT = 40;
 
-export function computeMainAreaRect(content: { width: number; height: number }) {
-  const x = RAIL_WIDTH + SIDEBAR_WIDTH;
+/**
+ * Compute the rectangle the pad WebContentsView should occupy.
+ *
+ * When `railCollapsed` is true the renderer's CSS hides both the rail and
+ * the sidebar, so the pad fills the full window width minus the tab strip.
+ * Without this the WebContentsView stays at x=304 and a "black void" the
+ * width of the rail+sidebar shows where they used to be.
+ */
+export function computeMainAreaRect(
+  content: { width: number; height: number },
+  opts: { railCollapsed?: boolean } = {},
+) {
+  const x = opts.railCollapsed ? 0 : RAIL_WIDTH + SIDEBAR_WIDTH;
   const y = TAB_STRIP_HEIGHT;
   const width = Math.max(0, content.width - x);
   const height = Math.max(0, content.height - y);
@@ -32,6 +43,7 @@ export class AppWindow {
   readonly shellView: WebContentsView;
   readonly tabManager: TabManager;
   private readonly factory: PadViewFactory;
+  private railCollapsed = false;
 
   constructor(opts: AppWindowOptions) {
     this.window = new BaseWindow({
@@ -67,7 +79,7 @@ export class AppWindow {
       remove: (v) => this.window.contentView.removeChildView(v as unknown as WebContentsView),
       mainArea: () => {
         const [w, h] = this.window.getContentSize();
-        return computeMainAreaRect({ width: w!, height: h! });
+        return computeMainAreaRect({ width: w!, height: h! }, { railCollapsed: this.railCollapsed });
       },
     };
 
@@ -110,5 +122,15 @@ export class AppWindow {
 
   openTab(input: { workspaceId: string; padName: string; src: string }) {
     return this.tabManager.open(input);
+  }
+
+  /**
+   * Renderer reports rail-collapsed state via IPC; we re-layout the pad view
+   * so it fills the freed rail+sidebar area instead of leaving a black void.
+   */
+  setRailCollapsed(collapsed: boolean): void {
+    if (this.railCollapsed === collapsed) return;
+    this.railCollapsed = collapsed;
+    this.tabManager.layout();
   }
 }

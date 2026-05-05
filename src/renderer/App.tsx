@@ -160,6 +160,14 @@ export function App(): React.JSX.Element {
     void ipc.window.setPadViewsHidden(openDialog !== null);
   }, [openDialog]);
 
+  // Tell the main process when the rail collapses so it can re-position
+  // pad WebContentsViews to fill the freed space. Without this, the views
+  // stay anchored at x=304 and the user sees a black void where the rail
+  // and sidebar used to be.
+  useEffect(() => {
+    void ipc.window.setRailCollapsed(railCollapsed);
+  }, [railCollapsed]);
+
   const activeTabsForWs = activeWorkspaceId
     ? tabs.filter((t) => t.workspaceId === activeWorkspaceId)
     : [];
