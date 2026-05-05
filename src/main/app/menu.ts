@@ -10,10 +10,12 @@ export type MenuCallbacks = {
   about: () => void;
   openLogs: () => void;
   quickSwitcher: () => void;
+  newWorkspace: () => void;
 };
 
 /** IDs used to locate items for dynamic enable/disable. */
 export const MENU_IDS = {
+  newWorkspace: 'menu.newWorkspace',
   newTab: 'menu.newTab',
   openPad: 'menu.openPad',
   closeTab: 'menu.closeTab',
@@ -25,6 +27,8 @@ export function buildMenuTemplate(cb: MenuCallbacks): MenuItemConstructorOptions
     {
       label: 'File',
       submenu: [
+        { id: MENU_IDS.newWorkspace, label: 'New Etherpad Server…', accelerator: 'CmdOrCtrl+Shift+N', click: () => cb.newWorkspace() },
+        { type: 'separator' },
         { id: MENU_IDS.newTab, label: 'New Pad', accelerator: 'CmdOrCtrl+T', click: () => cb.newTab() },
         { id: MENU_IDS.openPad, label: 'Open Pad…', accelerator: 'CmdOrCtrl+O', click: () => cb.openPad() },
         { type: 'separator' },
@@ -90,6 +94,8 @@ export type MenuContext = {
  */
 export function computeMenuEnabled(ctx: MenuContext): Record<keyof typeof MENU_IDS, boolean> {
   return {
+    // Adding a new workspace is always possible.
+    newWorkspace: true,
     // Opening a pad needs a workspace to put it in.
     newTab: ctx.hasActiveWorkspace,
     openPad: ctx.hasActiveWorkspace,

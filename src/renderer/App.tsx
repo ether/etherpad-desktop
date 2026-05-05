@@ -111,6 +111,7 @@ export function App(): React.JSX.Element {
       }),
       ipc.events.onMenuShellMessage((p) => {
         const k = (p as { kind: string }).kind;
+        if (k === 'menu.newWorkspace') dialogActions.openDialog('addWorkspace');
         if (k === 'menu.newTab' || k === 'menu.openPad') dialogActions.openDialog('openPad');
         if (k === 'menu.settings') dialogActions.openDialog('settings');
         if (k === 'menu.about') dialogActions.openDialog('about');

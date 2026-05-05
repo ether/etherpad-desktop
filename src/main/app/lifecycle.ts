@@ -216,6 +216,7 @@ export async function boot(): Promise<void> {
 
   const appMenu = Menu.buildFromTemplate(
     buildMenuTemplate({
+      newWorkspace: () => ipcRef.current?.broadcastShell('menu.newWorkspace'),
       newTab: () => ipcRef.current?.broadcastShell('menu.newTab'),
       openPad: () => ipcRef.current?.broadcastShell('menu.openPad'),
       closeTab: () => ipcRef.current?.broadcastShell('menu.closeTab'),

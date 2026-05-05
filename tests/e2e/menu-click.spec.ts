@@ -47,6 +47,18 @@ async function clickFileMenuItem(h: AppHandle, label: string): Promise<boolean> 
   );
 }
 
+test('File > New Etherpad Server… opens AddWorkspaceDialog', async () => {
+  const h = await launchApp();
+  try {
+    await setupWorkspace(h, 'MenuNewServer');
+    const ok = await clickFileMenuItem(h, 'New Etherpad Server…');
+    expect(ok).toBe(true);
+    await expect(h.shell.getByRole('heading', { name: /add a workspace/i })).toBeVisible();
+  } finally {
+    await h.close();
+  }
+});
+
 test('File > New Pad opens OpenPadDialog', async () => {
   const h = await launchApp();
   try {

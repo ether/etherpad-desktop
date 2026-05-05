@@ -67,6 +67,7 @@ const api = {
     onUpdaterState: (l: (p: unknown) => void) => on(CH.EV_UPDATER_STATE, l),
     onMenuShellMessage: (l: (p: unknown) => void) => {
       const channels = [
+        'menu.newWorkspace',
         'menu.newTab',
         'menu.openPad',
         'menu.closeTab',

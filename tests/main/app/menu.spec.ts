@@ -6,6 +6,7 @@ type MenuItem = { label?: string; role?: string; click?: () => void; accelerator
 
 function makeCallbacks() {
   return {
+    newWorkspace: vi.fn(),
     newTab: vi.fn(),
     openPad: vi.fn(),
     closeTab: vi.fn(),
@@ -47,6 +48,18 @@ describe('buildMenuTemplate', () => {
   });
 
   // --- callback wiring tests ---
+
+  it('File > New Etherpad Server… click → cb.newWorkspace()', () => {
+    const cb = makeCallbacks();
+    clickItem(getSubmenu(buildMenuTemplate(cb), 'File'), 'New Etherpad Server…');
+    expect(cb.newWorkspace).toHaveBeenCalledTimes(1);
+  });
+
+  it('File > New Etherpad Server… has CmdOrCtrl+Shift+N accelerator', () => {
+    const t = buildMenuTemplate(makeCallbacks());
+    const items = getSubmenu(t, 'File') as Array<MenuItem & { accelerator?: string }>;
+    expect(items.find((m) => m.label === 'New Etherpad Server…')?.accelerator).toBe('CmdOrCtrl+Shift+N');
+  });
 
   it('File > New Pad click → cb.newTab()', () => {
     const cb = makeCallbacks();
@@ -140,6 +153,7 @@ describe('buildMenuTemplate', () => {
     const t = buildMenuTemplate(makeCallbacks());
     const file = getSubmenu(t, 'File') as Array<MenuItem & { id?: string }>;
     const view = getSubmenu(t, 'View') as Array<MenuItem & { id?: string }>;
+    expect(file.find((m) => m.label === 'New Etherpad Server…')?.id).toBe(MENU_IDS.newWorkspace);
     expect(file.find((m) => m.label === 'New Pad')?.id).toBe(MENU_IDS.newTab);
     expect(file.find((m) => m.label === 'Open Pad…')?.id).toBe(MENU_IDS.openPad);
     expect(file.find((m) => m.label === 'Close Pad')?.id).toBe(MENU_IDS.closeTab);
@@ -172,9 +186,17 @@ describe('computeMenuEnabled', () => {
     expect(r.reload).toBe(true);
   });
 
-  it('all four items disabled at first launch (no workspaces, no tabs)', () => {
+  it('newWorkspace is always enabled regardless of workspace/tab state', () => {
     const r = computeMenuEnabled({ hasActiveWorkspace: false, hasActiveTab: false });
-    expect(Object.values(r).every((v) => v === false)).toBe(true);
+    expect(r.newWorkspace).toBe(true);
+  });
+
+  it('newTab/openPad/closeTab/reload are disabled at first launch', () => {
+    const r = computeMenuEnabled({ hasActiveWorkspace: false, hasActiveTab: false });
+    expect(r.newTab).toBe(false);
+    expect(r.openPad).toBe(false);
+    expect(r.closeTab).toBe(false);
+    expect(r.reload).toBe(false);
   });
 });
 
@@ -190,7 +212,12 @@ describe('applyMenuEnabledState', () => {
       getMenuItemById: (id: string) => items[id] ?? null,
     };
     applyMenuEnabledState(fakeMenu as never, { hasActiveWorkspace: false, hasActiveTab: false });
-    for (const id of Object.values(MENU_IDS)) expect(items[id]!.enabled).toBe(false);
+    // newWorkspace is always enabled; the rest are disabled when no workspace/tab
+    expect(items[MENU_IDS.newWorkspace]!.enabled).toBe(true);
+    expect(items[MENU_IDS.newTab]!.enabled).toBe(false);
+    expect(items[MENU_IDS.openPad]!.enabled).toBe(false);
+    expect(items[MENU_IDS.closeTab]!.enabled).toBe(false);
+    expect(items[MENU_IDS.reload]!.enabled).toBe(false);
 
     applyMenuEnabledState(fakeMenu as never, { hasActiveWorkspace: true, hasActiveTab: true });
     for (const id of Object.values(MENU_IDS)) expect(items[id]!.enabled).toBe(true);
