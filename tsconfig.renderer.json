@@ -1,7 +1,6 @@
 {
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
-    "baseUrl": ".",
     "rootDir": ".",
     "outDir": "out/renderer",
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
@@ -10,7 +9,7 @@
     "composite": true,
     "noEmit": true,
     "paths": {
-      "@shared/*": ["src/shared/*"]
+      "@shared/*": ["./src/shared/*"]
     }
   },
   "include": ["src/renderer/**/*.ts", "src/renderer/**/*.tsx"],
