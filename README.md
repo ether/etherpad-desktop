@@ -151,6 +151,50 @@ On macOS, swap `Ctrl` for `Cmd`. Both modifiers are accepted globally.
 
 ## Install
 
+### One-liners
+
+If you just want it running fast, paste the line for your OS. Each one
+fetches the *latest release* and runs the installer/AppImage. Manual
+download links are in the per-OS sections below.
+
+**Linux (AppImage, no install):**
+
+```bash
+curl -fsSL "$(curl -sSL https://api.github.com/repos/ether/etherpad-desktop/releases/latest | jq -r '.assets[] | select(.name | endswith(".AppImage")) | .browser_download_url')" -o ~/etherpad-desktop.AppImage && chmod +x ~/etherpad-desktop.AppImage && ~/etherpad-desktop.AppImage
+```
+
+**Linux (deb, system install):**
+
+```bash
+F=$(mktemp --suffix=.deb) && curl -fsSL "$(curl -sSL https://api.github.com/repos/ether/etherpad-desktop/releases/latest | jq -r '.assets[] | select(.name | endswith("amd64.deb")) | .browser_download_url')" -o "$F" && sudo apt install -y "$F" && rm "$F"
+```
+
+**Linux (snap, once the store listing is public):**
+
+```bash
+sudo snap install etherpad-desktop
+```
+
+**macOS** (auto-detects Apple Silicon vs Intel):
+
+```bash
+A=$([ "$(uname -m)" = arm64 ] && echo arm64 || echo x64) && F=$(mktemp /tmp/epd.XXXXX.dmg) && curl -fsSL "$(curl -sSL https://api.github.com/repos/ether/etherpad-desktop/releases/latest | jq -r --arg a "$A" '.assets[] | select(.name | endswith("-" + $a + ".dmg")) | .browser_download_url')" -o "$F" && open "$F"
+```
+
+**Windows (PowerShell, NSIS installer):**
+
+```powershell
+$u = (Invoke-RestMethod https://api.github.com/repos/ether/etherpad-desktop/releases/latest).assets | ? { $_.name -like 'Etherpad-Desktop-Setup-*.exe' } | Select -First 1 -ExpandProperty browser_download_url; $f = "$env:TEMP\etherpad-desktop-setup.exe"; Invoke-WebRequest $u -OutFile $f; Start-Process $f
+```
+
+> The Linux/macOS one-liners need `jq` (preinstalled on most distros and
+> Homebrew). On a stripped-down system: `sudo apt install jq` /
+> `brew install jq` first.
+
+---
+
+### Manual download
+
 Download the latest release from
 [Releases](https://github.com/ether/etherpad-desktop/releases).
 
