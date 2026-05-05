@@ -77,4 +77,46 @@ describe('createPadContentIndex', () => {
     await expect(idx.index('ws1', 'https://x', 'p')).resolves.toBeUndefined();
     expect(idx.search('anything')).toEqual([]);
   });
+
+  it('fuzzy: matches monki → monkey', async () => {
+    const fetchFn = vi.fn(async () => new Response('lots of monkey business today')) as unknown as typeof fetch;
+    const idx = createPadContentIndex({ log: fakeLog, fetchFn });
+    await idx.index('ws1', 'https://x', 'standup');
+    const hits = idx.search('monki');
+    expect(hits).toHaveLength(1);
+    expect(hits[0]?.padName).toBe('standup');
+    expect(hits[0]?.snippet).toContain('monkey');
+  });
+
+  it('fuzzy: matches monki → monkey mid-sentence', async () => {
+    const fetchFn = vi.fn(async () => new Response('I love monkeys and bananas')) as unknown as typeof fetch;
+    const idx = createPadContentIndex({ log: fakeLog, fetchFn });
+    await idx.index('ws1', 'https://x', 'food');
+    const hits = idx.search('monki');
+    expect(hits).toHaveLength(1);
+    expect(hits[0]?.snippet).toContain('monkey');
+  });
+
+  it('fuzzy: does not match completely unrelated query', async () => {
+    const fetchFn = vi.fn(async () => new Response('hello world')) as unknown as typeof fetch;
+    const idx = createPadContentIndex({ log: fakeLog, fetchFn });
+    await idx.index('ws1', 'https://x', 'p');
+    expect(idx.search('xyzzy')).toHaveLength(0);
+  });
+
+  it('fuzzy: matches via 1-edit-distance (cit → cat)', async () => {
+    const fetchFn = vi.fn(async () => new Response('cat in hat')) as unknown as typeof fetch;
+    const idx = createPadContentIndex({ log: fakeLog, fetchFn });
+    await idx.index('ws1', 'https://x', 'p');
+    const hits = idx.search('cit');
+    expect(hits).toHaveLength(1);
+  });
+
+  it('fuzzy: does not match when token is too short (a vs ab)', async () => {
+    const fetchFn = vi.fn(async () => new Response('a')) as unknown as typeof fetch;
+    const idx = createPadContentIndex({ log: fakeLog, fetchFn });
+    await idx.index('ws1', 'https://x', 'p');
+    // 'ab' is only 2 chars — too short for fuzzy; 'a' does not start with 'ab'
+    expect(idx.search('ab')).toHaveLength(0);
+  });
 });

@@ -5,6 +5,7 @@ import { t } from '../i18n/index.js';
 import type { Workspace } from '@shared/types/workspace';
 import type { PadHistoryEntry } from '@shared/types/pad-history';
 import { DialogShell } from '../components/DialogShell.js';
+import { fuzzyMatch } from './fuzzy-match.js';
 
 type WorkspaceResult = { kind: 'workspace'; workspace: Workspace };
 type PadResult = { kind: 'pad'; entry: PadHistoryEntry; workspace: Workspace };
@@ -41,7 +42,7 @@ function rankResults(
   }
 
   const wsHits: WorkspaceResult[] = workspaces
-    .filter((w) => w.name.toLowerCase().includes(q))
+    .filter((w) => fuzzyMatch(w.name, q).matched)
     .map((workspace) => ({ kind: 'workspace' as const, workspace }));
 
   const padHits: PadResult[] = Object.values(history)
@@ -49,8 +50,8 @@ function rankResults(
     .filter((e) => {
       if (!wsById[e.workspaceId]) return false;
       return (
-        e.padName.toLowerCase().includes(q) ||
-        (e.title?.toLowerCase().includes(q) ?? false)
+        fuzzyMatch(e.padName, q).matched ||
+        (e.title ? fuzzyMatch(e.title, q).matched : false)
       );
     })
     .sort((a, b) => b.lastOpenedAt - a.lastOpenedAt)
