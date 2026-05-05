@@ -17,6 +17,7 @@ export type TabHandlerDeps = {
   emitTabsChanged: () => void;
   emitPadHistoryChanged: () => void;
   getLanguage: () => string;
+  getUserName: () => string;
   indexPadContent?: (workspaceId: string, padName: string) => void;
 };
 
@@ -30,6 +31,7 @@ export function tabHandlers(deps: TabHandlerDeps) {
         serverUrl: ws.serverUrl,
         padName: input.padName,
         lang: deps.getLanguage(),
+        userName: deps.getUserName(),
       });
       const tab = await deps.openInActiveWindow({
         workspaceId: input.workspaceId,

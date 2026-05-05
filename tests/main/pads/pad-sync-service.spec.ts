@@ -61,4 +61,45 @@ describe('PadSyncService.resolveSrc', () => {
       lang: 'zh-hans',
     })).toBe('https://x/p/foo?lang=zh-hans');
   });
+
+  it('appends ?userName= when a userName is provided', () => {
+    const svc = new PadSyncService();
+    expect(svc.resolveSrc({
+      kind: 'remote',
+      serverUrl: 'https://x',
+      padName: 'foo',
+      userName: 'Alice',
+    })).toBe('https://x/p/foo?userName=Alice');
+  });
+
+  it('omits userName= when userName is empty string', () => {
+    const svc = new PadSyncService();
+    expect(svc.resolveSrc({
+      kind: 'remote',
+      serverUrl: 'https://x',
+      padName: 'foo',
+      userName: '',
+    })).toBe('https://x/p/foo');
+  });
+
+  it('appends both lang and userName when both provided', () => {
+    const svc = new PadSyncService();
+    expect(svc.resolveSrc({
+      kind: 'remote',
+      serverUrl: 'https://x',
+      padName: 'foo',
+      lang: 'es',
+      userName: 'Bob',
+    })).toBe('https://x/p/foo?lang=es&userName=Bob');
+  });
+
+  it('percent-encodes spaces in userName', () => {
+    const svc = new PadSyncService();
+    expect(svc.resolveSrc({
+      kind: 'remote',
+      serverUrl: 'https://x',
+      padName: 'foo',
+      userName: 'Alice Smith',
+    })).toBe('https://x/p/foo?userName=Alice+Smith');
+  });
 });

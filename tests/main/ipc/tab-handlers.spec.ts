@@ -32,6 +32,7 @@ beforeEach(() => {
     emitTabsChanged: vi.fn(),
     emitPadHistoryChanged: vi.fn(),
     getLanguage: () => 'en',
+    getUserName: () => '',
   });
 });
 
@@ -91,6 +92,7 @@ describe('tab.open', () => {
       emitTabsChanged: emitTabs,
       emitPadHistoryChanged: emitHist,
       getLanguage: () => 'en',
+      getUserName: () => '',
     });
     const ws = workspaces.add({ name: 'A', serverUrl: 'https://x', color: '#000000' });
     await h.open(undefined, { workspaceId: ws.id, padName: 'foo', mode: 'open' });
@@ -114,6 +116,7 @@ describe('tab.close', () => {
       emitTabsChanged: emitTabs,
       emitPadHistoryChanged: vi.fn(),
       getLanguage: () => 'en',
+      getUserName: () => '',
     });
     const r = await h.close(undefined, { tabId: 'some-tab' });
     expect(r.ok).toBe(true);
@@ -143,6 +146,7 @@ describe('tab.focus', () => {
       emitTabsChanged: emitTabs,
       emitPadHistoryChanged: vi.fn(),
       getLanguage: () => 'en',
+      getUserName: () => '',
     });
     const r = await h.focus(undefined, { tabId: 'tab-42' });
     expect(r.ok).toBe(true);
@@ -171,6 +175,7 @@ describe('tab.reload', () => {
       emitTabsChanged: vi.fn(),
       emitPadHistoryChanged: vi.fn(),
       getLanguage: () => 'en',
+      getUserName: () => '',
     });
     const r = await h.reload(undefined, { tabId: 'tab-reload' });
     expect(r.ok).toBe(true);

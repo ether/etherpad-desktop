@@ -12,6 +12,7 @@ export const en = {
   addWorkspace: {
     title: 'Add a workspace',
     nameLabel: 'Name',
+    nameFromSettings: '(from Settings)',
     serverUrlLabel: 'Etherpad URL',
     colorLabel: 'Colour',
     submit: 'Add',
@@ -45,6 +46,9 @@ export const en = {
     themeAuto: 'Match system',
     themeLight: 'Light',
     themeDark: 'Dark',
+    userName: 'Your name',
+    userNamePlaceholder: 'e.g. Alice',
+    userNameHint: 'Pre-filled when you add a workspace, and shown to others as your name in pads.',
   },
   removeWorkspace: {
     title: 'Remove workspace?',

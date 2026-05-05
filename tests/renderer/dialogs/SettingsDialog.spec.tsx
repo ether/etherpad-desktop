@@ -12,6 +12,7 @@ const DEFAULT_SETTINGS = {
   rememberOpenTabsOnQuit: true,
   minimizeToTray: false,
   themePreference: 'auto' as const,
+  userName: '',
 };
 
 beforeEach(() => {

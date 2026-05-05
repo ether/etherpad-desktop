@@ -7,7 +7,8 @@ import { AppError } from '@shared/types/errors';
 const PALETTE = ['#44b492', '#3366cc', '#16a34a', '#dc2626', '#9333ea', '#f59e0b', '#0ea5e9', '#ec4899'];
 
 export function AddWorkspaceDialog({ dismissable }: { dismissable: boolean }): React.JSX.Element {
-  const [name, setName] = useState('');
+  const settingsUserName = useShellStore((s) => s.settings?.userName ?? '');
+  const [name, setName] = useState(settingsUserName);
   const [serverUrl, setServerUrl] = useState('');
   const [color, setColor] = useState(PALETTE[0]!);
   const [error, setError] = useState<string | null>(null);
@@ -45,7 +46,14 @@ export function AddWorkspaceDialog({ dismissable }: { dismissable: boolean }): R
       <div style={panelStyle}>
         <h2 id="add-ws-title">{t.addWorkspace.title}</h2>
         <label className="dialog-field">
-          <span className="dialog-label">{t.addWorkspace.nameLabel}</span>
+          <span className="dialog-label">
+            {t.addWorkspace.nameLabel}
+            {settingsUserName && (
+              <span style={{ marginLeft: 6, fontSize: '0.8em', color: 'var(--text-muted)' }}>
+                {t.addWorkspace.nameFromSettings}
+              </span>
+            )}
+          </span>
           <input value={name} onChange={(e) => setName(e.target.value)} autoFocus required />
         </label>
         <label className="dialog-field-inline">

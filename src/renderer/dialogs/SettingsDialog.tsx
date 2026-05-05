@@ -23,6 +23,16 @@ export function SettingsDialog(): React.JSX.Element | null {
       <div style={panelStyle}>
         <h2 id="settings-title">{t.settings.title}</h2>
         <label className="settings-row">
+          <span className="settings-label">{t.settings.userName}</span>
+          <input
+            type="text"
+            value={draft.userName}
+            onChange={(e) => setDraft({ ...draft, userName: e.target.value })}
+            placeholder={t.settings.userNamePlaceholder}
+          />
+        </label>
+        <p className="settings-hint">{t.settings.userNameHint}</p>
+        <label className="settings-row">
           <span className="settings-label">{t.settings.zoom}</span>
           <input
             type="number"

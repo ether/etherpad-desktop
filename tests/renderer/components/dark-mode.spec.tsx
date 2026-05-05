@@ -104,7 +104,8 @@ describe('applySettings helper', () => {
       rememberOpenTabsOnQuit: true,
       minimizeToTray: false,
       themePreference: 'dark',
-    } as Parameters<typeof applySettings>[0]);
+      userName: '',
+    });
     expect(document.documentElement.dataset.theme).toBe('dark');
     expect(document.documentElement.style.getPropertyValue('--accent')).toBe('#3366cc');
   });
@@ -118,7 +119,8 @@ describe('applySettings helper', () => {
       rememberOpenTabsOnQuit: false,
       minimizeToTray: false,
       themePreference: 'light',
-    } as Parameters<typeof applySettings>[0]);
+      userName: '',
+    });
     expect(document.documentElement.style.getPropertyValue('--accent')).toBe('#ff0000');
   });
 });

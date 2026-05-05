@@ -152,6 +152,7 @@ export function registerIpc(ctx: AppContext): IpcRegistration {
     emitTabsChanged,
     emitPadHistoryChanged,
     getLanguage: () => ctx.settings.get().language,
+    getUserName: () => ctx.settings.get().userName,
     ...(ctx.padContentIndex !== undefined
       ? {
           indexPadContent: (workspaceId: string, padName: string) => {
