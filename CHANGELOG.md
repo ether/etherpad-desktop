@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.2](https://github.com/ether/etherpad-desktop/compare/v0.3.1...v0.3.2) (2026-05-05)
+
+
+### Bug Fixes
+
+* **snap:** release to edge+stable in one upload ([#20](https://github.com/ether/etherpad-desktop/issues/20)) ([6c6511a](https://github.com/ether/etherpad-desktop/commit/6c6511a0b2bbbfc825b8e3a895b55afb2b5d6315))
+
 ## [0.3.1](https://github.com/ether/etherpad-desktop/compare/v0.3.0...v0.3.1) (2026-05-05)
 
 
