@@ -36,7 +36,7 @@ export function TabStrip(): React.JSX.Element {
           }}
         >
           {tab.state === 'error' || tab.state === 'crashed' ? (
-            <span aria-label="Error" style={{ color: 'var(--error)' }}>
+            <span aria-label={t.tabStrip.error} style={{ color: 'var(--error)' }}>
               ●
             </span>
           ) : null}

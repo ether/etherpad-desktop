@@ -112,4 +112,77 @@ describe('DialogShell', () => {
     const panel = screen.getByRole('dialog');
     expect(panel).toHaveStyle({ width: '600px' });
   });
+
+  // REGRESSION: 2026-05-05 — without a focus trap, Tab/Shift+Tab inside an
+  // open dialog could escape into the embedded WebContentsView (the pad) or
+  // rail buttons behind the dialog. The trap keeps Tab cycling inside the
+  // panel, which is a baseline ARIA APG dialog-modal requirement.
+  it('Tab from the last focusable element wraps to the first', () => {
+    render(
+      <DialogShell labelledBy="test-title">
+        <h2 id="test-title">Trap</h2>
+        <input data-testid="first" />
+        <button data-testid="middle">Mid</button>
+        <button data-testid="last">Last</button>
+      </DialogShell>,
+    );
+    const first = screen.getByTestId('first');
+    const last = screen.getByTestId('last');
+    last.focus();
+    expect(document.activeElement).toBe(last);
+    fireEvent.keyDown(window, { key: 'Tab' });
+    expect(document.activeElement).toBe(first);
+  });
+
+  it('Shift+Tab from the first focusable element wraps to the last', () => {
+    render(
+      <DialogShell labelledBy="test-title">
+        <h2 id="test-title">Trap</h2>
+        <input data-testid="first" />
+        <button data-testid="last">Last</button>
+      </DialogShell>,
+    );
+    const first = screen.getByTestId('first');
+    const last = screen.getByTestId('last');
+    first.focus();
+    fireEvent.keyDown(window, { key: 'Tab', shiftKey: true });
+    expect(document.activeElement).toBe(last);
+  });
+
+  it('Tab in the middle of the focusable list is NOT intercepted', () => {
+    render(
+      <DialogShell labelledBy="test-title">
+        <h2 id="test-title">Trap</h2>
+        <input data-testid="first" />
+        <button data-testid="middle">Mid</button>
+        <button data-testid="last">Last</button>
+      </DialogShell>,
+    );
+    const middle = screen.getByTestId('middle');
+    middle.focus();
+    const ev = new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true });
+    window.dispatchEvent(ev);
+    // The trap only preventDefault()s at the boundaries.
+    expect(ev.defaultPrevented).toBe(false);
+  });
+
+  it('restores focus to the previously focused element on unmount', () => {
+    const trigger = document.createElement('button');
+    trigger.textContent = 'Open';
+    document.body.appendChild(trigger);
+    trigger.focus();
+    expect(document.activeElement).toBe(trigger);
+
+    const { unmount } = render(
+      <DialogShell labelledBy="test-title">
+        <h2 id="test-title">Restore</h2>
+        <input data-testid="dialog-input" />
+      </DialogShell>,
+    );
+    expect(document.activeElement).toBe(screen.getByTestId('dialog-input'));
+
+    unmount();
+    expect(document.activeElement).toBe(trigger);
+    document.body.removeChild(trigger);
+  });
 });

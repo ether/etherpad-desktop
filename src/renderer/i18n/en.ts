@@ -1,19 +1,24 @@
 export const en = {
   app: { title: 'Etherpad Desktop' },
   rail: {
+    label: 'Workspace rail',
     add: 'Add workspace',
     settings: 'Settings',
     search: 'Search workspaces and pads (Ctrl+K)',
     collapse: 'Hide workspaces (focus mode)',
     expand: 'Show workspaces',
+    openWorkspace: 'Open workspace {{name}}',
   },
   sidebar: {
+    label: 'Pad sidebar',
     pinned: 'Pinned',
     recent: 'Recent',
     newPad: 'New Pad',
     searchAllPads: 'Search all pads…',
+    pinPad: 'Pin {{name}}',
+    unpinPad: 'Unpin {{name}}',
   },
-  tabStrip: { close: 'Close pad' },
+  tabStrip: { close: 'Close pad', error: 'Error' },
   emptyState: { noPads: 'No pads open', openPad: 'Open Pad…' },
   addWorkspace: {
     title: 'Add a workspace',

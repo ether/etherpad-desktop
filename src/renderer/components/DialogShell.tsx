@@ -36,30 +36,61 @@ export function DialogShell(props: DialogShellProps): React.JSX.Element {
   };
 
   useEffect(() => {
-    if (!dismissOnEscape) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
+      if (dismissOnEscape && e.key === 'Escape') {
         e.preventDefault();
         e.stopPropagation();
         dismiss();
+        return;
+      }
+      // Focus trap: keep Tab/Shift+Tab inside the panel. Without this, Tab
+      // could focus the embedded WebContentsView (the pad) or rail buttons
+      // behind the dialog — which is both confusing and a screen-reader
+      // accessibility issue.
+      if (e.key === 'Tab') {
+        const node = panelRef.current;
+        if (!node) return;
+        const focusables = Array.from(
+          node.querySelectorAll<HTMLElement>(
+            'input:not([disabled]), textarea:not([disabled]), select:not([disabled]), button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+          ),
+        ).filter((el) => !el.hasAttribute('aria-hidden'));
+        if (focusables.length === 0) return;
+        const first = focusables[0]!;
+        const last = focusables[focusables.length - 1]!;
+        const activeEl = document.activeElement as HTMLElement | null;
+        if (e.shiftKey && activeEl === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && activeEl === last) {
+          e.preventDefault();
+          first.focus();
+        }
       }
     };
-    // Listen on window so the key works no matter where focus is inside the
-    // dialog (panel, input, button, anywhere). Capture phase so we don't lose
-    // it to other handlers.
+    // Capture phase so we beat handlers inside the dialog content.
     window.addEventListener('keydown', onKey, true);
     return () => window.removeEventListener('keydown', onKey, true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Auto-focus the first focusable element so Escape works without manual click.
+  // Auto-focus the first focusable element so Escape works without manual
+  // click; restore focus to the previously focused element on unmount so
+  // keyboard users don't end up at the top of the document.
   useEffect(() => {
+    const previouslyFocused = document.activeElement as HTMLElement | null;
     const node = panelRef.current;
-    if (!node) return;
-    const focusable = node.querySelector<HTMLElement>(
+    const focusable = node?.querySelector<HTMLElement>(
       'input, textarea, select, button, [tabindex]:not([tabindex="-1"])',
     );
     focusable?.focus();
+    return () => {
+      // Only restore if the previously focused element is still in the DOM
+      // and focusable; otherwise let the browser pick a sensible default.
+      if (previouslyFocused && document.contains(previouslyFocused)) {
+        previouslyFocused.focus();
+      }
+    };
   }, []);
 
   return (

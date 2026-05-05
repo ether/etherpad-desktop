@@ -7,6 +7,11 @@ let active: Strings = en;
 
 export function setLanguage(code: string): void {
   active = dictionary[code] ?? en;
+  // Reflect on <html lang=…> so screen readers announce in the right voice
+  // and CSS like :lang() can target it. Guard for non-DOM (test) environments.
+  if (typeof document !== 'undefined' && document.documentElement) {
+    document.documentElement.lang = code || 'en';
+  }
 }
 
 export const t = new Proxy({} as Strings, {
