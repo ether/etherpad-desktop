@@ -145,7 +145,8 @@ export function createCapacitorPlatform(): Platform {
     events: {
       onWorkspacesChanged: (l) =>
         workspaceStore.onChanged(l as Parameters<typeof workspaceStore.onChanged>[0]),
-      onPadHistoryChanged: noopUnsubscribe,
+      onPadHistoryChanged: (l) =>
+        padHistoryStore.onChanged(l as Parameters<typeof padHistoryStore.onChanged>[0]),
       onTabsChanged: (l) => tabStore.onTabsChanged(l as Parameters<typeof tabStore.onTabsChanged>[0]),
       onTabState: (l) => tabStore.onTabState(l as Parameters<typeof tabStore.onTabState>[0]),
       onSettingsChanged: noopUnsubscribe,

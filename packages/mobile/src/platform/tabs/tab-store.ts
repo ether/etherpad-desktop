@@ -1,4 +1,5 @@
 import type { OpenTab } from '@shared/types/tab';
+import * as padHistoryStore from '../storage/pad-history-store.js';
 
 /**
  * In-memory mobile tab state + a thin per-event subscriber list. No
@@ -70,16 +71,24 @@ export function getActiveTabId(): string | null {
   return activeTabId;
 }
 
+const openedEmitter = new Emitter<{ opened: { tabId: string } }>();
+export function onOpened(l: (payload: { tabId: string }) => void): Unsubscribe {
+  return openedEmitter.on('opened', l);
+}
+
 export function open(input: {
   workspaceId: string;
   padName: string;
   mode?: 'open' | 'create';
 }): OpenTab {
   const tabId = makeTabId(input.workspaceId, input.padName);
+  // Bump the workspace's pad-history (fire-and-forget; async store call).
+  void padHistoryStore.upsert({ workspaceId: input.workspaceId, padName: input.padName });
   const existing = tabs.get(tabId);
   if (existing) {
     activeTabId = tabId;
     emitChanged();
+    openedEmitter.emit('opened', { tabId });
     return existing;
   }
   const tab: OpenTab = {
@@ -92,6 +101,7 @@ export function open(input: {
   tabs.set(tabId, tab);
   activeTabId = tabId;
   emitChanged();
+  openedEmitter.emit('opened', { tabId });
   return tab;
 }
 

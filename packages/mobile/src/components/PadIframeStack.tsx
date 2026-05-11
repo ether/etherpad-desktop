@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Browser } from '@capacitor/browser';
 import { useShellStore } from '@etherpad/shell/state';
 import { padUrl } from '@shared/url';
 import { onReload, markLoaded, markError } from '../platform/tabs/tab-store.js';
-import { PadActionsOverlay } from './PadActionsOverlay.js';
 
 /**
  * Mobile pad rendering: one DOM `<iframe>` per open tab, exactly one visible
@@ -22,14 +20,14 @@ import { PadActionsOverlay } from './PadActionsOverlay.js';
  * Language switching reloads the iframe via a `?lang=<code>` query param
  * in the src — mirrors desktop's `webContents.loadURL` rule.
  *
- * X-Frame-Options DENY fallback: the iframe's `load` event fires even on
- * blocked content, but the document inside ends up with about:blank /
- * zero contentDocument. We use a 6-second timeout from mount: if no
- * onLoad has fired by then, surface a prominent "Open in browser" panel
- * over the iframe so the user has an obvious escape hatch.
+ * X-Frame-Options DENY / SAMEORIGIN: Chromium fires `onLoad` for blocked
+ * iframes too (with about:blank content), so we can't reliably detect
+ * blocked embedding from JS. The robust path is a native
+ * WebChromeClient.onReceivedHttpError hook, which lands with the
+ * permissions plugin in Phase 6b. Until then the user's escape hatch is
+ * "Open in browser" — exposed via a long-press / overflow menu (TODO),
+ * not a forced top-right button.
  */
-const X_FRAME_TIMEOUT_MS = 6_000;
-
 export function PadIframeStack(): React.JSX.Element {
   const tabs = useShellStore((s) => s.tabs);
   const activeTabId = useShellStore((s) => s.activeTabId);
@@ -40,6 +38,20 @@ export function PadIframeStack(): React.JSX.Element {
 
   const workspace = workspaces.find((w) => w.id === activeWorkspaceId);
   const lang = settings?.language ?? 'en';
+  const userName = settings?.userName ?? '';
+
+  /**
+   * Build the iframe src for a pad. Includes `?lang=` always; appends
+   * `&userName=` when the user has set a display name in Settings —
+   * Etherpad reads this query param to populate the guest user's name
+   * without requiring the user to set it inside the pad UI every time.
+   */
+  const buildSrc = (padName: string): string => {
+    const base = padUrl(workspace!.serverUrl, padName);
+    const params = new URLSearchParams({ lang });
+    if (userName) params.set('userName', userName);
+    return `${base}?${params.toString()}`;
+  };
 
   // Per-tab reload counter so platform.tab.reload() forces the iframe to
   // remount (changing the src isn't enough if the URL is identical).
@@ -51,24 +63,6 @@ export function PadIframeStack(): React.JSX.Element {
     return off;
   }, []);
 
-  // Per-tab load-status. `pending` until onLoad fires; flips to `blocked`
-  // if the timeout trips first.
-  const [loadStatus, setLoadStatus] = useState<Record<string, 'pending' | 'loaded' | 'blocked'>>({});
-  useEffect(() => {
-    // For every active iframe that's still `pending`, kick off a timeout.
-    const cleanups: Array<() => void> = [];
-    for (const tab of tabs) {
-      const key = `${tab.tabId}#${reloadKeys[tab.tabId] ?? 0}`;
-      if (loadStatus[key]) continue;
-      setLoadStatus((prev) => ({ ...prev, [key]: 'pending' }));
-      const handle = setTimeout(() => {
-        setLoadStatus((prev) => (prev[key] === 'pending' ? { ...prev, [key]: 'blocked' } : prev));
-      }, X_FRAME_TIMEOUT_MS);
-      cleanups.push(() => clearTimeout(handle));
-    }
-    return () => cleanups.forEach((c) => c());
-  }, [tabs, reloadKeys, loadStatus]);
-
   const dialogOpen = openDialog !== null;
   const visibleTabs = activeWorkspaceId
     ? tabs.filter((t) => t.workspaceId === activeWorkspaceId)
@@ -76,35 +70,22 @@ export function PadIframeStack(): React.JSX.Element {
 
   if (!workspace) return <></>;
 
-  const activeTab = visibleTabs.find((t) => t.tabId === activeTabId);
-  const activePadUrl = activeTab
-    ? `${padUrl(workspace.serverUrl, activeTab.padName)}?lang=${encodeURIComponent(lang)}`
-    : null;
-  const showActions = activeTab !== undefined && !dialogOpen;
-  const activeKey = activeTab ? `${activeTab.tabId}#${reloadKeys[activeTab.tabId] ?? 0}` : null;
-  const activeBlocked = activeKey ? loadStatus[activeKey] === 'blocked' : false;
-
   return (
     <div
       data-testid="pad-iframe-stack"
       style={{ position: 'absolute', inset: 0 }}
     >
       {visibleTabs.map((tab) => {
-        const baseSrc = padUrl(workspace.serverUrl, tab.padName);
-        const src = `${baseSrc}?lang=${encodeURIComponent(lang)}`;
+        const src = buildSrc(tab.padName);
         const isActive = tab.tabId === activeTabId && !dialogOpen;
         const reloadKey = reloadKeys[tab.tabId] ?? 0;
-        const key = `${tab.tabId}#${reloadKey}`;
         return (
           <iframe
-            key={key}
+            key={`${tab.tabId}#${reloadKey}`}
             src={src}
             data-pad-id={tab.tabId}
             title={tab.title ?? tab.padName}
-            onLoad={() => {
-              markLoaded(tab.tabId);
-              setLoadStatus((prev) => ({ ...prev, [key]: 'loaded' }));
-            }}
+            onLoad={() => markLoaded(tab.tabId)}
             onError={() => markError(tab.tabId, 'iframe load failed')}
             style={{
               position: 'absolute',
@@ -117,50 +98,6 @@ export function PadIframeStack(): React.JSX.Element {
           />
         );
       })}
-      {showActions && activeTab && activePadUrl ? (
-        <PadActionsOverlay url={activePadUrl} title={activeTab.title ?? activeTab.padName} />
-      ) : null}
-      {activeBlocked && activePadUrl ? (
-        <div
-          data-testid="pad-iframe-blocked"
-          role="alert"
-          style={{
-            position: 'absolute',
-            inset: 0,
-            background: 'rgba(0,0,0,0.85)',
-            color: 'white',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 16,
-            padding: 24,
-            textAlign: 'center',
-          }}
-        >
-          <p style={{ fontSize: 15, lineHeight: 1.4, maxWidth: 320, margin: 0 }}>
-            This pad didn&rsquo;t load inside the app. The Etherpad server may
-            refuse to be embedded (X-Frame-Options).
-          </p>
-          <button
-            type="button"
-            onClick={() => {
-              void Browser.open({ url: activePadUrl });
-            }}
-            style={{
-              background: 'var(--accent, #44b492)',
-              color: 'white',
-              border: 'none',
-              borderRadius: 10,
-              padding: '12px 20px',
-              fontSize: 15,
-              cursor: 'pointer',
-            }}
-          >
-            Open in browser
-          </button>
-        </div>
-      ) : null}
     </div>
   );
 }

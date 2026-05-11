@@ -594,9 +594,9 @@ input[type="checkbox"] {
 .shell-collapse-handle {
   position: absolute;
   top: 50%;
-  left: calc(var(--rail-width) + var(--sidebar-width) - 24px);
+  left: calc(var(--rail-width) + var(--sidebar-width) - 16px);
   transform: translateY(-50%);
-  width: 22px;
+  width: 14px;
   height: 64px;
   border: 1px solid var(--panel-border);
   border-radius: 4px;
@@ -607,7 +607,7 @@ input[type="checkbox"] {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
   line-height: 1;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.22);
@@ -624,10 +624,13 @@ input[type="checkbox"] {
   outline-offset: 2px;
 }
 .shell-root-wrapper.rail-collapsed .shell-collapse-handle {
-  /* Both columns are 0; pin the handle just inside the gutter the main
-     process leaves on the left of the pad WebContentsView (see
-     COLLAPSED_LEFT_GUTTER in app-window.ts — they must agree). */
-  left: 3px;
+  /* Both columns are 0; flush the handle to the very left edge so it's
+     easy to thumb on mobile and unambiguous on desktop. The right-flat
+     border lets it read as a tab sticking out of the side. */
+  left: 0;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  border-left: none;
 }
 
 /* ── Workspace rail ── */
@@ -707,6 +710,13 @@ input[type="checkbox"] {
   text-align: center;
   font-size: 11px;
   color: var(--text-muted);
+}
+/* Touch devices don't have Ctrl/Cmd keys — hide the keyboard hint instead
+   of advertising a shortcut the user can't use. `pointer: coarse` covers
+   real phones / tablets without flagging desktops where the user happens
+   to have a touchscreen. */
+@media (pointer: coarse) {
+  .qs-hint { display: none; }
 }
 
 /* Native select styled to match inputs */
