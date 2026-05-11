@@ -7,7 +7,11 @@ const keyFor = (workspaceId: string): string => `${PREFIX}${workspaceId}`;
 
 async function load(workspaceId: string): Promise<PadHistoryEntry[]> {
   const file = await loadJson(keyFor(workspaceId), padHistoryFileSchema);
-  return file?.entries ?? [];
+  // Cast at the boundary: Zod's `.optional()` infers `title: string | undefined`
+  // whereas `PadHistoryEntry.title` is `title?: string` (no `| undefined`)
+  // under `exactOptionalPropertyTypes: true`. Same boundary cast as desktop's
+  // pad-history-store.
+  return (file?.entries ?? []) as PadHistoryEntry[];
 }
 
 async function save(workspaceId: string, entries: PadHistoryEntry[]): Promise<void> {
