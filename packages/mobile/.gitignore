@@ -1,0 +1,14 @@
+node_modules
+dist
+out
+.capacitor
+android/app/build
+android/build
+android/.gradle
+android/local.properties
+android/app/release
+android/app/debug
+ios/Pods
+ios/build
+*.keystore
+*.jks
