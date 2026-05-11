@@ -2,12 +2,11 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { AddWorkspaceDialog } from '../../../src/renderer/dialogs/AddWorkspaceDialog';
-import { useShellStore, dialogActions } from '../../../src/renderer/state/store';
+import { AddWorkspaceDialog } from '../../src/dialogs/AddWorkspaceDialog';
+import { useShellStore, dialogActions } from '../../src/state/store';
 
 beforeEach(() => {
   useShellStore.setState(useShellStore.getInitialState());
-  // @ts-expect-error mock
   window.etherpadDesktop = {
     workspace: {
       add: vi.fn().mockResolvedValue({
@@ -35,7 +34,6 @@ describe('AddWorkspaceDialog', () => {
   });
 
   it('shows ServerUnreachableError text on probe failure', async () => {
-    // @ts-expect-error mock override
     window.etherpadDesktop.workspace.add = vi.fn().mockResolvedValue({
       ok: false,
       error: { kind: 'ServerUnreachableError', message: 'gone' },
@@ -60,7 +58,6 @@ describe('AddWorkspaceDialog', () => {
   });
 
   it('shows NotAnEtherpadServerError text on probe failure', async () => {
-    // @ts-expect-error mock override
     window.etherpadDesktop.workspace.add = vi.fn().mockResolvedValue({
       ok: false,
       error: { kind: 'NotAnEtherpadServerError', message: 'not etherpad' },
@@ -73,7 +70,6 @@ describe('AddWorkspaceDialog', () => {
   });
 
   it('shows URL validation error text on invalid URL', async () => {
-    // @ts-expect-error mock override
     window.etherpadDesktop.workspace.add = vi.fn().mockResolvedValue({
       ok: false,
       error: { kind: 'UrlValidationError', message: 'invalid url' },

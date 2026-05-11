@@ -1,6 +1,6 @@
 // tests/renderer/dialogs/fuzzy-match.spec.ts
 import { describe, it, expect } from 'vitest';
-import { fuzzyMatch, editDistance } from '../../../src/renderer/dialogs/fuzzy-match';
+import { fuzzyMatch, editDistance } from '../../src/dialogs/fuzzy-match';
 
 describe('fuzzyMatch', () => {
   it('direct substring match returns true with correct index', () => {

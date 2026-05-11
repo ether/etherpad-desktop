@@ -1,14 +1,14 @@
 import { describe, it, expect, afterEach } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { applyTheme, applyAccentColor, applySettings } from '../../../src/renderer/theme';
+import { applyTheme, applyAccentColor, applySettings } from '../../src/theme';
 
 // jsdom does not evaluate CSS custom properties via getComputedStyle when CSS
 // is imported as a module (the CSS import is handled by Vite's transform but
 // the CSSOM is not populated in jsdom). We therefore assert directly on the
 // CSS source text that the surface tokens are defined for both light and dark
 // modes, which is a reliable smoke test that the tokens exist.
-const cssPath = resolve(__dirname, '../../../src/renderer/styles/index.css');
+const cssPath = resolve(__dirname, '../../src/styles/index.css');
 const css = readFileSync(cssPath, 'utf-8');
 
 describe('dark mode CSS', () => {

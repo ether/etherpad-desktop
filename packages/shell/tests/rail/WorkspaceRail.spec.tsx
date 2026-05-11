@@ -2,15 +2,14 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { WorkspaceRail } from '../../../src/renderer/rail/WorkspaceRail';
-import { useShellStore } from '../../../src/renderer/state/store';
+import { WorkspaceRail } from '../../src/rail/WorkspaceRail';
+import { useShellStore } from '../../src/state/store';
 
 let setActiveWorkspaceMock: ReturnType<typeof vi.fn>;
 
 beforeEach(() => {
   useShellStore.setState(useShellStore.getInitialState());
   setActiveWorkspaceMock = vi.fn().mockResolvedValue({ ok: true });
-  // @ts-expect-error mock
   window.etherpadDesktop = {
     window: { setActiveWorkspace: setActiveWorkspaceMock },
   };

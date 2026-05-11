@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { en } from '../../../src/renderer/i18n/en';
-import { setLanguage, t, fmt } from '../../../src/renderer/i18n/index';
+import { en } from '../../src/i18n/en';
+import { setLanguage, t, fmt } from '../../src/i18n/index';
 
 /**
  * i18n contract tests.

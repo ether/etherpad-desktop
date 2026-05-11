@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { AboutDialog } from '../../../src/renderer/dialogs/AboutDialog';
-import { useShellStore, dialogActions } from '../../../src/renderer/state/store';
+import { AboutDialog } from '../../src/dialogs/AboutDialog';
+import { useShellStore, dialogActions } from '../../src/state/store';
 
 beforeEach(() => {
   useShellStore.setState(useShellStore.getInitialState());

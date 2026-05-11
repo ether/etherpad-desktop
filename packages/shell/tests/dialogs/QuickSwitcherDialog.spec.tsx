@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { QuickSwitcherDialog } from '../../../src/renderer/dialogs/QuickSwitcherDialog';
-import { useShellStore, dialogActions } from '../../../src/renderer/state/store';
+import { QuickSwitcherDialog } from '../../src/dialogs/QuickSwitcherDialog';
+import { useShellStore, dialogActions } from '../../src/state/store';
 
 const WS_A = { id: 'a', name: 'Alpha', serverUrl: 'https://a', color: '#11aa11', createdAt: 1 };
 const WS_B = { id: 'b', name: 'Beta', serverUrl: 'https://b', color: '#aa1111', createdAt: 2 };
@@ -21,7 +21,6 @@ beforeEach(() => {
     },
   });
   dialogActions.openDialog('quickSwitcher');
-  // @ts-expect-error mock
   window.etherpadDesktop = {
     window: { setActiveWorkspace: vi.fn().mockResolvedValue({ ok: true, value: { ok: true } }) },
     tab: { open: vi.fn().mockResolvedValue({ ok: true, value: { tabId: 't' } }) },

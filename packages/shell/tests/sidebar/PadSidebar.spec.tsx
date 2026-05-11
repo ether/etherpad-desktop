@@ -2,12 +2,11 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { PadSidebar } from '../../../src/renderer/sidebar/PadSidebar';
-import { useShellStore } from '../../../src/renderer/state/store';
+import { PadSidebar } from '../../src/sidebar/PadSidebar';
+import { useShellStore } from '../../src/state/store';
 
 beforeEach(() => {
   useShellStore.setState(useShellStore.getInitialState());
-  // @ts-expect-error mock
   window.etherpadDesktop = {
     tab: { open: vi.fn().mockResolvedValue({ ok: true, value: { tabId: 't' } }) },
     padHistory: {

@@ -1,13 +1,12 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { HttpAuthDialog } from '../../../src/renderer/dialogs/HttpAuthDialog';
-import { useShellStore, dialogActions } from '../../../src/renderer/state/store';
+import { HttpAuthDialog } from '../../src/dialogs/HttpAuthDialog';
+import { useShellStore, dialogActions } from '../../src/state/store';
 
 beforeEach(() => {
   useShellStore.setState(useShellStore.getInitialState());
   dialogActions.openDialog('httpAuth', { requestId: 'r1', url: 'https://x.example.com' });
-  // @ts-expect-error -- mock partial window.etherpadDesktop for test
   window.etherpadDesktop = {
     httpLogin: { respond: vi.fn().mockResolvedValue({ ok: true, value: { ok: true } }) },
   };

@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { RemoveWorkspaceDialog } from '../../../src/renderer/dialogs/RemoveWorkspaceDialog';
-import { useShellStore, dialogActions } from '../../../src/renderer/state/store';
+import { RemoveWorkspaceDialog } from '../../src/dialogs/RemoveWorkspaceDialog';
+import { useShellStore, dialogActions } from '../../src/state/store';
 
 beforeEach(() => {
   useShellStore.setState(useShellStore.getInitialState());
@@ -14,7 +14,6 @@ beforeEach(() => {
     workspaceOrder: ['a', 'b'],
   });
   dialogActions.openDialog('removeWorkspace', { workspaceId: 'a' });
-  // @ts-expect-error -- mock partial window.etherpadDesktop for test
   window.etherpadDesktop = {
     workspace: { remove: vi.fn().mockResolvedValue({ ok: true, value: { ok: true } }) },
     window: { setActiveWorkspace: vi.fn().mockResolvedValue({ ok: true }) },
@@ -65,7 +64,6 @@ describe('RemoveWorkspaceDialog', () => {
   });
 
   it('shows error message if remove call fails', async () => {
-    // @ts-expect-error mock override
     window.etherpadDesktop.workspace.remove = vi.fn().mockResolvedValue({
       ok: false,
       error: { kind: 'WorkspaceNotFoundError', message: 'not found' },

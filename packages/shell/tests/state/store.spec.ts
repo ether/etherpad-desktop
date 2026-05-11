@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { useShellStore, dialogActions } from '../../../src/renderer/state/store';
+import { useShellStore, dialogActions } from '../../src/state/store';
 
 beforeEach(() => useShellStore.setState(useShellStore.getInitialState()));
 
@@ -22,7 +22,7 @@ describe('shell store', () => {
         accentColor: '#000000',
         language: 'en',
         rememberOpenTabsOnQuit: true,
-      },
+      } as Parameters<ReturnType<typeof useShellStore.getState>['hydrate']>[0]['settings'],
     });
     expect(useShellStore.getState().workspaces).toHaveLength(1);
   });

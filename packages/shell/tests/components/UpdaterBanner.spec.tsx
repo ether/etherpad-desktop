@@ -1,12 +1,11 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { UpdaterBanner } from '../../../src/renderer/components/UpdaterBanner';
-import { useShellStore } from '../../../src/renderer/state/store';
+import { UpdaterBanner } from '../../src/components/UpdaterBanner';
+import { useShellStore } from '../../src/state/store';
 
 beforeEach(() => {
   useShellStore.setState(useShellStore.getInitialState());
-  // @ts-expect-error mock
   window.etherpadDesktop = {
     updater: { installAndRestart: vi.fn().mockResolvedValue({ ok: true }) },
   };

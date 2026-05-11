@@ -13,7 +13,8 @@
  * router lives inside it, but we suppress all rendering noise with stubs.
  */
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { useShellStore, dialogActions } from '../../src/renderer/state/store';
+import { useShellStore, dialogActions } from '../src/state/store';
+import type { Settings } from '../src/types/settings';
 
 // ---- helpers ----
 type EventCallback = (payload: unknown) => void | Promise<void>;
@@ -71,7 +72,7 @@ function handleTabState(p: unknown) {
 
 /** onSettingsChanged handler — matches App.tsx line 90-95 */
 function handleSettingsChanged(p: unknown) {
-  const newSettings = p as { language: string; schemaVersion: number; defaultZoom: number; accentColor: string; rememberOpenTabsOnQuit: boolean };
+  const newSettings = p as Settings;
   useShellStore.setState({ settings: newSettings });
   // NOTE: setLanguage is a dynamic import side-effect; we don't test it here
 }
@@ -263,7 +264,6 @@ describe('onPadHistoryChanged event', () => {
       ok: true,
       value: [{ workspaceId: 'ws1', padName: 'pad1', lastOpenedAt: 1, pinned: false }],
     });
-    // @ts-expect-error partial mock
     window.etherpadDesktop = { padHistory: { list: listMock } };
 
     useShellStore.setState({ activeWorkspaceId: 'ws1' });
@@ -282,7 +282,6 @@ describe('onPadHistoryChanged event', () => {
 
   it('no-ops when activeWorkspaceId is null', async () => {
     const listMock = vi.fn();
-    // @ts-expect-error partial mock
     window.etherpadDesktop = { padHistory: { list: listMock } };
 
     useShellStore.setState({ activeWorkspaceId: null });

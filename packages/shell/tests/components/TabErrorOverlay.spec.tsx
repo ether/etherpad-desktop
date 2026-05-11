@@ -2,12 +2,11 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { TabErrorOverlay } from '../../../src/renderer/components/TabErrorOverlay';
-import { useShellStore } from '../../../src/renderer/state/store';
+import { TabErrorOverlay } from '../../src/components/TabErrorOverlay';
+import { useShellStore } from '../../src/state/store';
 
 beforeEach(() => {
   useShellStore.setState(useShellStore.getInitialState());
-  // @ts-expect-error mock
   window.etherpadDesktop = {
     tab: {
       reload: vi.fn().mockResolvedValue({ ok: true }),

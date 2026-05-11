@@ -2,8 +2,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { OpenPadDialog } from '../../../src/renderer/dialogs/OpenPadDialog';
-import { useShellStore, dialogActions } from '../../../src/renderer/state/store';
+import { OpenPadDialog } from '../../src/dialogs/OpenPadDialog';
+import { useShellStore, dialogActions } from '../../src/state/store';
 
 beforeEach(() => {
   useShellStore.setState(useShellStore.getInitialState());
@@ -16,7 +16,6 @@ beforeEach(() => {
       ],
     },
   });
-  // @ts-expect-error -- mock partial window.etherpadDesktop for test
   window.etherpadDesktop = {
     tab: { open: vi.fn().mockResolvedValue({ ok: true, value: { tabId: 't' } }) },
   };

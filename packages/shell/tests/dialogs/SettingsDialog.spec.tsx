@@ -1,24 +1,24 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { SettingsDialog } from '../../../src/renderer/dialogs/SettingsDialog';
-import { useShellStore, dialogActions } from '../../../src/renderer/state/store';
+import { SettingsDialog } from '../../src/dialogs/SettingsDialog';
+import { useShellStore, dialogActions } from '../../src/state/store';
+import type { Settings } from '../../src/types/settings';
 
-const DEFAULT_SETTINGS = {
+const DEFAULT_SETTINGS: Settings = {
   schemaVersion: 1,
   defaultZoom: 1,
   accentColor: '#3366cc',
   language: 'en',
   rememberOpenTabsOnQuit: true,
   minimizeToTray: false,
-  themePreference: 'auto' as const,
+  themePreference: 'auto',
   userName: '',
 };
 
 beforeEach(() => {
   useShellStore.setState(useShellStore.getInitialState());
   useShellStore.setState({ settings: DEFAULT_SETTINGS });
-  // @ts-expect-error -- mock partial window.etherpadDesktop for test
   window.etherpadDesktop = {
     settings: { update: vi.fn().mockResolvedValue({ ok: true, value: {} }) },
     padHistory: { clearAll: vi.fn().mockResolvedValue({ ok: true }) },

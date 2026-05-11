@@ -1,8 +1,8 @@
 // tests/renderer/components/DialogShell.spec.tsx
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { DialogShell } from '../../../src/renderer/components/DialogShell';
-import { useShellStore, dialogActions } from '../../../src/renderer/state/store';
+import { DialogShell } from '../../src/components/DialogShell';
+import { useShellStore, dialogActions } from '../../src/state/store';
 
 beforeEach(() => {
   useShellStore.setState(useShellStore.getInitialState());
