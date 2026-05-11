@@ -94,8 +94,25 @@ async function main() {
   console.log('[fetch-etherpad] Slimming unused DB drivers + dev-only deps from Etherpad src/');
   await pruneUnusedDeps(join(TARGET, 'src'));
 
+  // Drop documentation, packaging scripts, dev-only workspace packages
+  // before install so pnpm doesn't pull their dev deps either.
+  for (const sub of ['doc', 'docs', 'packaging', 'snap', 'docker-compose.yml', 'docker-compose.dev.yml', 'Dockerfile', 'admin', 'ui', 'tests', 'AGENTS.MD', 'CHANGELOG.md', 'CONTRIBUTING.md', 'SECURITY.md', 'best_practices.md', 'README.md']) {
+    await rm(join(TARGET, sub), { recursive: true, force: true });
+  }
+
   console.log('[fetch-etherpad] Installing Etherpad runtime deps (pnpm install in src/)');
   await run('pnpm', ['install', '--prod', '--no-frozen-lockfile'], { cwd: join(TARGET, 'src') });
+
+  // Post-install: surgically delete .pnpm entries that ueberdb2 / Etherpad
+  // pull in transitively but that the dirty-db embedded path never loads.
+  // pnpm can't trim these via --filter / --no-optional because they're
+  // bundled as direct deps of intermediate packages. Removing the .pnpm
+  // store entry breaks `require('mongodb')` immediately, but the dirty
+  // driver doesn't take that path.
+  console.log('[fetch-etherpad] Post-install: pruning unused .pnpm store entries');
+  // Etherpad is a pnpm workspace — node_modules/.pnpm lives at the
+  // workspace root, not under src/.
+  await prunePnpmStore(join(TARGET, 'node_modules', '.pnpm'));
 
   await writeFile(VERSION_MARKER, `${ETHERPAD_VERSION}\n`);
   await rm(TARBALL, { force: true });
@@ -117,6 +134,52 @@ const SLIM_REMOVE = [
   'swagger-jsdoc',
 ];
 
+/**
+ * Substrings matching .pnpm store directory names that the dirty-db
+ * embedded path never loads. .pnpm dirs are formatted like
+ * `<scope>+<pkg>@<version>...`, so the colon in scoped names becomes
+ * `+` — match accordingly.
+ *
+ * Anything in here is verified safe to delete via the post-install
+ * smoke test (`node --require tsx/cjs node/server.ts` → /api/ probe).
+ * Add cautiously; verify before commit.
+ */
+const PNPM_PRUNE_PREFIXES = [
+  // Cloud DB drivers (transitively via ueberdb2)
+  '@elastic+',
+  'cassandra-driver@',
+  'mongodb@',
+  'mongodb-',
+  'mysql2@',
+  'mysql@',
+  'pg@',
+  'pg-',
+  'redis@',
+  '@redis+',
+  'rethinkdb@',
+  'surrealdb@',
+  'tedious@',
+  // Cloud-DB heavy transitives
+  'apache-arrow@',
+  '@js-joda+',
+  '@azure+',
+  '@opentelemetry+',
+  '@typespec+',
+  // Swagger / API docs UI
+  'swagger-ui-dist@',
+  'swagger-jsdoc@',
+  'swagger-ui-express@',
+  // @types/* — TypeScript type defs, never require()d at runtime.
+  '@types+',
+  // Alternative ueberdb2 backends we don't use
+  'rusty-store-kv-',
+  // MongoDB leftovers (mongodb itself was pruned earlier)
+  'bson@',
+  // tsx (TypeScript loader) requires esbuild + typescript at runtime, so
+  // they must stay even though they look like dev tools.
+  // jsdom is used by Etherpad's ImportEtherpad — keep.
+];
+
 async function pruneUnusedDeps(pkgDir) {
   const pkgPath = join(pkgDir, 'package.json');
   const pkg = JSON.parse(await readFile(pkgPath, 'utf8'));
@@ -133,6 +196,52 @@ async function pruneUnusedDeps(pkgDir) {
   }
   await writeFile(pkgPath, JSON.stringify(pkg, null, 2));
   console.log(`[fetch-etherpad]   pruned ${removed} entries from ${pkgDir}/package.json`);
+}
+
+async function prunePnpmStore(pnpmDir) {
+  const { readdir } = await import('node:fs/promises');
+  let entries;
+  try {
+    entries = await readdir(pnpmDir);
+  } catch {
+    console.warn(`[fetch-etherpad]   ${pnpmDir} missing; skipping store prune`);
+    return;
+  }
+  let removedCount = 0;
+  let removedBytes = 0;
+  for (const entry of entries) {
+    if (!PNPM_PRUNE_PREFIXES.some((p) => entry.startsWith(p))) continue;
+    const full = join(pnpmDir, entry);
+    try {
+      const size = await dirSize(full);
+      await rm(full, { recursive: true, force: true });
+      removedCount += 1;
+      removedBytes += size;
+    } catch (err) {
+      console.warn(`[fetch-etherpad]   failed to prune ${entry}:`, err.message);
+    }
+  }
+  const mb = (removedBytes / 1024 / 1024).toFixed(1);
+  console.log(`[fetch-etherpad]   pruned ${removedCount} .pnpm store entries (${mb} MB)`);
+}
+
+async function dirSize(dir) {
+  const { readdir: rd, stat: st } = await import('node:fs/promises');
+  let total = 0;
+  const stack = [dir];
+  while (stack.length) {
+    const current = stack.pop();
+    let items;
+    try { items = await rd(current); } catch { continue; }
+    for (const name of items) {
+      const p = join(current, name);
+      let info;
+      try { info = await st(p); } catch { continue; }
+      if (info.isDirectory()) stack.push(p);
+      else total += info.size;
+    }
+  }
+  return total;
 }
 
 main().catch((err) => {
