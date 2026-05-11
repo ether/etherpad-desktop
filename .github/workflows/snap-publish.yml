@@ -66,7 +66,7 @@ jobs:
         # SNAPCRAFT_STORE_CREDENTIALS is only available in the publish-*
         # jobs below. Disable implicit publish; the dedicated job uses
         # snapcore/action-publish with the credentials properly scoped.
-        run: pnpm exec electron-builder --linux snap --config build/electron-builder.yml --publish never
+        run: pnpm --filter @etherpad/desktop exec electron-builder --linux snap --config build/electron-builder.yml --publish never
 
       - name: Locate snap file
         id: find
@@ -77,14 +77,14 @@ jobs:
         # both the build job (after `cd release` is implicit) and the publish
         # job (after artifact download).
         run: |
-          file=$(ls release/*.snap | head -n1)
+          file=$(ls packages/desktop/release/*.snap | head -n1)
           echo "path=$(basename "$file")" >> "$GITHUB_OUTPUT"
 
       - name: Upload snap artifact
         uses: actions/upload-artifact@v7
         with:
           name: etherpad-desktop-snap
-          path: release/*.snap
+          path: packages/desktop/release/*.snap
           if-no-files-found: error
           retention-days: 7
 
