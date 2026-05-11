@@ -1,11 +1,17 @@
 # Claude Code instructions
 
-**The canonical AI guide for this repo is `AGENTS.md`** — read it first. This file
+**The canonical AI guide for this repo is `packages/desktop/AGENTS.md`** — read it first. This file
 adds Claude-specific notes and project gotchas that other agents share too.
+
+## Monorepo layout (read this first)
+
+This repo is a pnpm workspace as of 2026-05. The desktop app lives in `packages/desktop`. Run every `pnpm` command from the repo root — the root `package.json` proxies every script via `pnpm --filter @etherpad/desktop`. Don't `cd` into `packages/desktop` for normal dev — it works but breaks IDE assumptions about where the workspace is.
+
+Mobile (`packages/mobile`) and shell (`packages/shell`) are coming in subsequent phases; today there is only `packages/desktop`.
 
 ## Read first
 
-- `AGENTS.md` — full project overview: stack, dev loop, IPC patterns, how
+- `packages/desktop/AGENTS.md` — full project overview: stack, dev loop, IPC patterns, how
   WebContentsViews are positioned, how tests are structured, and the
   house rules. Everything below assumes you've read it.
 - `docs/superpowers/specs/2026-05-03-etherpad-desktop-linux-mvp-design.md`
@@ -23,7 +29,7 @@ These bite people who don't know them. Don't relearn the hard way.
   Earlier code (and the v1 spec) assumed `npx etherpad-lite@latest`
   works; it 404s. The embedded-server flow is currently disabled in the
   UI for this reason. The E2E fixture is now an in-process mock
-  (`tests/e2e/fixtures/etherpad.ts`) that returns the JSON shape the
+  (`packages/desktop/tests/e2e/fixtures/etherpad.ts`) that returns the JSON shape the
   shell probes for.
 - **Never use the name "etherpad-lite" in new packaging, docs, or
   configs.** Legacy paths in code (`ep_etherpad-lite/...`) can stay
@@ -38,14 +44,14 @@ These bite people who don't know them. Don't relearn the hard way.
   the holding process; only `*.lock` files are safe to remove.
 - **WebContentsViews are painted above the renderer.** When the rail
   collapses we leave a gutter on the left (`COLLAPSED_LEFT_GUTTER` in
-  `src/main/windows/app-window.ts`) so the DOM-rendered expand handle
+  `packages/desktop/src/main/windows/app-window.ts`) so the DOM-rendered expand handle
   isn't covered by the native pad view. The CSS handle position and
   the gutter constant must agree — there's a regression test pinning
-  this in `tests/main/windows/app-window-layout.spec.ts`.
+  this in `packages/desktop/tests/main/windows/app-window-layout.spec.ts`.
 - **All user-facing strings go through i18n.** `t.<section>.<key>` from
-  `src/renderer/i18n/`. No hardcoded English in JSX, aria-labels, or
+  `packages/desktop/src/renderer/i18n/`. No hardcoded English in JSX, aria-labels, or
   titles — use `fmt()` for placeholder substitution. The shape contract
-  is pinned in `tests/renderer/i18n/i18n.spec.ts`.
+  is pinned in `packages/desktop/tests/renderer/i18n/i18n.spec.ts`.
 
 ## Working style for this repo
 
