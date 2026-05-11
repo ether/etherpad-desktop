@@ -52,6 +52,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Fetch + install bundled Etherpad source (embedded server)
+        run: pnpm --filter @etherpad/desktop fetch:etherpad
+
       - name: Build app
         run: pnpm build
 
