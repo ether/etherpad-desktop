@@ -8,9 +8,9 @@
     "composite": true,
     "noEmit": true,
     "paths": {
-      "@shared/*": ["./src/shared/*"]
+      "@shared/*": ["../shell/src/*"]
     }
   },
   "include": ["src/preload/**/*.ts"],
-  "references": [{ "path": "./tsconfig.shared.json" }]
+  "references": [{ "path": "../shell/tsconfig.shell.json" }]
 }

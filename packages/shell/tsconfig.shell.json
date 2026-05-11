@@ -7,7 +7,6 @@
     "jsx": "react-jsx",
     "composite": true,
     "declaration": true,
-    "noEmit": true,
     "tsBuildInfoFile": "out/shell/tsconfig.shell.tsbuildinfo"
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"]

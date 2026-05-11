@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react';
 import { resolve } from 'node:path';
 
 const sharedResolve = {
-  alias: { '@shared': resolve('src/shared') },
+  alias: { '@shared': resolve('../shell/src') },
 };
 
 export default defineConfig({
