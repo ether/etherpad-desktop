@@ -1,0 +1,16 @@
+{
+  "extends": "../desktop/tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "out/mobile",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "jsx": "react-jsx",
+    "composite": true,
+    "declaration": true,
+    "noEmit": false,
+    "tsBuildInfoFile": "out/mobile/tsconfig.mobile.tsbuildinfo",
+    "types": ["vite/client"]
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.d.ts"],
+  "references": [{ "path": "../shell/tsconfig.shell.json" }]
+}

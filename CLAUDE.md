@@ -7,12 +7,11 @@ adds Claude-specific notes and project gotchas that other agents share too.
 
 This repo is a pnpm workspace. Source lives under `packages/`:
 
-- `packages/shell` (`@etherpad/shell`) — React renderer shell, Zustand state, i18n, types, validation, IPC channel names, the `Platform` injection seam (`setPlatform()` / `getPlatform()`). Consumed as source by `packages/desktop` and (soon) `packages/mobile`.
+- `packages/shell` (`@etherpad/shell`) — React renderer shell, Zustand state, i18n, types, validation, IPC channel names, the `Platform` injection seam (`setPlatform()` / `getPlatform()`). Consumed as source by `packages/desktop` and `packages/mobile`.
 - `packages/desktop` (`@etherpad/desktop`) — Electron main + preload + the renderer entry that injects `createElectronPlatform()` and mounts the shell.
+- `packages/mobile` (`@etherpad/mobile`) — Capacitor 8 wrapper that mounts the same shell via `createCapacitorPlatform()`. Phase 3 ships a stub Platform (empty state, write methods reject); Phase 4+ wires real persistence and native plugins.
 
-Run every `pnpm` command from the repo root. `pnpm test`, `pnpm typecheck`, and `pnpm lint` recurse across both packages via `pnpm -r`. Don't `cd` into a package directory for normal dev — it works but breaks IDE assumptions about where the workspace is.
-
-Mobile (`packages/mobile`) lands in a later phase.
+Run every `pnpm` command from the repo root. `pnpm test`, `pnpm typecheck`, and `pnpm lint` recurse across all three packages via `pnpm -r`. Don't `cd` into a package directory for normal dev — it works but breaks IDE assumptions about where the workspace is.
 
 ## Read first
 

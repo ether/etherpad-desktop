@@ -8,7 +8,7 @@ This is a pnpm monorepo.
 |---|---|---|
 | `@etherpad/desktop` | Released | [`packages/desktop`](packages/desktop) |
 | `@etherpad/shell` | Source-consumed workspace dep | [`packages/shell`](packages/shell) |
-| `@etherpad/mobile` | In development (Android first, iOS-ready) | `packages/mobile` (added in phase 3) |
+| `@etherpad/mobile` | Capacitor scaffold (stub Platform; persistence and native plugins pending) | [`packages/mobile`](packages/mobile) |
 
 ## Quick start (desktop)
 
@@ -22,7 +22,8 @@ See [`packages/desktop/README.md`](packages/desktop/README.md) for full develope
 ## Layout
 
 - `packages/desktop/` — Electron app (Linux AppImage, deb, snap; macOS DMG; Windows NSIS).
-- `packages/shell/` — React renderer shell shared between desktop and (soon) mobile. Owns dialogs, state, i18n, and the `Platform` injection seam.
+- `packages/shell/` — React renderer shell shared between desktop and mobile. Owns dialogs, state, i18n, and the `Platform` injection seam.
+- `packages/mobile/` — Capacitor 8 Android (and iOS-ready) app. Vite-built, wraps `@etherpad/shell` via `createCapacitorPlatform()`. `pnpm mobile:dev` for a browser preview; `pnpm mobile:android:run` for an attached device/emulator.
 - `docs/` — specs, plans, and shared internal docs.
 
 ## License
