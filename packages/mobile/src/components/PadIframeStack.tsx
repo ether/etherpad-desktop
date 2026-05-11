@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useShellStore } from '@etherpad/shell/state';
 import { padUrl } from '@shared/url';
 import { onReload, markLoaded, markError } from '../platform/tabs/tab-store.js';
+import { PadActionsOverlay } from './PadActionsOverlay.js';
 
 /**
  * Mobile pad rendering: one DOM `<iframe>` per open tab, exactly one visible
@@ -52,6 +53,12 @@ export function PadIframeStack(): React.JSX.Element {
 
   if (!workspace) return <></>;
 
+  const activeTab = visibleTabs.find((t) => t.tabId === activeTabId);
+  const activePadUrl = activeTab
+    ? `${padUrl(workspace.serverUrl, activeTab.padName)}?lang=${encodeURIComponent(lang)}`
+    : null;
+  const showActions = activeTab !== undefined && !dialogOpen;
+
   return (
     <div
       data-testid="pad-iframe-stack"
@@ -81,6 +88,9 @@ export function PadIframeStack(): React.JSX.Element {
           />
         );
       })}
+      {showActions && activeTab && activePadUrl ? (
+        <PadActionsOverlay url={activePadUrl} title={activeTab.title ?? activeTab.padName} />
+      ) : null}
     </div>
   );
 }
