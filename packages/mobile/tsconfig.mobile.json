@@ -11,7 +11,7 @@
     "tsBuildInfoFile": "out/mobile/tsconfig.mobile.tsbuildinfo",
     "types": ["vite/client"],
     "paths": {
-      "@shared/*": ["../../shell/src/*"]
+      "@shared/*": ["../shell/src/*"]
     }
   },
   "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.d.ts"],

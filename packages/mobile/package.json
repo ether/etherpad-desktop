@@ -24,7 +24,8 @@
     "@capacitor/preferences": "^8.0.1",
     "@etherpad/shell": "workspace:*",
     "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react-dom": "^19.2.0",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@capacitor/cli": "^8.0.0",
