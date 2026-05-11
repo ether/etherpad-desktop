@@ -1,0 +1,10 @@
+node_modules
+out
+release
+playwright-report
+test-results
+
+# Etherpad bundled-source: fetched by scripts/fetch-etherpad.mjs, not
+# committed because it's ~500MB of node_modules and version-pinned via
+# the script's ETHERPAD_VERSION constant.
+resources/etherpad/

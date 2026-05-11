@@ -12,16 +12,21 @@ export function AddWorkspaceDialog({ dismissable }: { dismissable: boolean }): R
   const [name, setName] = useState(settingsUserName);
   const [serverUrl, setServerUrl] = useState('');
   const [color, setColor] = useState(PALETTE[0]!);
+  const [embedded, setEmbedded] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const canSubmit = Boolean(name) && Boolean(serverUrl);
+  // Embedded workspaces don't need a serverUrl — the local Etherpad assigns
+  // its own. Disable the URL field and skip the Boolean(serverUrl) gate.
+  const canSubmit = Boolean(name) && (embedded || Boolean(serverUrl));
 
   const submit = async () => {
     setBusy(true);
     setError(null);
     try {
-      const ws = await ipc.workspace.add({ name, serverUrl, color });
+      const ws = embedded
+        ? await ipc.workspace.add({ name, color, kind: 'embedded' })
+        : await ipc.workspace.add({ name, serverUrl, color });
       useShellStore.getState().setActiveWorkspaceId(ws.id);
       await ipc.window.setActiveWorkspace(ws.id);
       dialogActions.closeDialog();
@@ -63,8 +68,22 @@ export function AddWorkspaceDialog({ dismissable }: { dismissable: boolean }): R
           value={serverUrl}
           onChange={(e) => setServerUrl(e.target.value)}
           placeholder="https://pads.example.com"
-          required
+          disabled={embedded}
+          required={!embedded}
         />
+      </label>
+      <label className="dialog-field-inline">
+        <input
+          type="checkbox"
+          checked={embedded}
+          onChange={(e) => setEmbedded(e.target.checked)}
+        />
+        <span>
+          {t.addWorkspace.embedded}
+          <small style={{ display: 'block', color: 'var(--text-muted)', marginTop: 2 }}>
+            {t.addWorkspace.embeddedHint}
+          </small>
+        </span>
       </label>
       <fieldset style={{ border: 'none', padding: 0 }}>
         <legend>{t.addWorkspace.colorLabel}</legend>

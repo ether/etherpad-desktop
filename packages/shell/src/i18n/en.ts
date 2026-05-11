@@ -29,9 +29,12 @@ export const en = {
     submit: 'Add',
     cancel: 'Cancel',
     probing: 'Checking server…',
+    embedded: 'Use a local server (runs on this computer)',
+    embeddedHint: "Etherpad starts up the first time you open a pad. Server-side data lives in your app's user-data folder.",
     errorUrl: 'Enter a valid URL.',
     errorUnreachable: 'Could not reach that server.',
     errorNotEtherpad: 'That URL does not look like Etherpad.',
+    errorEmbeddedUnavailable: 'Local server is not bundled in this build.',
   },
   openPad: {
     title: 'Open a pad',

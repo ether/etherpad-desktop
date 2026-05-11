@@ -11,6 +11,22 @@ files:
   - 'package.json'
   - '!**/*.{md,map,ts,tsx}'
 
+# Etherpad source for the embedded server. Lives under
+# `packages/desktop/resources/etherpad/` (fetched by
+# `pnpm fetch:etherpad`). electron-builder copies the tree to the
+# packaged app's `<resourcesPath>/etherpad/` — exactly where
+# `findBundledEtherpadDir` looks at runtime. Tarred separately from
+# asar so Node can spawn directly into the source files.
+extraResources:
+  - from: resources/etherpad
+    to: etherpad
+    filter:
+      - '**/*'
+      # Don't ship Etherpad's own playwright/test trees in the installer.
+      - '!**/tests/**'
+      - '!**/.git/**'
+      - '!**/playwright.config.ts'
+
 asar: true
 asarUnpack:
   - 'out/preload/index.cjs'

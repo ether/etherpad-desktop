@@ -53,24 +53,40 @@ After main-process source changes, **restart `pnpm dev`** — Vite HMR only cove
 
 `etherpad-desktop` can spawn a local Etherpad on demand for users who don't
 have a remote server. The controller in `src/main/embedded/embedded-server.ts`
-is a singleton that uses `npx etherpad-lite@latest` and stores pad data at
-`userData/embedded-etherpad/`. The first invocation on a clean machine downloads
-Etherpad (~100MB) and can take 60-180s; subsequent invocations are immediate.
+is a singleton that spawns the **bundled Etherpad source** with `node
+--require tsx/cjs node/server.ts --settings <path>` against a settings file
+under `userData/embedded-etherpad/`.
+
+The source tree lives at `packages/desktop/resources/etherpad/` in dev (fetched
+by `pnpm fetch:etherpad`, gitignored) and at `<resourcesPath>/etherpad/` in a
+packaged app (electron-builder copies it via `extraResources`).
+`findBundledEtherpadDir({ resourcesPath, appRoot })` is the single seam that
+discovers it.
+
+The pinned Etherpad version is set in `scripts/fetch-etherpad.mjs`
+(`ETHERPAD_VERSION`). The fetch script is idempotent — re-running is a no-op
+unless the marker file mismatches or `--force` is passed.
+
+**Why bundled instead of `npx etherpad-lite@latest`:** the `etherpad-lite`
+and `etherpad` npm packages were both unpublished, so the previous flow
+404'd on every cold start. Bundling solves that + skips the multi-hundred-MB
+npx download per machine.
 
 The `Workspace.kind` field distinguishes `'remote'` (default for back-compat)
 from `'embedded'`. The `AddWorkspaceDialog` exposes a "Use a local server"
-checkbox; embedded workspaces skip the URL probe.
+checkbox; embedded workspaces skip the URL probe and disable the URL field.
 
 The embedded server controller accepts injected `spawnFn` and `findFreePortFn`
 so unit tests can stub out child_process without mocking Node internals.
 
-Future Spec 5 work: bundle Etherpad source so first-launch doesn't need
-the network (avoids the npx download), version-pin the embedded Etherpad
-separately from the desktop app's own version.
+**Runtime prerequisite (dev only):** the host machine must have `node` on
+`PATH` for the spawn to succeed. Production installers will bundle node via
+electron-builder when we're ready to ship; for now the dev machine's `node`
+is used.
 
 The E2E test for embedded workspaces (`tests/e2e/embedded-workspace.spec.ts`)
-is skipped by default (requires `E2E_EMBEDDED=1` env var) because it needs a
-warm npx cache to avoid CI timeouts. Unit-level coverage in
+is skipped by default (requires `E2E_EMBEDDED=1` env var) because spinning
+up Etherpad even from the bundled source adds ~30s. Unit-level coverage in
 `tests/main/embedded/embedded-server.spec.ts` provides the logic guarantees.
 
 ## Distribution
