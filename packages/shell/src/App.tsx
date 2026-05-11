@@ -43,7 +43,14 @@ function applyFastSwitch(key: string): boolean {
   return true;
 }
 
-export function App(): React.JSX.Element {
+/** Optional slot for runtime-specific pad rendering.
+ *  - Desktop renders nothing; `WebContentsView`s overlay this area natively.
+ *  - Mobile passes `<PadIframeStack />` so pads render as DOM iframes. */
+export interface AppProps {
+  padView?: React.ReactNode;
+}
+
+export function App({ padView }: AppProps = {}): React.JSX.Element {
   const workspaces = useShellStore((s) => s.workspaces);
   const openDialog = useShellStore((s) => s.openDialog);
   const activeWorkspaceId = useShellStore((s) => s.activeWorkspaceId);
@@ -222,6 +229,7 @@ export function App(): React.JSX.Element {
           </div>
           <div style={{ gridColumn: '3', gridRow: '2', position: 'relative' }}>
             {activeTabsForWs.length === 0 ? <EmptyState /> : null}
+            {padView}
             <TabErrorOverlay />
           </div>
         </div>

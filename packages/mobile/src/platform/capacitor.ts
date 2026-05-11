@@ -2,6 +2,7 @@ import type { Platform } from '@etherpad/shell';
 import * as workspaceStore from './storage/workspace-store.js';
 import * as padHistoryStore from './storage/pad-history-store.js';
 import * as settingsStore from './storage/settings-store.js';
+import * as tabStore from './tabs/tab-store.js';
 
 /**
  * Concrete `Platform` impl for mobile. Workspace, pad-history, and settings
@@ -69,11 +70,27 @@ export function createCapacitorPlatform(): Platform {
       reorder: (input) => wrap(() => workspaceStore.reorder(input)),
     },
     tab: {
-      open: () => notImpl('tab.open'),
-      close: () => notImpl('tab.close'),
-      focus: () => notImpl('tab.focus'),
-      reload: () => notImpl('tab.reload'),
-      hardReload: () => notImpl('tab.hardReload'),
+      open: (input) => wrap(async () => tabStore.open(input)),
+      close: (input) =>
+        wrap(async () => {
+          tabStore.close(input.tabId);
+          return { ok: true } as const;
+        }),
+      focus: (input) =>
+        wrap(async () => {
+          tabStore.focus(input.tabId);
+          return { ok: true } as const;
+        }),
+      reload: (input) =>
+        wrap(async () => {
+          tabStore.reload(input.tabId);
+          return { ok: true } as const;
+        }),
+      hardReload: (input) =>
+        wrap(async () => {
+          tabStore.hardReload(input.tabId);
+          return { ok: true } as const;
+        }),
     },
     window: {
       setActiveWorkspace: () => ok,
@@ -128,8 +145,8 @@ export function createCapacitorPlatform(): Platform {
     events: {
       onWorkspacesChanged: noopUnsubscribe,
       onPadHistoryChanged: noopUnsubscribe,
-      onTabsChanged: noopUnsubscribe,
-      onTabState: noopUnsubscribe,
+      onTabsChanged: (l) => tabStore.onTabsChanged(l as Parameters<typeof tabStore.onTabsChanged>[0]),
+      onTabState: (l) => tabStore.onTabState(l as Parameters<typeof tabStore.onTabState>[0]),
       onSettingsChanged: noopUnsubscribe,
       onHttpLoginRequest: noopUnsubscribe,
       onUpdaterState: noopUnsubscribe,
