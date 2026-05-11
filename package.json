@@ -22,10 +22,10 @@
   "scripts": {
     "dev": "pnpm --filter @etherpad/desktop dev",
     "build": "pnpm --filter @etherpad/desktop build",
-    "typecheck": "pnpm --filter @etherpad/desktop typecheck",
-    "lint": "pnpm --filter @etherpad/desktop lint",
+    "typecheck": "pnpm -r --workspace-concurrency=1 typecheck",
+    "lint": "pnpm -r --workspace-concurrency=1 lint",
     "format": "pnpm --filter @etherpad/desktop format",
-    "test": "pnpm --filter @etherpad/desktop test",
+    "test": "pnpm -r --workspace-concurrency=1 test",
     "test:watch": "pnpm --filter @etherpad/desktop test:watch",
     "test:e2e": "pnpm --filter @etherpad/desktop test:e2e",
     "package": "pnpm --filter @etherpad/desktop package",

@@ -9,9 +9,9 @@
     "composite": true,
     "noEmit": true,
     "paths": {
-      "@shared/*": ["./src/shared/*"]
+      "@shared/*": ["../shell/src/*"]
     }
   },
   "include": ["src/renderer/**/*.ts", "src/renderer/**/*.tsx"],
-  "references": [{ "path": "./tsconfig.shared.json" }]
+  "references": [{ "path": "../shell/tsconfig.shell.json" }]
 }

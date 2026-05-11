@@ -12,9 +12,9 @@
     // entries can be relative to the tsconfig directory directly —
     // no baseUrl needed.
     "paths": {
-      "@shared/*": ["./src/shared/*"]
+      "@shared/*": ["../shell/src/*"]
     }
   },
   "include": ["src/main/**/*.ts"],
-  "references": [{ "path": "./tsconfig.shared.json" }]
+  "references": [{ "path": "../shell/tsconfig.shell.json" }]
 }

@@ -15,7 +15,7 @@ export default defineConfig({
       },
     },
     resolve: {
-      alias: { '@shared': resolve('src/shared') },
+      alias: { '@shared': resolve('../shell/src') },
     },
   },
   preload: {
@@ -27,7 +27,7 @@ export default defineConfig({
       },
     },
     resolve: {
-      alias: { '@shared': resolve('src/shared') },
+      alias: { '@shared': resolve('../shell/src') },
     },
   },
   renderer: {
@@ -54,7 +54,7 @@ export default defineConfig({
       },
     ],
     resolve: {
-      alias: { '@shared': resolve('src/shared') },
+      alias: { '@shared': resolve('../shell/src') },
     },
     define: {
       __APP_VERSION__: JSON.stringify(pkg.version),

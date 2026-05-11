@@ -6,7 +6,7 @@ Guidance for AI agents (Claude, Copilot, Cursor, etc.) working in this repo.
 
 - TypeScript strict end-to-end, React 19 + Zustand 5 renderer, Electron 41 main.
 - All persistent state lives in main-process stores; renderer talks to disk only via IPC.
-- IPC payloads are Zod-validated; channels live in `src/shared/ipc/channels.ts`.
+- IPC payloads are Zod-validated; channels live in `packages/shell/src/ipc/channels.ts`.
 - Pad content runs in `WebContentsView`s isolated by per-workspace partitions.
 - Tests are click-driven and outcome-asserting (no fluffy mounts).
 - `pnpm test` (vitest), `pnpm test:e2e` (Playwright Electron), `pnpm package` (electron-builder).
@@ -32,8 +32,8 @@ After main-process source changes, **restart `pnpm dev`** — Vite HMR only cove
 
 - **Main** (`src/main/`): app lifecycle, native menu, single-instance lock, stores, IPC handlers, BaseWindow + WebContentsView orchestration. Bundled to CJS (`out/main/index.cjs`).
 - **Preload** (`src/preload/`): one file. `contextBridge.exposeInMainWorld('etherpadDesktop', api)`. Bundled to CJS.
-- **Renderer** (`src/renderer/`): React + Zustand shell. Communicates with main only via the typed `etherpadDesktop` bridge.
-- **Shared** (`src/shared/`): types + Zod schemas + IPC channel constants. Imported by all 3 contexts via the `@shared/*` alias.
+- **Renderer entry** (`src/renderer/`): Electron-specific bootstrap. Mounts `<App />` from `@etherpad/shell` after calling `setPlatform(createElectronPlatform())`. The React shell itself lives in `packages/shell`.
+- **Shell** (`packages/shell/src/`): React + Zustand shell, dialogs, rail/sidebar/tabs, i18n, types, Zod schemas, IPC channel constants. Imported via the `@etherpad/shell` workspace dep. Main/preload still import shared types via the `@shared/*` alias, which now resolves to `packages/shell/src/*`.
 - **Window model**: each app window is a `BaseWindow` containing one shell `WebContentsView` (the React UI) + N pad `WebContentsView`s (one per open tab). Pad views are positioned over the shell's "main area" rect by `TabManager`.
 - **Visibility invariant** (`TabManager`): exactly one pad view is `setVisible(true)` at a time = the active tab. All others are `setVisible(false)`. When a dialog is open, all pad views are hidden so the dialog (which lives in the shell view's HTML) shows through.
 - **Per-workspace partitions**: `partitionFor(workspaceId)` → `'persist:ws-${id}'`. Cookies, localStorage, IndexedDB are isolated per workspace.
@@ -43,7 +43,7 @@ After main-process source changes, **restart `pnpm dev`** — Vite HMR only cove
 - TypeScript strict; no `.js` files in source tree.
 - ESLint 9 flat config (`eslint.config.js`). No `.eslintrc.*` files. Run `pnpm lint` (no `--ext` flag needed — extensions are inferred from the globs in the config).
 - All persistent state goes through main-process stores (`workspace-store`, `pad-history-store`, `settings-store`, `window-state-store`). Renderer NEVER touches disk.
-- IPC payloads are Zod-validated in main via `wrapHandler(channel, schema, handler)`. Channels are constants in `src/shared/ipc/channels.ts` (`CH.WORKSPACE_LIST` etc.).
+- IPC payloads are Zod-validated in main via `wrapHandler(channel, schema, handler)`. Channels are constants in `packages/shell/src/ipc/channels.ts` (`CH.WORKSPACE_LIST` etc.).
 - Each `WebContentsView` is created via `pad-view-factory.ts` — single seam for future offline-cache / embedded-server work.
 - E2E tests use port `9003` for the Etherpad fixture (NEVER `9001` — that's reserved for the user's ad-hoc local testing).
 - Commits: conventional style (`feat(scope): …`, `fix(scope): …`, `test(e2e): …`, `docs(scope): …`).
@@ -99,7 +99,7 @@ See `.github/workflows/snap-publish.yml` header comment for full detail.
 - Match the spec at `docs/superpowers/specs/2026-05-03-etherpad-desktop-linux-mvp-design.md` and the plan at `docs/superpowers/plans/2026-05-03-etherpad-desktop-linux-mvp.md`.
 - Never log pad content, pad names, or server URLs. Workspace IDs (UUIDs) are fine.
 - Never use the name "etherpad-lite" in new code/packaging/docs — the project is "etherpad". Legacy URL refs in code (e.g. `github.com/ether/etherpad-lite` for upstream attribution) can stay.
-- `i18n` for ALL user-facing strings. Desktop shell uses `t.<section>.<key>` in `src/renderer/i18n/`. Pad webview honours `?lang=<code>` URL params.
+- `i18n` for ALL user-facing strings. Shell uses `t.<section>.<key>` in `packages/shell/src/i18n/`. Pad webview honours `?lang=<code>` URL params.
 
 ## Testing standards
 
@@ -132,7 +132,7 @@ These are real bugs we've hit and fixed in this codebase. Keep them in mind:
 
 3. **Vitest 4.x** — `test.workspace` was removed. Projects are now declared inline via `test.projects` in `vitest.config.ts`. The `vitest.workspace.ts` file (with `defineWorkspace`) is no longer auto-discovered; keep projects in `vitest.config.ts`. The `--workspace` CLI flag is also gone.
 
-4. **TypeScript composite projects** — leaf configs (`main`, `preload`, `renderer`) use `references: [{ path: './tsconfig.shared.json' }]` AND `paths: { '@shared/*': ['src/shared/*'] }`. Do NOT add `'src/shared/**'` to leaf `include` arrays — that double-compiles shared sources and corrupts cross-project type checking once shared has real types.
+4. **TypeScript composite projects** — leaf configs (`main`, `preload`, `renderer`) reference `../shell/tsconfig.shell.json` AND set `paths: { '@shared/*': ['../shell/src/*'] }`. Do NOT add shell sources to leaf `include` arrays — that double-compiles them and corrupts cross-project type checking.
 
 5. **`baseUrl: '.'` is required** in any tsconfig that uses non-relative `paths` patterns (TS5090).
 
@@ -166,7 +166,7 @@ These are real bugs we've hit and fixed in this codebase. Keep them in mind:
 
 13. **Zustand selectors that build new arrays/objects per call** (e.g. `s => s.padHistory[wsId] ?? []`) cause infinite re-render loops. Use a stable empty-value sentinel: `const EMPTY: never[] = []`; return that instead of `[]` literals. Pattern in `PadSidebar.tsx` and `OpenPadDialog.tsx`.
 
-14. **`window.etherpadDesktop` capture in `renderer/ipc/api.ts` is lazy** (a getter), so test mocks (`window.etherpadDesktop = {…}` in `beforeEach`) take effect on each call. Don't capture eagerly at module top.
+14. **Platform reads in `packages/shell/src/platform/ipc.ts` are lazy** (`getPlatform()` is called on each `ipc.*` access), so tests can override by calling `setPlatform(buildMockPlatform({...}))` between cases. The legacy `window.etherpadDesktop = {…}` test pattern still works — `tests/setup.ts` installs a setter that routes the assignment through `setPlatform()`.
 
 15. **Quit must be defensive** — a window may already be destroyed when `before-quit` fires (user hit X). Use `serializeWindowsForQuit` which filters `!w.window.isDestroyed()` before serialising. The `closed` event on each `BaseWindow` calls `windowManager.forget(win)` so the manager drops stale refs without calling `.destroy()` again.
 
@@ -176,7 +176,7 @@ These are real bugs we've hit and fixed in this codebase. Keep them in mind:
 
 ## Tests as documentation
 
-When in doubt about a behaviour, search the test names — they describe the contract. `tests/e2e/*.spec.ts` are the user-flow contracts; `tests/renderer/*.spec.tsx` are the per-component contracts; `tests/main/*.spec.ts` are the per-module contracts.
+When in doubt about a behaviour, search the test names — they describe the contract. `packages/desktop/tests/e2e/*.spec.ts` are the user-flow contracts; `packages/shell/tests/**/*.spec.tsx` are the per-component contracts; `packages/desktop/tests/main/*.spec.ts` are the per-module contracts.
 
 ## When changing surface area
 

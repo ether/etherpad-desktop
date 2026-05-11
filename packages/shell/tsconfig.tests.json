@@ -1,0 +1,14 @@
+{
+  "extends": "../desktop/tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "out/tests",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "jsx": "react-jsx",
+    "types": ["node", "vitest/globals", "@testing-library/jest-dom"],
+    "composite": true,
+    "noEmit": true
+  },
+  "include": ["tests/**/*.ts", "tests/**/*.tsx", "tests/**/*.d.ts"],
+  "references": [{ "path": "./tsconfig.shell.json" }]
+}

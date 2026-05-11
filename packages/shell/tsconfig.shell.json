@@ -1,0 +1,16 @@
+{
+  "extends": "../desktop/tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "out/shell",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "jsx": "react-jsx",
+    "composite": true,
+    "declaration": true,
+    "tsBuildInfoFile": "out/shell/tsconfig.shell.tsbuildinfo",
+    "paths": {
+      "@shared/*": ["./src/*"]
+    }
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.d.ts"]
+}
