@@ -9,7 +9,10 @@
     "declaration": true,
     "noEmit": false,
     "tsBuildInfoFile": "out/mobile/tsconfig.mobile.tsbuildinfo",
-    "types": ["vite/client"]
+    "types": ["vite/client"],
+    "paths": {
+      "@shared/*": ["../shell/src/*"]
+    }
   },
   "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.d.ts"],
   "references": [{ "path": "../shell/tsconfig.shell.json" }]

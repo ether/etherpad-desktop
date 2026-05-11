@@ -1,55 +1,72 @@
 import type { Platform } from '@etherpad/shell';
+import * as workspaceStore from './storage/workspace-store.js';
+import * as padHistoryStore from './storage/pad-history-store.js';
+import * as settingsStore from './storage/settings-store.js';
 
 /**
- * Stub `CapacitorPlatform` for Phase 3. Returns empty state for every read
- * so the shell renders its first-launch UI (the non-dismissable
- * `AddWorkspaceDialog`). Write methods reject with NOT_IMPLEMENTED — Phase 4
- * replaces these with `@capacitor/preferences` + `@capacitor/filesystem`.
+ * Concrete `Platform` impl for mobile. Workspace, pad-history, and settings
+ * persistence go through `@capacitor/preferences` (web fallback = localStorage
+ * with `CapacitorStorage.<key>` prefix). Pad rendering (`tab.*`),
+ * desktop-specific surfaces (`httpLogin`, `updater`), and pad-content search
+ * remain stubbed — they land in Phase 5+ alongside `PadIframeStack` and the
+ * deep-links / share / permissions plugin.
  *
- * Events are no-op subscribers: the unsubscribe fn does nothing because
- * nothing ever fires. Mobile is single-window so cross-process events aren't
- * meaningful; Phase 4 may add an in-process mitt bus if components want to
- * fire local events.
- *
- * All reads that flow through `ipc.ts`'s `unwrap()` helper return the
- * `{ ok: true, value: ... }` IPC envelope shape. Methods that bypass
- * unwrap (`updater.getState`, `quickSwitcher.searchPadContent`, the events)
- * return raw values per the shell's type contract.
+ * All write paths funnel through `wrap()` so a thrown error inside a store
+ * surfaces to the shell as a typed `{ ok: false, error: ... }` envelope
+ * (consumed by `ipc.ts`'s `unwrap()`).
  */
 export function createCapacitorPlatform(): Platform {
   const ok = Promise.resolve({ ok: true });
-  const okValue = <T>(value: T) => Promise.resolve({ ok: true, value });
-  const notImpl = (op: string) =>
-    Promise.reject(new Error(`[mobile/Phase 3] ${op} not implemented yet`));
-  const noopUnsubscribe = (): (() => void) => () => {};
-
-  const defaultSettings = {
-    schemaVersion: 1 as const,
-    defaultZoom: 1,
-    accentColor: '#3366cc',
-    language: 'en',
-    rememberOpenTabsOnQuit: true,
-    minimizeToTray: false,
-    themePreference: 'auto' as const,
-    userName: '',
+  const wrap = async <T>(
+    fn: () => Promise<T>,
+  ): Promise<{ ok: true; value: T } | { ok: false; error: { kind: string; message: string } }> => {
+    try {
+      const value = await fn();
+      return { ok: true, value };
+    } catch (err) {
+      return {
+        ok: false,
+        error: {
+          kind: 'UnknownError',
+          message: err instanceof Error ? err.message : String(err),
+        },
+      };
+    }
   };
+  const notImpl = (
+    op: string,
+  ): Promise<{ ok: false; error: { kind: string; message: string } }> =>
+    Promise.resolve({
+      ok: false,
+      error: { kind: 'NotImplementedError', message: `[mobile] ${op} not implemented yet` },
+    });
+  const noopUnsubscribe = (): (() => void) => () => {};
 
   return {
     state: {
       getInitial: () =>
-        okValue({
-          workspaces: [],
-          workspaceOrder: [],
-          settings: defaultSettings,
-          padHistory: {},
+        wrap(async () => {
+          const { workspaces, order } = await workspaceStore.list();
+          const settings = await settingsStore.get();
+          const padHistory = await padHistoryStore.loadAll(order);
+          return {
+            workspaces,
+            workspaceOrder: order,
+            settings,
+            padHistory,
+          };
         }),
     },
     workspace: {
-      list: () => okValue({ workspaces: [], order: [] }),
-      add: () => notImpl('workspace.add'),
-      update: () => notImpl('workspace.update'),
-      remove: () => notImpl('workspace.remove'),
-      reorder: () => notImpl('workspace.reorder'),
+      list: () => wrap(workspaceStore.list),
+      add: (input) => wrap(() => workspaceStore.add(input)),
+      update: (input) => wrap(() => workspaceStore.update(input)),
+      remove: (input) =>
+        wrap(async () => {
+          await workspaceStore.remove(input);
+          return { ok: true } as const;
+        }),
+      reorder: (input) => wrap(() => workspaceStore.reorder(input)),
     },
     tab: {
       open: () => notImpl('tab.open'),
@@ -68,15 +85,32 @@ export function createCapacitorPlatform(): Platform {
       setRailCollapsed: () => ok,
     },
     padHistory: {
-      list: () => okValue([]),
-      pin: () => notImpl('padHistory.pin'),
-      unpin: () => notImpl('padHistory.unpin'),
-      clearRecent: () => notImpl('padHistory.clearRecent'),
-      clearAll: () => notImpl('padHistory.clearAll'),
+      list: (input) => wrap(() => padHistoryStore.list(input)),
+      pin: (input) =>
+        wrap(async () => {
+          await padHistoryStore.pin(input);
+          return { ok: true } as const;
+        }),
+      unpin: (input) =>
+        wrap(async () => {
+          await padHistoryStore.unpin(input);
+          return { ok: true } as const;
+        }),
+      clearRecent: (input) =>
+        wrap(async () => {
+          await padHistoryStore.clearRecent(input);
+          return { ok: true } as const;
+        }),
+      clearAll: () =>
+        wrap(async () => {
+          await padHistoryStore.clearAll();
+          return { ok: true } as const;
+        }),
     },
     settings: {
-      get: () => okValue(defaultSettings),
-      update: () => notImpl('settings.update'),
+      get: () => wrap(settingsStore.get),
+      update: (patch) =>
+        wrap(() => settingsStore.update(patch as Parameters<typeof settingsStore.update>[0])),
     },
     httpLogin: {
       respond: () => notImpl('httpLogin.respond'),
