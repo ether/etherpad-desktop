@@ -129,9 +129,6 @@ const SLIM_REMOVE = [
   'rethinkdb',
   'redis',
   'surrealdb',
-  // Swagger UI — runtime serves API docs; not needed for embedded
-  'swagger-ui-express',
-  'swagger-jsdoc',
 ];
 
 /**
@@ -163,12 +160,14 @@ const PNPM_PRUNE_PREFIXES = [
   'apache-arrow@',
   '@js-joda+',
   '@azure+',
-  '@opentelemetry+',
   '@typespec+',
-  // Swagger / API docs UI
-  'swagger-ui-dist@',
-  'swagger-jsdoc@',
-  'swagger-ui-express@',
+  // Note: @opentelemetry was tempting but prom-client (Etherpad's
+  // metrics export) require()s @opentelemetry/api during boot; pruning
+  // it surfaces a noisy error in logs even though Etherpad continues.
+  // Note: swagger-ui-express + swagger-jsdoc were tempting prunes but
+  // Etherpad's RestAPI hook require()s swagger-ui-express at server
+  // boot. Removing them logs an error and disables /api-docs but the
+  // core /api/ still works — keeping them in for a clean boot.
   // @types/* — TypeScript type defs, never require()d at runtime.
   '@types+',
   // Alternative ueberdb2 backends we don't use

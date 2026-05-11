@@ -141,6 +141,11 @@ export async function boot(): Promise<void> {
     resourcesPath: process.resourcesPath,
     appRoot: app.getAppPath(),
   });
+  log.info('embedded etherpad source resolution', {
+    resourcesPath: process.resourcesPath,
+    appRoot: app.getAppPath(),
+    resolved: etherpadDir,
+  });
   if (!etherpadDir) {
     log.warn('embedded Etherpad source not bundled; `Use a local server` will fail until ' +
       '`pnpm --filter @etherpad/desktop fetch:etherpad` is run');
