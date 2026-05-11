@@ -5,6 +5,7 @@ import { useShellStore } from '@etherpad/shell/state';
 import '@etherpad/shell/styles/index.css';
 import { createCapacitorPlatform } from './platform/capacitor.js';
 import { handleUrl, installDeepLinkHandler } from './platform/deep-links.js';
+import { installGestureHandlers } from './platform/gestures.js';
 import { onOpened as onTabOpened } from './platform/tabs/tab-store.js';
 import { PadIframeStack } from './components/PadIframeStack.js';
 
@@ -29,6 +30,7 @@ setPlatform(platform);
 // reads useShellStore so it sees fresh state on every URL even after
 // workspaces are added later.
 installDeepLinkHandler();
+installGestureHandlers();
 
 // Mobile UX rule: opening a pad collapses the workspace rail so the pad
 // fills the screen. The user can still re-expand via the collapse handle.

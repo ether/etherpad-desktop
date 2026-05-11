@@ -82,8 +82,14 @@ export function open(input: {
   mode?: 'open' | 'create';
 }): OpenTab {
   const tabId = makeTabId(input.workspaceId, input.padName);
-  // Bump the workspace's pad-history (fire-and-forget; async store call).
-  void padHistoryStore.upsert({ workspaceId: input.workspaceId, padName: input.padName });
+  // Bump the workspace's pad-history. Fire-and-forget — but log failures
+  // explicitly so we don't silently lose history (the upsert's Zod
+  // validation throws on malformed schemas and we'd never know).
+  padHistoryStore
+    .upsert({ workspaceId: input.workspaceId, padName: input.padName })
+    .catch((err: unknown) => {
+      console.warn('[mobile/tab-store] padHistory.upsert failed:', err);
+    });
   const existing = tabs.get(tabId);
   if (existing) {
     activeTabId = tabId;
