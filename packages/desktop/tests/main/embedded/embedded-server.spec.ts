@@ -68,6 +68,7 @@ describe('EmbeddedServerController', () => {
       log: makeLog(),
       userDataDir: '/tmp/test-embedded',
       etherpadDir: '/tmp/fake-etherpad',
+      nodeRuntime: { execPath: 'node', env: {} },
       spawnFn: spawnFn as never,
       findFreePortFn,
     });
@@ -75,12 +76,30 @@ describe('EmbeddedServerController', () => {
     const url = await ctrl.start();
 
     expect(spawnFn).toHaveBeenCalledOnce();
-    const [cmd, args, spawnOpts] = spawnFn.mock.calls[0] as [string, string[], { cwd: string }];
+    const [cmd, args, spawnOpts] = spawnFn.mock.calls[0] as [string, string[], { cwd: string; env: Record<string, string> }];
     expect(cmd).toBe('node');
     expect(args.slice(0, 3)).toEqual(['--require', 'tsx/cjs', 'node/server.ts']);
     expect(args).toContain('--settings');
     expect(spawnOpts.cwd).toBe('/tmp/fake-etherpad/src');
+    expect(spawnOpts.env.NODE_ENV).toBe('production');
     expect(url).toBe('http://127.0.0.1:19999');
+  });
+
+  it('defaults to Electron-as-Node when no nodeRuntime injected', async () => {
+    const ctrl = createEmbeddedServer({
+      log: makeLog(),
+      userDataDir: '/tmp/test-embedded',
+      etherpadDir: '/tmp/fake-etherpad',
+      // No nodeRuntime — fall through to electronAsNode default.
+      spawnFn: spawnFn as never,
+      findFreePortFn,
+    });
+
+    await ctrl.start();
+
+    const [cmd, , spawnOpts] = spawnFn.mock.calls[0] as [string, string[], { env: Record<string, string> }];
+    expect(cmd).toBe(process.execPath);
+    expect(spawnOpts.env.ELECTRON_RUN_AS_NODE).toBe('1');
   });
 
   it('start() returns the same URL on a second call without spawning again', async () => {

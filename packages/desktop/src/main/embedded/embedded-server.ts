@@ -17,6 +17,24 @@ export type EmbeddedServerController = {
 };
 
 /**
+ * The path to a Node-runnable executable. In production the Electron
+ * binary doubles as Node when `ELECTRON_RUN_AS_NODE=1` is set, which is
+ * the canonical way Electron apps ship a Node runtime without bundling
+ * a separate copy. Tests inject a plain `node` path.
+ */
+export interface NodeRuntime {
+  execPath: string;
+  /** Extra env vars needed (e.g. `ELECTRON_RUN_AS_NODE=1` for Electron). */
+  env: Record<string, string>;
+}
+
+/** Reasonable default for production Electron apps. */
+export const electronAsNode: NodeRuntime = {
+  execPath: process.execPath,
+  env: { ELECTRON_RUN_AS_NODE: '1' },
+};
+
+/**
  * Resolve where the bundled Etherpad source lives. In dev (`pnpm dev`) the
  * fetch script drops it at `packages/desktop/resources/etherpad/`. In a
  * packaged Electron app electron-builder copies the same tree into
@@ -51,6 +69,12 @@ export function createEmbeddedServer(opts: {
   userDataDir: string;
   /** Path containing `src/node/server.ts`. When omitted, `start()` throws. */
   etherpadDir?: string;
+  /**
+   * Node runtime to spawn (defaults to Electron-as-Node so production
+   * doesn't need system node installed). Tests pass `{ execPath: 'node',
+   * env: {} }` to keep spawn args simple.
+   */
+  nodeRuntime?: NodeRuntime;
   spawnFn?: typeof spawn;
   findFreePortFn?: () => Promise<number>;
 }): EmbeddedServerController {
@@ -128,13 +152,14 @@ export function createEmbeddedServer(opts: {
         );
       }
       const etherpadSrc = join(opts.etherpadDir, 'src');
+      const node = opts.nodeRuntime ?? electronAsNode;
       proc = spawnImpl(
-        'node',
+        node.execPath,
         ['--require', 'tsx/cjs', 'node/server.ts', '--settings', settingsPath],
         {
           cwd: etherpadSrc,
           stdio: ['ignore', 'pipe', 'pipe'],
-          env: { ...process.env, NODE_ENV: 'production' },
+          env: { ...process.env, ...node.env, NODE_ENV: 'production' },
         },
       );
       proc.stdout?.on('data', (b: Buffer) => { logStream.write(b); });
