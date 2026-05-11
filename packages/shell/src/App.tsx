@@ -22,13 +22,17 @@ import { UpdaterBanner } from './components/UpdaterBanner.js';
 import { t } from './i18n/index.js';
 import type { UpdaterState } from '@shared/types/updater';
 
-// E2E test seam — attached only when the preload sets E2E_TEST=1.
-// This block is dead code in production (the flag is always false there).
-if (typeof window !== 'undefined' && window.etherpadDesktop?.e2eFlags?.enabled) {
-  // @ts-expect-error attach for tests
-  window.__test_useShellStore = useShellStore;
-  // @ts-expect-error attach for tests
-  window.__test_dialogActions = {
+// E2E test seam — attached only when the runtime exposes an `e2eFlags.enabled` flag.
+// Each runtime (desktop preload, mobile bootstrap) decides whether to set it.
+// Cast through `any` so shell stays decoupled from runtime-specific Window typings.
+const _e2eWin = typeof window !== 'undefined' ? (window as unknown as {
+  etherpadDesktop?: { e2eFlags?: { enabled: boolean } };
+  __test_useShellStore?: unknown;
+  __test_dialogActions?: unknown;
+}) : undefined;
+if (_e2eWin?.etherpadDesktop?.e2eFlags?.enabled) {
+  _e2eWin.__test_useShellStore = useShellStore;
+  _e2eWin.__test_dialogActions = {
     openHttpAuth: (requestId: string, url: string) =>
       dialogActions.openDialog('httpAuth', { requestId, url }),
     openRemoveWorkspace: (name: string) => {

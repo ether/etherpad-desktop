@@ -1,8 +1,74 @@
 import type { IpcResult, InitialState, Workspace } from '@shared/ipc/channels';
 import { AppError } from '@shared/types/errors';
 
-// Read lazily so tests can replace window.etherpadDesktop between tests.
-const api = () => window.etherpadDesktop;
+/**
+ * The runtime surface this file reads at every call. Mirrors today's preload
+ * `EtherpadDesktopApi` verbatim. Phase 2a (this state) reads it from
+ * `window.etherpadDesktop` directly; Task 5 introduces the `setPlatform()` /
+ * `getPlatform()` seam and renames this to the public `Platform` interface.
+ */
+interface RuntimeApi {
+  state: { getInitial(): Promise<unknown> };
+  workspace: {
+    list(): Promise<unknown>;
+    add(input: { name: string; serverUrl?: string; color: string; kind?: 'remote' | 'embedded' }): Promise<unknown>;
+    update(input: { id: string; name?: string; serverUrl?: string; color?: string }): Promise<unknown>;
+    remove(input: { id: string }): Promise<unknown>;
+    reorder(input: { order: string[] }): Promise<unknown>;
+  };
+  tab: {
+    open(input: { workspaceId: string; padName: string; mode?: 'open' | 'create' }): Promise<unknown>;
+    close(input: { tabId: string }): Promise<unknown>;
+    focus(input: { tabId: string }): Promise<unknown>;
+    reload(input: { tabId: string }): Promise<unknown>;
+    hardReload(input: { tabId: string }): Promise<unknown>;
+  };
+  window: {
+    setActiveWorkspace(input: { workspaceId: string | null }): Promise<unknown>;
+    reloadShell(): Promise<unknown>;
+    setPadViewsHidden(hidden: boolean): Promise<unknown>;
+    setRailCollapsed(collapsed: boolean): Promise<unknown>;
+  };
+  padHistory: {
+    list(input: { workspaceId: string }): Promise<unknown>;
+    pin(input: { workspaceId: string; padName: string }): Promise<unknown>;
+    unpin(input: { workspaceId: string; padName: string }): Promise<unknown>;
+    clearRecent(input: { workspaceId: string }): Promise<unknown>;
+    clearAll(): Promise<unknown>;
+  };
+  settings: {
+    get(): Promise<unknown>;
+    update(patch: Record<string, unknown>): Promise<unknown>;
+  };
+  httpLogin: {
+    respond(input: { requestId: string; cancel?: boolean; username?: string; password?: string }): Promise<unknown>;
+  };
+  updater: {
+    checkNow(): Promise<unknown>;
+    installAndRestart(): Promise<unknown>;
+    getState(): Promise<unknown>;
+  };
+  quickSwitcher: {
+    searchPadContent(input: { query: string }): Promise<unknown>;
+  };
+  events: {
+    onWorkspacesChanged(l: (p: unknown) => void): () => void;
+    onPadHistoryChanged(l: (p: unknown) => void): () => void;
+    onTabsChanged(l: (p: unknown) => void): () => void;
+    onTabState(l: (p: unknown) => void): () => void;
+    onSettingsChanged(l: (p: unknown) => void): () => void;
+    onHttpLoginRequest(l: (p: unknown) => void): () => void;
+    onUpdaterState(l: (p: unknown) => void): () => void;
+    onPadFastSwitch(l: (p: { key: string }) => void): () => void;
+    onMenuShellMessage(l: (p: unknown) => void): () => void;
+  };
+}
+
+// Read lazily so tests can replace `window.etherpadDesktop` between tests.
+// Phase 2a: still reads the global directly. Task 5 introduces the Platform
+// seam (setPlatform/getPlatform) and removes this coupling.
+const api = (): RuntimeApi =>
+  (window as unknown as { etherpadDesktop: RuntimeApi }).etherpadDesktop;
 
 async function unwrap<T>(p: Promise<IpcResult<T> | unknown>): Promise<T> {
   const r = (await p) as IpcResult<T>;

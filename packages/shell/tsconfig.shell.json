@@ -7,7 +7,10 @@
     "jsx": "react-jsx",
     "composite": true,
     "declaration": true,
-    "tsBuildInfoFile": "out/shell/tsconfig.shell.tsbuildinfo"
+    "tsBuildInfoFile": "out/shell/tsconfig.shell.tsbuildinfo",
+    "paths": {
+      "@shared/*": ["./src/*"]
+    }
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx"]
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.d.ts"]
 }
