@@ -22,26 +22,6 @@ import { UpdaterBanner } from './components/UpdaterBanner.js';
 import { t } from './i18n/index.js';
 import type { UpdaterState } from '@shared/types/updater';
 
-// E2E test seam — attached only when the runtime exposes an `e2eFlags.enabled` flag.
-// Each runtime (desktop preload, mobile bootstrap) decides whether to set it.
-// Cast through `any` so shell stays decoupled from runtime-specific Window typings.
-const _e2eWin = typeof window !== 'undefined' ? (window as unknown as {
-  etherpadDesktop?: { e2eFlags?: { enabled: boolean } };
-  __test_useShellStore?: unknown;
-  __test_dialogActions?: unknown;
-}) : undefined;
-if (_e2eWin?.etherpadDesktop?.e2eFlags?.enabled) {
-  _e2eWin.__test_useShellStore = useShellStore;
-  _e2eWin.__test_dialogActions = {
-    openHttpAuth: (requestId: string, url: string) =>
-      dialogActions.openDialog('httpAuth', { requestId, url }),
-    openRemoveWorkspace: (name: string) => {
-      const ws = useShellStore.getState().workspaces.find((w) => w.name === name);
-      if (ws) dialogActions.openDialog('removeWorkspace', { workspaceId: ws.id });
-    },
-  };
-}
-
 /**
  * Resolve a "1".."9" digit to a pad of the active workspace and focus it.
  * Returns true if a focus call was issued (caller may want to preventDefault),
