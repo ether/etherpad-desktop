@@ -22,6 +22,26 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
+            <!-- Custom URL scheme — `etherpad://acme.example/p/hello` -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="etherpad" />
+            </intent-filter>
+
+            <!-- HTTPS Etherpad pad URLs. autoVerify lets the OS skip the
+                 chooser dialog when the target host publishes a matching
+                 assetlinks.json. No `android:host` so the filter is broad;
+                 downstream forks pinning a specific instance can override.
+                 -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:pathPattern="/p/.*" />
+            </intent-filter>
+
         </activity>
 
         <provider
