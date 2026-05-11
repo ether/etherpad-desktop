@@ -5,9 +5,14 @@ adds Claude-specific notes and project gotchas that other agents share too.
 
 ## Monorepo layout (read this first)
 
-This repo is a pnpm workspace as of 2026-05. The desktop app lives in `packages/desktop`. Run every `pnpm` command from the repo root — the root `package.json` proxies every script via `pnpm --filter @etherpad/desktop`. Don't `cd` into `packages/desktop` for normal dev — it works but breaks IDE assumptions about where the workspace is.
+This repo is a pnpm workspace. Source lives under `packages/`:
 
-Mobile (`packages/mobile`) and shell (`packages/shell`) are coming in subsequent phases; today there is only `packages/desktop`.
+- `packages/shell` (`@etherpad/shell`) — React renderer shell, Zustand state, i18n, types, validation, IPC channel names, the `Platform` injection seam (`setPlatform()` / `getPlatform()`). Consumed as source by `packages/desktop` and (soon) `packages/mobile`.
+- `packages/desktop` (`@etherpad/desktop`) — Electron main + preload + the renderer entry that injects `createElectronPlatform()` and mounts the shell.
+
+Run every `pnpm` command from the repo root. `pnpm test`, `pnpm typecheck`, and `pnpm lint` recurse across both packages via `pnpm -r`. Don't `cd` into a package directory for normal dev — it works but breaks IDE assumptions about where the workspace is.
+
+Mobile (`packages/mobile`) lands in a later phase.
 
 ## Read first
 
@@ -49,9 +54,9 @@ These bite people who don't know them. Don't relearn the hard way.
   the gutter constant must agree — there's a regression test pinning
   this in `packages/desktop/tests/main/windows/app-window-layout.spec.ts`.
 - **All user-facing strings go through i18n.** `t.<section>.<key>` from
-  `packages/desktop/src/renderer/i18n/`. No hardcoded English in JSX, aria-labels, or
+  `packages/shell/src/i18n/`. No hardcoded English in JSX, aria-labels, or
   titles — use `fmt()` for placeholder substitution. The shape contract
-  is pinned in `packages/desktop/tests/renderer/i18n/i18n.spec.ts`.
+  is pinned in `packages/shell/tests/i18n/i18n.spec.ts`.
 
 ## Working style for this repo
 
@@ -59,10 +64,10 @@ These bite people who don't know them. Don't relearn the hard way.
   to land directly — don't pause for review of committed plan files.
 - **Push on every fix.** This repo has a tracking remote on
   `feat/linux-mvp`; push to origin after each commit, not in batches.
-- **Always run backend tests.** `pnpm test` covers both main and
-  renderer suites — running only the renderer half can miss real
-  regressions. Backend tests caught dependency issues we didn't notice
-  locally.
+- **Always run backend tests.** `pnpm test` recurses across `@etherpad/shell`
+  and `@etherpad/desktop` (which itself runs the main vitest project).
+  Running only the renderer half can miss real regressions. Backend tests
+  caught dependency issues we didn't notice locally.
 - **Wait ~20s and check CI after every push.** Fix CI failures
   immediately before moving on. `gh run list --branch feat/linux-mvp
   --limit 3` is the quick check.
