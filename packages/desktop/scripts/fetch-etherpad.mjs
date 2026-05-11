@@ -81,12 +81,58 @@ async function main() {
   }
   await rename(extractedDir, TARGET);
 
+  // Slim Etherpad's deps before installing: we only ship the dirty-db
+  // path, so SQL/NoSQL drivers + Swagger UI + Azure auth + OpenTelemetry
+  // / Apache Arrow tooling are dead weight. Removing them at the
+  // package.json level (vs after install) means pnpm never even
+  // downloads them. Cuts the resulting install from ~300MB to ~50MB.
+  //
+  // Conservative list — only drivers + tools the embedded-server flow
+  // demonstrably doesn't load. `ueberdb2` stays (the abstraction layer
+  // `dirty` is dispatched through). `tsx` + `cross-env` stay (server
+  // entry point). `socket.io` + `express` + standard libs stay.
+  console.log('[fetch-etherpad] Slimming unused DB drivers + dev-only deps from Etherpad src/');
+  await pruneUnusedDeps(join(TARGET, 'src'));
+
   console.log('[fetch-etherpad] Installing Etherpad runtime deps (pnpm install in src/)');
   await run('pnpm', ['install', '--prod', '--no-frozen-lockfile'], { cwd: join(TARGET, 'src') });
 
   await writeFile(VERSION_MARKER, `${ETHERPAD_VERSION}\n`);
   await rm(TARBALL, { force: true });
   console.log(`[fetch-etherpad] Done — Etherpad ${ETHERPAD_VERSION} installed at ${TARGET}`);
+}
+
+const SLIM_REMOVE = [
+  // SQL / NoSQL drivers not used when dbType: "dirty"
+  '@elastic/elasticsearch',
+  'cassandra-driver',
+  'mongodb',
+  'mysql2',
+  'pg',
+  'rethinkdb',
+  'redis',
+  'surrealdb',
+  // Swagger UI — runtime serves API docs; not needed for embedded
+  'swagger-ui-express',
+  'swagger-jsdoc',
+];
+
+async function pruneUnusedDeps(pkgDir) {
+  const pkgPath = join(pkgDir, 'package.json');
+  const pkg = JSON.parse(await readFile(pkgPath, 'utf8'));
+  let removed = 0;
+  for (const name of SLIM_REMOVE) {
+    if (pkg.dependencies?.[name]) {
+      delete pkg.dependencies[name];
+      removed += 1;
+    }
+    if (pkg.optionalDependencies?.[name]) {
+      delete pkg.optionalDependencies[name];
+      removed += 1;
+    }
+  }
+  await writeFile(pkgPath, JSON.stringify(pkg, null, 2));
+  console.log(`[fetch-etherpad]   pruned ${removed} entries from ${pkgDir}/package.json`);
 }
 
 main().catch((err) => {
