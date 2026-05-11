@@ -1,6 +1,6 @@
 import React from 'react';
 import { useShellStore, dialogActions } from '../state/store.js';
-import { ipc } from '../ipc/api.js';
+import { ipc } from '../platform/ipc.js';
 import { t, fmt } from '../i18n/index.js';
 
 export function WorkspaceRail(): React.JSX.Element {

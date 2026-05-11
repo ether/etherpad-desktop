@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ipc } from '../ipc/api.js';
+import { ipc } from '../platform/ipc.js';
 import { dialogActions, useShellStore } from '../state/store.js';
 import { t } from '../i18n/index.js';
 import type { Settings } from '@shared/types/settings';

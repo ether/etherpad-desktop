@@ -1,7 +1,7 @@
 import React from 'react';
 import { useEffect } from 'react';
 import type { Settings } from '@shared/types/settings';
-import { ipc } from './ipc/api.js';
+import { ipc } from './platform/ipc.js';
 import { applySettings } from './theme.js';
 import { ErrorBoundary } from './components/ErrorBoundary.js';
 import { useShellStore, dialogActions } from './state/store.js';

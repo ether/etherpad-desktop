@@ -2,12 +2,15 @@ import type { IpcResult, InitialState, Workspace } from '@shared/ipc/channels';
 import { AppError } from '@shared/types/errors';
 
 /**
- * The runtime surface this file reads at every call. Mirrors today's preload
- * `EtherpadDesktopApi` verbatim. Phase 2a (this state) reads it from
- * `window.etherpadDesktop` directly; Task 5 introduces the `setPlatform()` /
- * `getPlatform()` seam and renames this to the public `Platform` interface.
+ * The runtime adapter the shell calls into. Mirrors today's preload
+ * `EtherpadDesktopApi` verbatim — desktop's `createElectronPlatform()`
+ * returns the preload-injected `window.etherpadDesktop` as a `Platform`.
+ *
+ * Phase 2b will refactor toward the abstract `storage`/`padView`/`events`
+ * sub-interfaces from spec §4 once mobile has a real implementation
+ * driving the shape.
  */
-interface RuntimeApi {
+export interface Platform {
   state: { getInitial(): Promise<unknown> };
   workspace: {
     list(): Promise<unknown>;
@@ -64,11 +67,29 @@ interface RuntimeApi {
   };
 }
 
-// Read lazily so tests can replace `window.etherpadDesktop` between tests.
-// Phase 2a: still reads the global directly. Task 5 introduces the Platform
-// seam (setPlatform/getPlatform) and removes this coupling.
-const api = (): RuntimeApi =>
-  (window as unknown as { etherpadDesktop: RuntimeApi }).etherpadDesktop;
+let injected: Platform | null = null;
+
+export function setPlatform(p: Platform): void {
+  injected = p;
+}
+
+export function getPlatform(): Platform {
+  if (!injected) {
+    throw new Error(
+      '[@etherpad/shell] setPlatform() must be called before any IPC. ' +
+        'Desktop calls it in renderer/index.tsx; mobile calls it in src/main.tsx.',
+    );
+  }
+  return injected;
+}
+
+/** Test-only: clear the injected platform between tests. */
+export function __resetPlatformForTests(): void {
+  injected = null;
+}
+
+// Read lazily so each call routes through the currently-injected platform.
+const api = (): Platform => getPlatform();
 
 async function unwrap<T>(p: Promise<IpcResult<T> | unknown>): Promise<T> {
   const r = (await p) as IpcResult<T>;

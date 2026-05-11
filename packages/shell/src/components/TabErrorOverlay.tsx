@@ -1,5 +1,5 @@
 import React from 'react';
-import { ipc } from '../ipc/api.js';
+import { ipc } from '../platform/ipc.js';
 import { useShellStore } from '../state/store.js';
 import { t } from '../i18n/index.js';
 
