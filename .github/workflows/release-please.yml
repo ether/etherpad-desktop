@@ -35,9 +35,11 @@ jobs:
     steps:
       - uses: googleapis/release-please-action@v5
         with:
-          # `node` mode keeps package.json's version field as the source
-          # of truth and writes a top-level CHANGELOG.md.
-          release-type: node
-          # Use the default GitHub token; release-please opens PRs and
-          # creates tags on the same repo it runs in.
+          # Manifest mode for the monorepo. Configuration lives in
+          # release-please-config.json; current versions in
+          # .release-please-manifest.json. The desktop package is the
+          # only released package today; mobile/shell will be added
+          # as separate components in later phases.
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
           token: ${{ secrets.GITHUB_TOKEN }}

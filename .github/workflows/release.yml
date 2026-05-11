@@ -26,16 +26,16 @@ jobs:
         # electron-builder reads the linux.target array in the YAML —
         # which includes snap — and tries to publish a snap to the Snap
         # Store from this job, which doesn't have the credentials.
-        run: pnpm exec electron-builder --linux AppImage deb --config build/electron-builder.yml --publish always
+        run: pnpm --filter @etherpad/desktop exec electron-builder --linux AppImage deb --config build/electron-builder.yml --publish always
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/upload-artifact@v7
         with:
           name: linux-artifacts
           path: |
-            release/*.AppImage
-            release/*.deb
-            release/latest-linux.yml
+            packages/desktop/release/*.AppImage
+            packages/desktop/release/*.deb
+            packages/desktop/release/latest-linux.yml
           retention-days: 14
 
   release-macos:
@@ -59,7 +59,7 @@ jobs:
         # --mac builds DMG + ZIP for both arm64 and x64. CSC_IDENTITY_AUTO_DISCOVERY=false
         # tells electron-builder NOT to sniff the keychain for a signing
         # identity (we don't have one for the beta).
-        run: pnpm exec electron-builder --mac --config build/electron-builder.yml --publish always
+        run: pnpm --filter @etherpad/desktop exec electron-builder --mac --config build/electron-builder.yml --publish always
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
@@ -67,9 +67,9 @@ jobs:
         with:
           name: macos-artifacts
           path: |
-            release/*.dmg
-            release/*-mac.zip
-            release/latest-mac.yml
+            packages/desktop/release/*.dmg
+            packages/desktop/release/*-mac.zip
+            packages/desktop/release/latest-mac.yml
           retention-days: 14
 
   release-windows:
@@ -92,13 +92,13 @@ jobs:
       - name: Build
         run: pnpm build
       - name: Package
-        run: pnpm exec electron-builder --win --config build/electron-builder.yml --publish always
+        run: pnpm --filter @etherpad/desktop exec electron-builder --win --config build/electron-builder.yml --publish always
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/upload-artifact@v7
         with:
           name: windows-artifacts
           path: |
-            release/*.exe
-            release/latest.yml
+            packages/desktop/release/*.exe
+            packages/desktop/release/latest.yml
           retention-days: 14
