@@ -36,6 +36,15 @@ linux:
     - AppImage
     - deb
     - snap
+  # `package.json#name` is `@etherpad/desktop` (scoped). electron-builder
+  # uses that as the default executable + artifact basename for the deb
+  # and snap targets, and the `/` in the scope becomes a directory in
+  # the output path — so deb/snap builds crash with "Parent directory
+  # does not exist: release/@etherpad". Snap additionally crashes
+  # earlier with "expected argument for flag '--executable'" because
+  # the scoped name doesn't satisfy the snap binary-naming rules.
+  # Pinning a slash-free executable name fixes both.
+  executableName: etherpad-desktop
   category: Office
   icon: build/icons/
   description: Native desktop client for Etherpad

@@ -44,7 +44,16 @@ async function exists(p) {
 
 async function run(cmd, args, opts = {}) {
   return new Promise((resolveP, rejectP) => {
-    const child = spawn(cmd, args, { stdio: 'inherit', ...opts });
+    // On Windows, pnpm/tar/etc. resolve to .cmd or .ps1 shims, and Node's
+    // spawn() won't find them without going through a shell. Use shell:true
+    // on win32 only to avoid Node's DEP0190 warning elsewhere. All cmd/arg
+    // values here are hardcoded by us, so the shell variant is not an
+    // injection risk.
+    const child = spawn(cmd, args, {
+      stdio: 'inherit',
+      shell: process.platform === 'win32',
+      ...opts,
+    });
     child.on('exit', (code) => {
       if (code === 0) resolveP();
       else rejectP(new Error(`${cmd} ${args.join(' ')} exited ${code}`));
