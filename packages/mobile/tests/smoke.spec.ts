@@ -514,6 +514,45 @@ test('QuickSwitcher content search finds pads by what is inside them', async ({ 
   await expect(results.filter({ hasText: 'unrelated' })).toHaveCount(0);
 });
 
+test('content search keeps working when the network goes down (uses cached body)', async ({ page }) => {
+  // Offline-resilience pin: the search path refreshes open tabs on
+  // every query, but if a refresh fails the previously-cached body
+  // stays in the index. So a pad you opened while online stays
+  // searchable while offline — just frozen at its last-known content.
+  let networkUp = true;
+  await page.route('**/p/offline-pad/export/txt', async (route) => {
+    if (!networkUp) {
+      await route.abort('failed');
+      return;
+    }
+    await route.fulfill({ status: 200, contentType: 'text/plain', body: 'Important offline notes about welcome procedures.' });
+  });
+
+  await page.addInitScript(seedWorkspace);
+  await page.goto('/');
+  await expect(
+    page.getByRole('button', { name: /open instance acme/i }),
+  ).toBeVisible({ timeout: 15_000 });
+
+  // While "online", open the pad — body gets cached.
+  await openPad(page, WS_ID, 'offline-pad');
+  await page.waitForResponse((r) => r.url().includes('/offline-pad/export/txt'));
+
+  // Drop the network. Next /export/txt will abort.
+  networkUp = false;
+
+  // Search "welcome" — the refresh fetch will fail, but the previous
+  // cached body (with "welcome procedures") survives, so the content
+  // match still surfaces.
+  await page.evaluate(() => {
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true, bubbles: true }));
+  });
+  await expect(page.getByRole('dialog', { name: /quick switcher/i })).toBeVisible({ timeout: 5_000 });
+  await page.getByRole('textbox', { name: /quick switcher search input/i }).fill('welcome');
+  const results = page.getByRole('option');
+  await expect(results.filter({ hasText: 'welcome procedures' })).toHaveCount(1, { timeout: 5_000 });
+});
+
 test('closed pads disappear from content-search hits', async ({ page }) => {
   // Regression: user noticed that searching "welcome" after editing a
   // pad to "moo" still returned the pad. The cached body wasn't being

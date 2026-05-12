@@ -133,7 +133,24 @@ export async function index(
     // it, the etag-based response can serve a stale body even though
     // we already passed our own staleness check — the user's edits
     // show as the OLD content in search results.
-    const res = await fetch(exportUrl, { credentials: 'omit', cache: 'no-store' });
+    //
+    // The 1.5s AbortController cap prevents an offline / dead-server
+    // scenario from hanging the search call for the OS's default TCP
+    // timeout (~30s on Android). When the abort trips, the cached
+    // body from a previous successful fetch stays in place — search
+    // degrades to "last-known content" rather than freezing.
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 1500);
+    let res: Response;
+    try {
+      res = await fetch(exportUrl, {
+        credentials: 'omit',
+        cache: 'no-store',
+        signal: controller.signal,
+      });
+    } finally {
+      clearTimeout(timeoutId);
+    }
     if (!res.ok) {
       console.debug('[mobile/pad-content-index] fetch skipped', {
         padName,
