@@ -66,9 +66,18 @@ export function App({ padView }: AppProps = {}): React.JSX.Element {
       applySettings(initial.settings);
       if (initial.workspaces.length === 0) {
         dialogActions.openDialog('addWorkspace');
-      } else if (initial.workspaceOrder[0]) {
-        useShellStore.getState().setActiveWorkspaceId(initial.workspaceOrder[0]);
-        await ipc.window.setActiveWorkspace(initial.workspaceOrder[0]);
+      } else {
+        // Restore the last-active workspace if the platform persists it
+        // (mobile's rememberOpenTabsOnQuit); otherwise fall back to the
+        // first workspace in display order.
+        const restored = initial.activeWorkspaceId
+          && initial.workspaces.some((w) => w.id === initial.activeWorkspaceId)
+            ? initial.activeWorkspaceId
+            : initial.workspaceOrder[0];
+        if (restored) {
+          useShellStore.getState().setActiveWorkspaceId(restored);
+          await ipc.window.setActiveWorkspace(restored);
+        }
       }
       // Hydrate updater state from main process on startup.
       const updaterStateRaw = await ipc.updater.getState() as UpdaterState;
