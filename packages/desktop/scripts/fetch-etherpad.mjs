@@ -110,7 +110,19 @@ async function main() {
   }
 
   console.log('[fetch-etherpad] Installing Etherpad runtime deps (pnpm install in src/)');
-  await run('pnpm', ['install', '--prod', '--no-frozen-lockfile'], { cwd: join(TARGET, 'src') });
+  // node-linker=hoisted forces a flat, npm-style node_modules layout
+  // with REAL files instead of pnpm's default symlink/junction tree.
+  // electron-builder packages the result into the installer via
+  // extraResources -> 7za on Windows, and 7za can't traverse Windows
+  // junctions whose targets get pruned later (some break with
+  // "The system cannot find the path specified" mid-archive). A
+  // hoisted layout pays a disk-footprint cost (no .pnpm dedup) but
+  // is what every Electron app on Windows ships anyway.
+  await run(
+    'pnpm',
+    ['install', '--prod', '--no-frozen-lockfile', '--config.node-linker=hoisted'],
+    { cwd: join(TARGET, 'src') },
+  );
 
   // Post-install: surgically delete .pnpm entries that ueberdb2 / Etherpad
   // pull in transitively but that the dirty-db embedded path never loads.
