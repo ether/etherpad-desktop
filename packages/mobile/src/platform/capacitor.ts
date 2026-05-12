@@ -100,13 +100,15 @@ export function createCapacitorPlatform(): Platform {
       }),
       close: (input) =>
         wrap(async () => {
-          // Drop the closed pad from the content-search cache so search
-          // results only reflect currently-open pads. Without this, a
-          // closed pad's last-known body keeps surfacing in hits even
-          // though the user can't see it. We look up workspace+padName
-          // BEFORE close removes the tab from the store.
-          const tab = tabStore.listAll().find((t) => t.tabId === input.tabId);
-          if (tab) padContentIndex.dropEntry(tab.workspaceId, tab.padName);
+          // We keep the closed pad's body in the content-search cache.
+          // Closed pads stay searchable using their last-known content
+          // so the user can find a pad they viewed earlier in the
+          // session via its body. On the next refresh (when re-opened
+          // or on a tab.open elsewhere), the cache entry will be
+          // overwritten with fresh content. The stale-content concern
+          // from the original report turned out to be the WebView's
+          // HTTP cache, addressed by `cache: 'no-store'` in
+          // pad-content-index.
           tabStore.close(input.tabId);
           return { ok: true } as const;
         }),

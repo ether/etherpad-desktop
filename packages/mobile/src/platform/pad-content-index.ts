@@ -199,16 +199,6 @@ export function clear(workspaceId?: string): void {
   }
 }
 
-/**
- * Drop the cached body for a single (workspace, pad). Called on
- * tab.close so search results only reflect the content of CURRENTLY-
- * OPEN pads — leaving the cache around after close lets stale text
- * from a previously-viewed pad keep showing up in search hits.
- */
-export function dropEntry(workspaceId: string, padName: string): void {
-  cache.delete(keyFor(workspaceId, padName));
-}
-
 /** Test seam: lets tests poke entries in directly without going through
  *  fetch. The capacitor.ts boot path only calls index() / search() /
  *  clear() — this is wider but kept narrow by the `__` prefix. */

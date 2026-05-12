@@ -553,14 +553,18 @@ test('content search keeps working when the network goes down (uses cached body)
   await expect(results.filter({ hasText: 'welcome procedures' })).toHaveCount(1, { timeout: 5_000 });
 });
 
-test('closed pads disappear from content-search hits', async ({ page }) => {
-  // Regression: user noticed that searching "welcome" after editing a
-  // pad to "moo" still returned the pad. The cached body wasn't being
-  // cleared on close, so stale text from previously-viewed pads kept
-  // surfacing. We now drop the cache entry on tab.close so search
-  // only reflects currently-open pads.
-  await page.route('**/p/stale-pad/export/txt', async (route) => {
-    await route.fulfill({ status: 200, contentType: 'text/plain', body: 'Welcome to the stale pad' });
+test('closed pads stay searchable by their last-known content', async ({ page }) => {
+  // User flow: open two pads (one body contains "Welcome"), close them
+  // both, search "welcome" — expect the welcome-bodied pad to surface
+  // using its cached body. Pads-in-history are a real switch target,
+  // so the closed-pad path stays in the search index. (Stale-content
+  // concerns are addressed by `cache: 'no-store'` on the refresh fetch
+  // when the pad is currently open.)
+  await page.route('**/p/closed-welcome/export/txt', async (route) => {
+    await route.fulfill({ status: 200, contentType: 'text/plain', body: 'Welcome aboard the closed pad' });
+  });
+  await page.route('**/p/closed-other/export/txt', async (route) => {
+    await route.fulfill({ status: 200, contentType: 'text/plain', body: 'Sprint planning notes here.' });
   });
 
   await page.addInitScript(seedWorkspace);
@@ -569,31 +573,33 @@ test('closed pads disappear from content-search hits', async ({ page }) => {
     page.getByRole('button', { name: /open instance acme/i }),
   ).toBeVisible({ timeout: 15_000 });
 
-  // Open, fetch content, then close.
-  await openPad(page, WS_ID, 'stale-pad');
-  await page.waitForResponse((r) => r.url().includes('/stale-pad/export/txt'));
-  await page.evaluate((id) => {
+  // Open both pads, wait for their bodies to be cached, then close both.
+  await openPad(page, WS_ID, 'closed-welcome');
+  await page.waitForResponse((r) => r.url().includes('/closed-welcome/export/txt'));
+  await openPad(page, WS_ID, 'closed-other');
+  await page.waitForResponse((r) => r.url().includes('/closed-other/export/txt'));
+
+  await page.evaluate(async (workspaceId) => {
     const platform = (window as unknown as { __test_platform: {
       tab: { close(input: { tabId: string }): Promise<unknown> };
     } }).__test_platform;
-    return platform.tab.close({ tabId: id });
-  }, `${WS_ID}::stale-pad`);
+    await platform.tab.close({ tabId: `${workspaceId}::closed-welcome` });
+    await platform.tab.close({ tabId: `${workspaceId}::closed-other` });
+  }, WS_ID);
 
-  // Open QuickSwitcher and search the cached word.
+  // Open QuickSwitcher and search "welcome". Only the welcome-bodied
+  // pad should match (via the content-search path — neither pad name
+  // contains "welcome").
   await page.evaluate(() => {
     window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true, bubbles: true }));
   });
   await expect(page.getByRole('dialog', { name: /quick switcher/i })).toBeVisible({ timeout: 5_000 });
   await page.getByRole('textbox', { name: /quick switcher search input/i }).fill('welcome');
 
-  // The pad was closed → its cache entry was dropped → no content-
-  // match snippet for "Welcome to the stale pad" should appear. (The
-  // pad name doesn't contain "welcome" either, so we don't get the
-  // name-match path.)
-  await page.waitForTimeout(300); // > the 200ms content-search debounce
   const results = page.getByRole('option');
-  await expect(results.filter({ hasText: 'Welcome to the stale pad' })).toHaveCount(0);
-  await expect(results.filter({ hasText: 'stale-pad' })).toHaveCount(0);
+  await expect(results.filter({ hasText: 'Welcome aboard' })).toHaveCount(1, { timeout: 5_000 });
+  // The unrelated closed pad's body doesn't have "welcome" → must not show.
+  await expect(results.filter({ hasText: 'Sprint planning' })).toHaveCount(0);
 });
 
 // X-Frame-Options DENY / SAMEORIGIN detection from pure JS is unreliable
