@@ -74,16 +74,17 @@ export function AddWorkspaceDialog({ dismissable }: { dismissable: boolean }): R
         </span>
         <input value={name} onChange={(e) => setName(e.target.value)} autoFocus required />
       </label>
-      <label className="dialog-field">
-        <span className="dialog-label">{t.addWorkspace.serverUrlLabel}</span>
-        <input
-          value={serverUrl}
-          onChange={(e) => setServerUrl(e.target.value)}
-          placeholder="https://pads.example.com"
-          disabled={embedded}
-          required={!embedded}
-        />
-      </label>
+      {!embedded && (
+        <label className="dialog-field">
+          <span className="dialog-label">{t.addWorkspace.serverUrlLabel}</span>
+          <input
+            value={serverUrl}
+            onChange={(e) => setServerUrl(e.target.value)}
+            placeholder="https://pads.example.com"
+            required
+          />
+        </label>
+      )}
       <label className="dialog-field-inline">
         <input
           type="checkbox"
