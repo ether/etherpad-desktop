@@ -1,6 +1,12 @@
 import { test, expect } from '@playwright/test';
-import { rmSync } from 'node:fs';
+import { rmSync, readdirSync, readFileSync, existsSync } from 'node:fs';
+import { join } from 'node:path';
 import { launchApp } from './fixtures/launch.js';
+
+// Extra runway on top of playwright.config.ts's 120s default — this test
+// does two full cold-starts back-to-back (h1 + h2). Under xvfb suite
+// contention either can drift past 60s.
+test.setTimeout(240_000);
 
 test('relaunching restores workspaces, the active workspace, and open tabs', async () => {
   // First launch: add workspace + open a pad
@@ -19,18 +25,71 @@ test('relaunching restores workspaces, the active workspace, and open tabs', asy
   // Close the app without wiping userData (don't call h1.close() which runs cleanup)
   await h1.app.close();
 
+  // Sanity-check that h1 actually persisted what we asked it to BEFORE
+  // launching h2. Splits "persistence broke" from "renderer didn't
+  // hydrate" cleanly when the test flakes — both have surfaced as the
+  // same "button not visible" failure in past runs.
+  const findStoreFile = (basename: string): string | null => {
+    const candidates = [
+      join(userDataDir, basename),
+      join(userDataDir, 'etherpad-desktop', basename),
+      join(userDataDir, 'Default', basename),
+    ];
+    for (const p of candidates) {
+      if (existsSync(p)) return p;
+    }
+    return null;
+  };
+  const wsFile = findStoreFile('workspaces.json');
+  if (!wsFile) {
+    // eslint-disable-next-line no-console
+    console.error('[restore-on-relaunch] userDataDir contents:', readdirSync(userDataDir));
+    throw new Error(`workspaces.json not found under ${userDataDir} — h1 didn't persist`);
+  }
+  const persistedWorkspaces = JSON.parse(readFileSync(wsFile, 'utf8'));
+  expect(
+    (persistedWorkspaces.workspaces as Array<{ name: string }>).map((w) => w.name),
+  ).toContain('Sticky');
+
   // Second launch with the same userDataDir
   const h2 = await launchApp({ userDataDir });
   try {
-    // Workspace should be restored from disk. Cold-start on a slow CI
-    // runner (xvfb + Electron + initial getInitial round-trip + render)
-    // can exceed 30s under contention — this test has flaked on ~50%
-    // of PR CI runs for weeks at 30s, with each rerun succeeding within
-    // the same timeout. 60s eats the flake without slowing the happy
-    // path (passing runs complete in 8–12s).
-    await expect(h2.shell.getByRole('button', { name: /open instance sticky/i }))
-      .toBeVisible({ timeout: 90_000 });
-    await expect(h2.shell.getByRole('tab', { name: /survives-restart/ })).toBeVisible({ timeout: 90_000 });
+    // Polling the store via the e2e seam is the canonical "did hydrate
+    // finish?" check — cheaper than `toBeVisible` polling DOM, and
+    // immune to render-throttling under CI xvfb contention. The
+    // workspace button is downstream of `store.workspaces.length > 0`,
+    // so waiting for the underlying state to land first lets the next
+    // assertion run at a normal 15s timeout instead of needing a long
+    // overall ceiling. This test has flaked at 30s and 60s timeouts
+    // for weeks; switching to a store-state wait is the structural fix.
+    await h2.shell.waitForFunction(
+      () => {
+        const store = (globalThis as { __test_useShellStore?: { getState: () => { workspaces: unknown[] } } }).__test_useShellStore;
+        return Boolean(store && store.getState().workspaces.length > 0);
+      },
+      undefined,
+      { timeout: 90_000 },
+    );
+
+    // Dump diagnostic state if the button assertion fails — the trace
+    // is otherwise opaque (we just know "element not found"). Wrap the
+    // expect so we can log the store contents alongside the throw.
+    try {
+      await expect(h2.shell.getByRole('button', { name: /open instance sticky/i })).toBeVisible();
+      await expect(h2.shell.getByRole('tab', { name: /survives-restart/ })).toBeVisible();
+    } catch (err) {
+      const diag = await h2.shell.evaluate(() => {
+        const store = (globalThis as { __test_useShellStore?: { getState: () => unknown } }).__test_useShellStore;
+        return {
+          storeState: store ? store.getState() : null,
+          bodyText: (document.body?.innerText ?? '').slice(0, 2000),
+          openDialogs: Array.from(document.querySelectorAll('[role="dialog"]')).map((d) => d.getAttribute('aria-labelledby')),
+        };
+      }).catch(() => null);
+      // eslint-disable-next-line no-console
+      console.error('[restore-on-relaunch] failed; renderer state:', JSON.stringify(diag, null, 2));
+      throw err;
+    }
   } finally {
     await h2.app.close();
     rmSync(userDataDir, { recursive: true, force: true });
