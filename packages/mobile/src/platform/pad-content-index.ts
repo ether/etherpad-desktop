@@ -129,7 +129,11 @@ export async function index(
     // for the search index; private pads simply won't be searchable
     // (the user already sees them rendered in the iframe via the WebView's
     // own cookie jar, which is independent of this fetch).
-    const res = await fetch(exportUrl, { credentials: 'omit' });
+    // `cache: 'no-store'` bypasses the WebView's HTTP cache. Without
+    // it, the etag-based response can serve a stale body even though
+    // we already passed our own staleness check — the user's edits
+    // show as the OLD content in search results.
+    const res = await fetch(exportUrl, { credentials: 'omit', cache: 'no-store' });
     if (!res.ok) {
       console.debug('[mobile/pad-content-index] fetch skipped', {
         padName,
@@ -176,6 +180,16 @@ export function clear(workspaceId?: string): void {
   for (const [key, entry] of cache.entries()) {
     if (entry.workspaceId === workspaceId) cache.delete(key);
   }
+}
+
+/**
+ * Drop the cached body for a single (workspace, pad). Called on
+ * tab.close so search results only reflect the content of CURRENTLY-
+ * OPEN pads — leaving the cache around after close lets stale text
+ * from a previously-viewed pad keep showing up in search hits.
+ */
+export function dropEntry(workspaceId: string, padName: string): void {
+  cache.delete(keyFor(workspaceId, padName));
 }
 
 /** Test seam: lets tests poke entries in directly without going through

@@ -106,6 +106,20 @@ describe('SettingsDialog', () => {
     );
   });
 
+  it('hides the minimise-to-tray checkbox when platform.capabilities.tray is false (mobile)', () => {
+    // Mobile has no system tray, so Settings should not show this
+    // checkbox at all. Pin both the absence of the visual control AND
+    // the underlying capability check.
+    window.etherpadDesktop = {
+      capabilities: { tray: false },
+    } as unknown as typeof window.etherpadDesktop;
+    useShellStore.setState({ settings: DEFAULT_SETTINGS });
+    render(<SettingsDialog />);
+    expect(
+      screen.queryByRole('checkbox', { name: /minimise to system tray/i }),
+    ).not.toBeInTheDocument();
+  });
+
   it('Save button closes the dialog', async () => {
     dialogActions.openDialog('settings');
     render(<SettingsDialog />);

@@ -13,6 +13,7 @@ export function buildMockPlatform(overrides: DeepPartial<Platform> = {}): Platfo
   const noop = (): ReturnType<typeof vi.fn> => vi.fn().mockResolvedValue({ ok: true });
   const noopEvent = (): (() => void) => () => {};
   const base = {
+    capabilities: { tray: true },
     state: { getInitial: noop() },
     workspace: { list: noop(), add: noop(), update: noop(), remove: noop(), reorder: noop() },
     tab: { open: noop(), close: noop(), focus: noop(), reload: noop(), hardReload: noop() },

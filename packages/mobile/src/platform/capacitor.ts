@@ -45,6 +45,9 @@ export function createCapacitorPlatform(): Platform {
   const noopUnsubscribe = (): (() => void) => () => {};
 
   return {
+    // Android has no system tray and the OS manages "background vs
+    // quit" lifecycle — settings UI gates the tray checkbox on this.
+    capabilities: { tray: false },
     state: {
       getInitial: () =>
         wrap(async () => {
@@ -97,6 +100,13 @@ export function createCapacitorPlatform(): Platform {
       }),
       close: (input) =>
         wrap(async () => {
+          // Drop the closed pad from the content-search cache so search
+          // results only reflect currently-open pads. Without this, a
+          // closed pad's last-known body keeps surfacing in hits even
+          // though the user can't see it. We look up workspace+padName
+          // BEFORE close removes the tab from the store.
+          const tab = tabStore.listAll().find((t) => t.tabId === input.tabId);
+          if (tab) padContentIndex.dropEntry(tab.workspaceId, tab.padName);
           tabStore.close(input.tabId);
           return { ok: true } as const;
         }),

@@ -514,6 +514,49 @@ test('QuickSwitcher content search finds pads by what is inside them', async ({ 
   await expect(results.filter({ hasText: 'unrelated' })).toHaveCount(0);
 });
 
+test('closed pads disappear from content-search hits', async ({ page }) => {
+  // Regression: user noticed that searching "welcome" after editing a
+  // pad to "moo" still returned the pad. The cached body wasn't being
+  // cleared on close, so stale text from previously-viewed pads kept
+  // surfacing. We now drop the cache entry on tab.close so search
+  // only reflects currently-open pads.
+  await page.route('**/p/stale-pad/export/txt', async (route) => {
+    await route.fulfill({ status: 200, contentType: 'text/plain', body: 'Welcome to the stale pad' });
+  });
+
+  await page.addInitScript(seedWorkspace);
+  await page.goto('/');
+  await expect(
+    page.getByRole('button', { name: /open instance acme/i }),
+  ).toBeVisible({ timeout: 15_000 });
+
+  // Open, fetch content, then close.
+  await openPad(page, WS_ID, 'stale-pad');
+  await page.waitForResponse((r) => r.url().includes('/stale-pad/export/txt'));
+  await page.evaluate((id) => {
+    const platform = (window as unknown as { __test_platform: {
+      tab: { close(input: { tabId: string }): Promise<unknown> };
+    } }).__test_platform;
+    return platform.tab.close({ tabId: id });
+  }, `${WS_ID}::stale-pad`);
+
+  // Open QuickSwitcher and search the cached word.
+  await page.evaluate(() => {
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true, bubbles: true }));
+  });
+  await expect(page.getByRole('dialog', { name: /quick switcher/i })).toBeVisible({ timeout: 5_000 });
+  await page.getByRole('textbox', { name: /quick switcher search input/i }).fill('welcome');
+
+  // The pad was closed → its cache entry was dropped → no content-
+  // match snippet for "Welcome to the stale pad" should appear. (The
+  // pad name doesn't contain "welcome" either, so we don't get the
+  // name-match path.)
+  await page.waitForTimeout(300); // > the 200ms content-search debounce
+  const results = page.getByRole('option');
+  await expect(results.filter({ hasText: 'Welcome to the stale pad' })).toHaveCount(0);
+  await expect(results.filter({ hasText: 'stale-pad' })).toHaveCount(0);
+});
+
 // X-Frame-Options DENY / SAMEORIGIN detection from pure JS is unreliable
 // — Chromium fires `onLoad` for blocked iframes too. The robust escape hatch
 // lives in the native WebChromeClient hook scheduled for Phase 6b. No test

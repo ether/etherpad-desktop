@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ipc } from '../platform/ipc.js';
+import { ipc, getPlatform } from '../platform/ipc.js';
 import { dialogActions, useShellStore } from '../state/store.js';
 import { t } from '../i18n/index.js';
 import type { Settings } from '@shared/types/settings';
@@ -109,6 +109,10 @@ export function SettingsDialog(): React.JSX.Element | null {
   const workspaces = useShellStore((s) => s.workspaces);
   const [draft, setDraft] = useState<Settings | null>(settings);
   useEffect(() => { setDraft(settings); }, [settings]);
+  // Hide platform-specific controls when the runtime doesn't support
+  // them. Mobile has no system tray, so the "Minimise to tray"
+  // checkbox would be dead UI there.
+  const supportsTray = getPlatform().capabilities.tray;
   if (!draft) return null;
 
   const save = async () => {
@@ -181,14 +185,16 @@ export function SettingsDialog(): React.JSX.Element | null {
         />
         <span className="settings-label" style={{ color: 'var(--text)' }}>{t.settings.rememberTabs}</span>
       </label>
-      <label className="settings-row" style={{ gridTemplateColumns: 'auto 1fr' }}>
-        <input
-          type="checkbox"
-          checked={draft.minimizeToTray}
-          onChange={(e) => setDraft({ ...draft, minimizeToTray: e.target.checked })}
-        />
-        <span className="settings-label" style={{ color: 'var(--text)' }}>{t.settings.minimizeToTray}</span>
-      </label>
+      {supportsTray && (
+        <label className="settings-row" style={{ gridTemplateColumns: 'auto 1fr' }}>
+          <input
+            type="checkbox"
+            checked={draft.minimizeToTray}
+            onChange={(e) => setDraft({ ...draft, minimizeToTray: e.target.checked })}
+          />
+          <span className="settings-label" style={{ color: 'var(--text)' }}>{t.settings.minimizeToTray}</span>
+        </label>
+      )}
       <button onClick={() => dialogActions.openDialog('clearAllHistory')}>{t.settings.clearAllHistory}</button>
       <section>
         <h3>{t.workspaceRow.sectionHeading}</h3>
