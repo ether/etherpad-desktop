@@ -59,25 +59,25 @@ function snapshot(): TabsChangedPayload {
   return { tabs: Array.from(tabs.values()), activeTabId };
 }
 
-let saveTimer: ReturnType<typeof setTimeout> | null = null;
 function scheduleSave(): void {
-  if (saveTimer) clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => {
-    saveTimer = null;
-    void tabPersistence
-      .save({
-        tabs: Array.from(tabs.values()).map((t) => ({
-          tabId: t.tabId,
-          workspaceId: t.workspaceId,
-          padName: t.padName,
-        })),
-        activeTabId,
-        activeWorkspaceId,
-      })
-      .catch((err: unknown) => {
-        console.warn('[mobile/tab-store] windowState save failed:', err);
-      });
-  }, 150);
+  // Write-through immediately on every mutation. A debounce here would
+  // lose writes when the user opens a pad and kills the app before the
+  // timer fires — Android's `am force-stop` doesn't drain pending JS
+  // microtasks. tab.open fires rarely (per user gesture), so writing
+  // on every mutation is cheap.
+  void tabPersistence
+    .save({
+      tabs: Array.from(tabs.values()).map((t) => ({
+        tabId: t.tabId,
+        workspaceId: t.workspaceId,
+        padName: t.padName,
+      })),
+      activeTabId,
+      activeWorkspaceId,
+    })
+    .catch((err: unknown) => {
+      console.warn('[mobile/tab-store] windowState save failed:', err);
+    });
 }
 
 function emitChanged(): void {
