@@ -39,6 +39,18 @@ extraResources:
       - '!**/tests/**'
       - '!**/.git/**'
       - '!**/playwright.config.ts'
+      # Etherpad's `bin/` directory contains operator CLI utilities
+      # (compactPad, importSqlFile, etc.) that the embedded server
+      # never invokes at runtime. Its package.json declares a pnpm
+      # workspace symlink to `../src`, and the nested
+      # `bin/node_modules/ep_etherpad-lite/node_modules/<dep>` paths
+      # are pnpm symlinks too. tar/zip preserves the symlinks but
+      # Windows file systems don't follow them after extraction, so
+      # 7za scan-fails with "system cannot find the path specified"
+      # for every dep and exits 1 (warning-as-error), breaking the
+      # Windows NSIS build. Excluding the whole dir is fine —
+      # findBundledEtherpadDir + node/server.ts only need src/.
+      - '!bin/**'
 
 asar: true
 asarUnpack:
