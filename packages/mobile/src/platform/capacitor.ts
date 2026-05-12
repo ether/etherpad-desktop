@@ -172,12 +172,29 @@ export function createCapacitorPlatform(): Platform {
     },
     quickSwitcher: {
       // Raw (not unwrapped) — return an array directly. Mobile maintains
-      // its own pad-content cache populated on tab.open. Cross-origin
-      // fetches against the Etherpad server may be CORS-blocked at
-      // deploy-time; the index function swallows those errors silently
-      // so the user sees fewer hits rather than a thrown promise.
-      searchPadContent: (input: { query: string }) =>
-        Promise.resolve(padContentIndex.search(input.query)),
+      // its own pad-content cache populated on tab.open and refreshed
+      // on every search for currently-open tabs (the user is actively
+      // editing those, so the cached text from tab.open went stale the
+      // moment they typed anything). Cross-origin fetches may be CORS-
+      // blocked at deploy-time; the index function swallows those
+      // errors silently so the user sees fewer hits rather than a
+      // thrown promise.
+      searchPadContent: async (input: { query: string }) => {
+        // Refresh every open tab in parallel — `force: true` bypasses
+        // the 5-min staleness window so live edits show up in search.
+        // Each tab's fetch is bounded by the network round-trip; we
+        // await so the search sees fresh content. The QuickSwitcher
+        // debounces input by 200ms so this latency hits at most every
+        // 200ms of typing per search.
+        const { workspaces } = await workspaceStore.list();
+        const wsById = new Map(workspaces.map((w) => [w.id, w]));
+        const refreshes = tabStore.listAll().flatMap((tab) => {
+          const ws = wsById.get(tab.workspaceId);
+          return ws ? [padContentIndex.index(tab.workspaceId, ws.serverUrl, tab.padName, { force: true })] : [];
+        });
+        await Promise.all(refreshes);
+        return padContentIndex.search(input.query);
+      },
     },
     events: {
       onWorkspacesChanged: (l) =>

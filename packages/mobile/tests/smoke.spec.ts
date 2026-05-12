@@ -401,6 +401,48 @@ test('tapping the pad area collapses the rail (mobile drawer dismiss)', async ({
   await expect(scrim).not.toBeAttached();
 });
 
+test('QuickSwitcher content search refreshes open pads on every search (live edits visible)', async ({ page }) => {
+  // Regression: user opened a pad, typed "Welcome" into it, then
+  // searched "Wel" — no results. Root cause: the index fetched at
+  // tab.open time was stale by the time the user typed. We now refresh
+  // open tabs unconditionally on every search call.
+  //
+  // The route handler reads a mutable `body` variable so we can change
+  // the pad's content AFTER tab.open and verify the next search picks
+  // up the new content.
+  let liveBody = 'initial empty body';
+  await page.route('**/p/live-pad/export/txt', async (route) => {
+    await route.fulfill({ status: 200, contentType: 'text/plain', body: liveBody });
+  });
+
+  await page.addInitScript(seedWorkspace);
+  await page.goto('/');
+  await expect(
+    page.getByRole('button', { name: /open instance acme/i }),
+  ).toBeVisible({ timeout: 15_000 });
+
+  // Open the pad — fires the initial (stale, "empty") index.
+  await openPad(page, WS_ID, 'live-pad');
+  await page.waitForResponse((r) => r.url().includes('/live-pad/export/txt'));
+
+  // Simulate the user typing "Welcome" inside the iframe: the next
+  // /export/txt fetch will return the new body.
+  liveBody = 'Welcome to my pad!';
+
+  // Open QuickSwitcher and search "Welcome".
+  await page.evaluate(() => {
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true, bubbles: true }));
+  });
+  await expect(page.getByRole('dialog', { name: /quick switcher/i })).toBeVisible({ timeout: 5_000 });
+  await page.getByRole('textbox', { name: /quick switcher search input/i }).fill('welcome');
+
+  // The search call re-fetches /export/txt for the open tab and finds
+  // "Welcome" in the new body. The content-match row carries a snippet
+  // of the matched text.
+  const results = page.getByRole('option');
+  await expect(results.filter({ hasText: 'Welcome to my pad' })).toHaveCount(1, { timeout: 5_000 });
+});
+
 test('QuickSwitcher content search finds pads by what is inside them', async ({ page }) => {
   // Regression: the user opened two pads with "Welcome" in their body,
   // typed "welcome" into the quick switcher, and got nothing. Root

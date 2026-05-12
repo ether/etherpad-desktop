@@ -103,8 +103,12 @@ function fuzzyMatch(text: string, q: string): { matched: boolean; index: number 
 }
 
 /**
- * Fetch `/export/txt` for a pad and cache the response. Idempotent +
- * stale-aware: returns immediately if a fresh entry already exists.
+ * Fetch `/export/txt` for a pad and cache the response.
+ *
+ * `force` bypasses the staleness check — use this for pads the user is
+ * actively editing (we refresh on every search). The staleness path is
+ * for "open this pad's history but don't re-fetch on every keystroke."
+ *
  * Errors (CORS, 401, 404, network) are swallowed silently — content
  * search degrades to "no results for this pad" rather than throwing.
  */
@@ -112,13 +116,20 @@ export async function index(
   workspaceId: string,
   serverUrl: string,
   padName: string,
+  opts?: { force?: boolean },
 ): Promise<void> {
   const key = keyFor(workspaceId, padName);
   const existing = cache.get(key);
-  if (existing && Date.now() - existing.fetchedAt < STALENESS_MS) return;
+  if (!opts?.force && existing && Date.now() - existing.fetchedAt < STALENESS_MS) return;
   try {
     const exportUrl = `${padUrl(serverUrl, padName)}/export/txt`;
-    const res = await fetch(exportUrl, { credentials: 'include' });
+    // `credentials: 'omit'` so we don't send cookies cross-origin to the
+    // Etherpad server. Some deploys whitelist `Access-Control-Allow-Origin: *`
+    // but reject credentialed requests. We're after public/readable pads
+    // for the search index; private pads simply won't be searchable
+    // (the user already sees them rendered in the iframe via the WebView's
+    // own cookie jar, which is independent of this fetch).
+    const res = await fetch(exportUrl, { credentials: 'omit' });
     if (!res.ok) {
       console.debug('[mobile/pad-content-index] fetch skipped', {
         padName,
