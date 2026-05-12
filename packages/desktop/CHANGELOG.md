@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.1](https://github.com/ether/etherpad-desktop/compare/v0.4.0...v0.4.1) (2026-05-12)
+
+
+### Bug Fixes
+
+* **release:** unbreak Linux deb + Snap + Windows builds post-monorepo ([#47](https://github.com/ether/etherpad-desktop/issues/47)) ([599520c](https://github.com/ether/etherpad-desktop/commit/599520c6e812baf56d027aff9bfd73f41c446687))
+
 ## [0.4.0](https://github.com/ether/etherpad-desktop/compare/v0.3.2...v0.4.0) (2026-05-12)
 
 
