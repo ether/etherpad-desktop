@@ -3,6 +3,7 @@ import * as workspaceStore from './storage/workspace-store.js';
 import * as padHistoryStore from './storage/pad-history-store.js';
 import * as settingsStore from './storage/settings-store.js';
 import * as tabStore from './tabs/tab-store.js';
+import * as padContentIndex from './pad-content-index.js';
 
 /**
  * Concrete `Platform` impl for mobile. Workspace, pad-history, and settings
@@ -83,7 +84,17 @@ export function createCapacitorPlatform(): Platform {
       reorder: (input) => wrap(() => workspaceStore.reorder(input)),
     },
     tab: {
-      open: (input) => wrap(async () => tabStore.open(input)),
+      open: (input) => wrap(async () => {
+        const tab = tabStore.open(input);
+        // Fire-and-forget index of the pad's text so the QuickSwitcher
+        // content search can match against it. Looks up the workspace
+        // synchronously (workspace list is already in-memory). Errors
+        // are swallowed inside the index function — search just shows
+        // fewer hits if a fetch fails.
+        const ws = (await workspaceStore.list()).workspaces.find((w) => w.id === input.workspaceId);
+        if (ws) void padContentIndex.index(input.workspaceId, ws.serverUrl, input.padName);
+        return tab;
+      }),
       close: (input) =>
         wrap(async () => {
           tabStore.close(input.tabId);
@@ -160,8 +171,13 @@ export function createCapacitorPlatform(): Platform {
       getState: () => Promise.resolve({ kind: 'unsupported', reason: 'mobile' }),
     },
     quickSwitcher: {
-      // Raw (not unwrapped) — return an array directly.
-      searchPadContent: () => Promise.resolve([]),
+      // Raw (not unwrapped) — return an array directly. Mobile maintains
+      // its own pad-content cache populated on tab.open. Cross-origin
+      // fetches against the Etherpad server may be CORS-blocked at
+      // deploy-time; the index function swallows those errors silently
+      // so the user sees fewer hits rather than a thrown promise.
+      searchPadContent: (input: { query: string }) =>
+        Promise.resolve(padContentIndex.search(input.query)),
     },
     events: {
       onWorkspacesChanged: (l) =>

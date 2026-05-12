@@ -401,6 +401,77 @@ test('tapping the pad area collapses the rail (mobile drawer dismiss)', async ({
   await expect(scrim).not.toBeAttached();
 });
 
+test('QuickSwitcher content search finds pads by what is inside them', async ({ page }) => {
+  // Regression: the user opened two pads with "Welcome" in their body,
+  // typed "welcome" into the quick switcher, and got nothing. Root
+  // cause: capacitor.ts had `searchPadContent: () => Promise.resolve([])`.
+  // Mobile now mirrors desktop's pad-content-index: tab.open kicks off
+  // a fetch of `/export/txt`, caches the body, and the quick switcher
+  // searches across cached texts.
+  //
+  // We intercept the export endpoint so the test doesn't depend on a
+  // real Etherpad. Two pads, each with distinct content containing
+  // "Welcome".
+  await page.route('**/p/*/export/txt', async (route) => {
+    const url = new URL(route.request().url());
+    const padName = url.pathname.split('/')[2]; // /p/<name>/export/txt
+    const bodies: Record<string, string> = {
+      'welcome-pad': 'Welcome to Etherpad! Edit collaboratively.',
+      'team-notes': 'Welcome team — sprint notes for this week.',
+      'unrelated': 'This pad is about something else entirely.',
+    };
+    await route.fulfill({
+      status: 200,
+      contentType: 'text/plain',
+      body: bodies[padName ?? ''] ?? 'no body',
+    });
+  });
+
+  await page.addInitScript(seedWorkspace);
+  await page.goto('/');
+  await expect(
+    page.getByRole('button', { name: /open instance acme/i }),
+  ).toBeVisible({ timeout: 15_000 });
+
+  // Open all three pads — this triggers tab.open which triggers
+  // padContentIndex.index() which fetches and caches the body.
+  await openPad(page, WS_ID, 'welcome-pad');
+  await openPad(page, WS_ID, 'team-notes');
+  await openPad(page, WS_ID, 'unrelated');
+
+  // Give the parallel fetches a beat to complete before searching.
+  // The index is fire-and-forget so it's racing tab.open's resolve.
+  await page.waitForResponse((r) => r.url().includes('/unrelated/export/txt'));
+  await page.waitForTimeout(50);
+
+  // Open the QuickSwitcher and search "welcome".
+  await page.evaluate(() => {
+    // Dispatch the same keyboard event the user would (Ctrl+K).
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true, bubbles: true }));
+  });
+  await expect(page.getByRole('dialog', { name: /quick switcher/i })).toBeVisible({ timeout: 5_000 });
+  await page.getByRole('textbox', { name: /quick switcher search input/i }).fill('welcome');
+
+  // The content-search debounce is 200ms in QuickSwitcherDialog; wait
+  // for the results list to update beyond the name-match results.
+  // Both "welcome-pad" and "team-notes" should appear because both
+  // their BODIES contain "Welcome" — even though "team-notes" has no
+  // "welcome" in its name. (welcome-pad also matches by name, so it
+  // appears at least twice — once as a name hit, once as a content
+  // hit with a snippet.)
+  const results = page.getByRole('option');
+  await expect(results.filter({ hasText: 'team-notes' })).toHaveCount(1, { timeout: 5_000 });
+  await expect(results.filter({ hasText: 'welcome-pad' }).first()).toBeVisible();
+
+  // The content-match row carries the body snippet. Pin that path so
+  // future regressions in the snippet rendering get caught — not just
+  // "did some row appear."
+  await expect(results.filter({ hasText: 'Welcome team' })).toHaveCount(1);
+
+  // "unrelated" body has no "welcome" → must not show.
+  await expect(results.filter({ hasText: 'unrelated' })).toHaveCount(0);
+});
+
 // X-Frame-Options DENY / SAMEORIGIN detection from pure JS is unreliable
 // — Chromium fires `onLoad` for blocked iframes too. The robust escape hatch
 // lives in the native WebChromeClient hook scheduled for Phase 6b. No test
