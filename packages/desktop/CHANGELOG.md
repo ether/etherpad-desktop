@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.3](https://github.com/ether/etherpad-desktop/compare/v0.4.2...v0.4.3) (2026-05-12)
+
+
+### Bug Fixes
+
+* **release:** exclude etherpad/bin/ from extraResources to unbreak Win ([#51](https://github.com/ether/etherpad-desktop/issues/51)) ([eb55314](https://github.com/ether/etherpad-desktop/commit/eb553149a62836734f0a142d396e0e45ab7d970e))
+
 ## [0.4.2](https://github.com/ether/etherpad-desktop/compare/v0.4.1...v0.4.2) (2026-05-12)
 
 
