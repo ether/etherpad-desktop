@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.4.0](https://github.com/ether/etherpad-desktop/compare/v0.3.2...v0.4.0) (2026-05-12)
+
+
+### Features
+
+* **embedded-server:** switch from npx to bundled Etherpad source ([#38](https://github.com/ether/etherpad-desktop/issues/38)) ([3c13426](https://github.com/ether/etherpad-desktop/commit/3c13426c1bfde6620212bc861c14b5fb6c3ffb7c))
+* **mobile:** persist + restore open tabs, fix language change + flaky relaunch test ([#42](https://github.com/ether/etherpad-desktop/issues/42)) ([51d392a](https://github.com/ether/etherpad-desktop/commit/51d392ae8f10bbbc3dca88efaa02c4820b410253))
+
 ## [0.3.2](https://github.com/ether/etherpad-desktop/compare/v0.3.1...v0.3.2) (2026-05-05)
 
 
