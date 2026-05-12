@@ -150,6 +150,17 @@ marked; everything else lands on both.
 - **Mobile permissions plugin (Phase 6b)** — native Kotlin delegation for
   camera, mic, clipboard, fullscreen, file picker so `ep_webrtc` and friends
   work inside the WebView on Android.
+- **`/admin` for embedded local servers** — when a user picks "Use a local
+  server", expose Etherpad's `/admin` UI in a tab (or a dedicated dialog)
+  so they can install plugins, manage users, and tweak settings against
+  their local instance. Without this, the local server is read-only from
+  the user's perspective.
+- **Pre-compile Etherpad's TS at build time** — today the embedded server
+  uses `tsx/cjs` to transpile every TS file on boot. That spikes RAM hard
+  on cold start (Electron-as-Node parent + tsx + Etherpad's plugin tree)
+  and gets OOM-killed on memory-constrained machines. Shipping a pre-
+  compiled copy of `resources/etherpad/` removes the tsx-at-runtime cost
+  and halves the embedded footprint. Larger ship artifact, smaller RAM.
 - **Desktop permission UX upgrade** — replace the narrow pre-allow with a
   deny-by-default prompt-on-request flow, decisions persisted per
   instance+origin. Same UI ships to mobile after Phase 6b lands.
