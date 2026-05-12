@@ -40,16 +40,9 @@ describe('OpenPadDialog', () => {
     expect(screen.getAllByRole('option').map((o) => o.textContent)).toEqual(['standup', 'standdown']);
   });
 
-  it('+ create flips mode to "create"', async () => {
+  it('no "Create new" checkbox — Etherpad auto-creates on open and the checkbox was dead UI', () => {
     render(<OpenPadDialog />);
-    await userEvent.click(screen.getByRole('checkbox', { name: /create new/i }));
-    await userEvent.type(screen.getByLabelText(/pad name/i), 'fresh');
-    await userEvent.click(screen.getByRole('button', { name: /open/i }));
-    expect(window.etherpadDesktop.tab.open).toHaveBeenCalledWith({
-      workspaceId: 'a',
-      padName: 'fresh',
-      mode: 'create',
-    });
+    expect(screen.queryByRole('checkbox', { name: /create new/i })).not.toBeInTheDocument();
   });
 
   it('Open button is disabled when pad name is empty', () => {

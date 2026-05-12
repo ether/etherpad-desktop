@@ -78,6 +78,12 @@ export const en = {
     confirm: 'Remove',
     cancel: 'Cancel',
   },
+  clearAllHistory: {
+    title: 'Clear all pad history?',
+    body: 'This permanently deletes the Recent and Pinned pads list for every Etherpad instance. The pads themselves are not affected — they stay on each server.',
+    confirm: 'Clear all history',
+    cancel: 'Cancel',
+  },
   workspaceRow: {
     nameLabel: 'Instance name',
     urlLabel: 'Etherpad URL',

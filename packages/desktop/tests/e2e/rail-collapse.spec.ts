@@ -10,6 +10,14 @@ test('workspace rail collapse/expand toggle for focused writing mode', async () 
     await h.shell.getByRole('button', { name: /^add$/i }).click();
     await expect(h.shell.getByRole('button', { name: /open instance test/i })).toBeVisible();
 
+    // Open a pad — the collapse handle only renders when there's a
+    // pad to focus on (otherwise "focus mode" has no target and the
+    // user would face an empty screen with no obvious way to start one).
+    await h.shell.getByRole('button', { name: /new pad/i }).click();
+    await h.shell.getByLabel(/pad name/i).fill('focus-test');
+    await h.shell.getByRole('button', { name: /^open$/i }).click();
+    await expect(h.shell.getByRole('tab', { name: /focus-test/ })).toBeVisible();
+
     // Collapse the rail
     await h.shell.getByTitle(/hide instances/i).click();
 

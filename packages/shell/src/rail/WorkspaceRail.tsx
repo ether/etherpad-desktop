@@ -7,7 +7,15 @@ export function WorkspaceRail(): React.JSX.Element {
   const order = useShellStore((s) => s.workspaceOrder);
   const workspaces = useShellStore((s) => s.workspaces);
   const active = useShellStore((s) => s.activeWorkspaceId);
-  const collapsed = useShellStore((s) => s.railCollapsed);
+  const railCollapsed = useShellStore((s) => s.railCollapsed);
+  const tabs = useShellStore((s) => s.tabs);
+  // Match App.tsx's effective-collapsed rule: focus mode only applies
+  // when there's a pad to focus on. Without this gating, stored
+  // railCollapsed=true on a pad-less screen leaves the rail visually
+  // collapsed (no workspace buttons rendered) — the user sees an empty
+  // nav and has no way to start a pad.
+  const hasActivePad = active !== null && tabs.some((t) => t.workspaceId === active);
+  const collapsed = railCollapsed && hasActivePad;
   const byId = Object.fromEntries(workspaces.map((w) => [w.id, w]));
 
   const select = async (id: string) => {

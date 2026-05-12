@@ -12,5 +12,10 @@ export function createElectronPlatform(): Platform {
   if (typeof window === 'undefined' || !window.etherpadDesktop) {
     throw new Error('window.etherpadDesktop is missing — preload did not expose it.');
   }
-  return window.etherpadDesktop as unknown as Platform;
+  // The preload-injected object doesn't have `capabilities` baked in
+  // — declare them here, where the runtime is known to be Electron.
+  return {
+    capabilities: { tray: true },
+    ...(window.etherpadDesktop as unknown as Omit<Platform, 'capabilities'>),
+  };
 }

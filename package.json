@@ -36,6 +36,7 @@
     "package:win": "pnpm --filter @etherpad/desktop package:win",
     "package:linux": "pnpm --filter @etherpad/desktop package:linux",
     "package:mac": "pnpm --filter @etherpad/desktop package:mac",
-    "start": "pnpm --filter @etherpad/desktop start"
+    "start": "pnpm --filter @etherpad/desktop start",
+    "white-label": "node scripts/white-label.mjs"
   }
 }

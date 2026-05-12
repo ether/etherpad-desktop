@@ -1,7 +1,28 @@
 import { en } from './en.js';
+import { es } from './es.js';
+import { fr } from './fr.js';
+import { de } from './de.js';
+import { pt } from './pt.js';
+import { it } from './it.js';
 import type { Strings } from './en.js';
 
-const dictionary: Record<string, Strings> = { en };
+// Bundled shell translations. Etherpad core ships ~115 locales for the
+// pad UI itself (via the `?lang=` query param on the iframe src); the
+// shell ("rail", dialogs, settings) has its own string table that needs
+// its own translations. Locales not listed here fall back to English in
+// the shell, but the pad iframe still picks up etherpad core's matching
+// locale, so users see partial localisation rather than nothing. Adding
+// a locale: create `<code>.ts` with the full `Strings` shape and add it
+// here. `pt-br` aliases `pt` until a dedicated dictionary exists.
+const dictionary: Record<string, Strings> = {
+  en,
+  es,
+  fr,
+  de,
+  pt,
+  'pt-br': pt,
+  it,
+};
 
 let active: Strings = en;
 

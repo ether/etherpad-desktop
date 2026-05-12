@@ -17,6 +17,7 @@ describe('i18n: en dictionary shape', () => {
       [
         'addWorkspace',
         'app',
+        'clearAllHistory',
         'emptyState',
         'errorBoundary',
         'httpAuth',
@@ -73,6 +74,32 @@ describe('i18n: t proxy', () => {
   it('falls back to en for unknown locale', () => {
     setLanguage('xx-not-a-locale');
     expect(t.app.title).toBe(en.app.title);
+  });
+
+  it('switches to bundled non-en locales (es, fr, de, pt, it, pt-br alias)', () => {
+    // Regression guard: previously only `en` was registered, so picking
+    // a non-English language in Settings was silently a no-op on shell
+    // strings. Pin one assertion per bundled locale so we notice if a
+    // locale gets dropped from the dictionary or its key set drifts.
+    setLanguage('es');
+    expect(t.openPad.submit).toBe('Abrir');
+    expect(t.settings.cancel).toBe('Cancelar');
+
+    setLanguage('fr');
+    expect(t.openPad.submit).toBe('Ouvrir');
+
+    setLanguage('de');
+    expect(t.openPad.submit).toBe('Öffnen');
+
+    setLanguage('pt');
+    expect(t.openPad.submit).toBe('Abrir');
+
+    setLanguage('it');
+    expect(t.openPad.submit).toBe('Apri');
+
+    // pt-br aliases pt until a dedicated dictionary exists.
+    setLanguage('pt-br');
+    expect(t.openPad.submit).toBe('Abrir');
   });
 
   it('reflects the active language on document.documentElement.lang', () => {

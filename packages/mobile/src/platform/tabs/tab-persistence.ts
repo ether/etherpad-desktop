@@ -21,17 +21,20 @@ const persistedTabSchema = z.object({
   padName: z.string().min(1).max(200),
 });
 
+// `railCollapsed` is optional so older persisted payloads still validate.
 const fileSchema = z.object({
   schemaVersion: z.literal(1),
   tabs: z.array(persistedTabSchema),
   activeTabId: z.string().nullable(),
   activeWorkspaceId: z.string().uuid().nullable(),
+  railCollapsed: z.boolean().optional(),
 });
 
 export type WindowState = {
   tabs: Array<{ tabId: string; workspaceId: string; padName: string }>;
   activeTabId: string | null;
   activeWorkspaceId: string | null;
+  railCollapsed: boolean;
 };
 
 export async function load(): Promise<WindowState> {
@@ -41,8 +44,9 @@ export async function load(): Promise<WindowState> {
         tabs: stored.tabs,
         activeTabId: stored.activeTabId,
         activeWorkspaceId: stored.activeWorkspaceId,
+        railCollapsed: stored.railCollapsed ?? false,
       }
-    : { tabs: [], activeTabId: null, activeWorkspaceId: null };
+    : { tabs: [], activeTabId: null, activeWorkspaceId: null, railCollapsed: false };
 }
 
 export async function save(state: WindowState): Promise<void> {
@@ -55,6 +59,7 @@ export async function save(state: WindowState): Promise<void> {
     })),
     activeTabId: state.activeTabId,
     activeWorkspaceId: state.activeWorkspaceId,
+    railCollapsed: state.railCollapsed,
   });
 }
 

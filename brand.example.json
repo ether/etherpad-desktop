@@ -1,0 +1,20 @@
+{
+  "$schema": "./brand.schema.json",
+  "_comment": "Copy this file to `brand.json`, edit, then run `pnpm white-label`. brand.json is gitignored so your branding stays local. All fields are optional — anything you omit keeps the repo default. CLI flags override these values for ad-hoc builds: `pnpm white-label --name Foo --accent '#ff0000'`.",
+
+  "name": "Etherpad Desktop",
+  "shortName": "Etherpad",
+
+  "appId": "org.etherpad.desktop",
+  "androidPackage": "com.etherpad.mobile",
+
+  "accent": "#44b492",
+
+  "description": "Native desktop client for Etherpad",
+  "longDescription": "Etherpad Desktop is a native client for Etherpad, the real-time collaborative editor. It provides per-workspace session isolation, native menus and shortcuts, dark mode, multi-window support, and background updates.\n\nConnect to any Etherpad server, switch between multiple workspaces in a Slack-style sidebar, and pin pads you visit often.\n\nUpstream: https://etherpad.org\nSource:   https://github.com/ether/etherpad-desktop",
+
+  "author": "Etherpad Foundation <noreply@etherpad.org>",
+  "copyright": "Copyright (c) 2026 The Etherpad Foundation",
+
+  "publish": { "owner": "ether", "repo": "etherpad-desktop" }
+}

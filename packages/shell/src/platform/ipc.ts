@@ -10,7 +10,27 @@ import { AppError } from '@shared/types/errors';
  * sub-interfaces from spec §4 once mobile has a real implementation
  * driving the shape.
  */
+/**
+ * Static feature flags the runtime advertises to the shell so the UI
+ * can drop or surface controls that only apply on certain platforms.
+ * Treated as an immutable snapshot of the runtime — flags don't change
+ * within a session.
+ *
+ * Default-on at the type level so adding a new flag doesn't silently
+ * break older runtimes that haven't been recompiled with it.
+ */
+export type PlatformCapabilities = {
+  /** Whether the runtime exposes a system tray that the app can
+   *  minimise to instead of quitting. Desktop: true. Mobile: false
+   *  (Android has no tray; the OS manages app lifecycle). */
+  tray: boolean;
+};
+
 export interface Platform {
+  /** Static capabilities snapshot. Read synchronously by UI code that
+   *  conditionally renders platform-specific controls (e.g. the Settings
+   *  dialog's "minimise to tray" checkbox). */
+  capabilities: PlatformCapabilities;
   state: { getInitial(): Promise<unknown> };
   workspace: {
     list(): Promise<unknown>;

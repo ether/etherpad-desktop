@@ -3,6 +3,7 @@ import * as workspaceStore from './storage/workspace-store.js';
 import * as padHistoryStore from './storage/pad-history-store.js';
 import * as settingsStore from './storage/settings-store.js';
 import * as tabStore from './tabs/tab-store.js';
+import * as padContentIndex from './pad-content-index.js';
 
 /**
  * Concrete `Platform` impl for mobile. Workspace, pad-history, and settings
@@ -44,6 +45,9 @@ export function createCapacitorPlatform(): Platform {
   const noopUnsubscribe = (): (() => void) => () => {};
 
   return {
+    // Android has no system tray and the OS manages "background vs
+    // quit" lifecycle — settings UI gates the tray checkbox on this.
+    capabilities: { tray: false },
     state: {
       getInitial: () =>
         wrap(async () => {
@@ -53,7 +57,9 @@ export function createCapacitorPlatform(): Platform {
           // Restore persisted tab state into the tab-store so the shell's
           // first `onTabsChanged` subscription receives the prior session's
           // tabs. Returns the last-active workspace id so App.tsx can
-          // prefer it over `workspaceOrder[0]`.
+          // prefer it over `workspaceOrder[0]`, plus the rail-collapsed
+          // state so reopening the app keeps focus mode if the user was
+          // in it.
           const restored = await tabStore.loadFromStorage();
           const activeWorkspaceId =
             restored.activeWorkspaceId && workspaces.some((w) => w.id === restored.activeWorkspaceId)
@@ -65,6 +71,7 @@ export function createCapacitorPlatform(): Platform {
             settings,
             padHistory,
             ...(activeWorkspaceId ? { activeWorkspaceId } : {}),
+            railCollapsed: restored.railCollapsed,
           };
         }),
     },
@@ -80,9 +87,28 @@ export function createCapacitorPlatform(): Platform {
       reorder: (input) => wrap(() => workspaceStore.reorder(input)),
     },
     tab: {
-      open: (input) => wrap(async () => tabStore.open(input)),
+      open: (input) => wrap(async () => {
+        const tab = tabStore.open(input);
+        // Fire-and-forget index of the pad's text so the QuickSwitcher
+        // content search can match against it. Looks up the workspace
+        // synchronously (workspace list is already in-memory). Errors
+        // are swallowed inside the index function — search just shows
+        // fewer hits if a fetch fails.
+        const ws = (await workspaceStore.list()).workspaces.find((w) => w.id === input.workspaceId);
+        if (ws) void padContentIndex.index(input.workspaceId, ws.serverUrl, input.padName);
+        return tab;
+      }),
       close: (input) =>
         wrap(async () => {
+          // We keep the closed pad's body in the content-search cache.
+          // Closed pads stay searchable using their last-known content
+          // so the user can find a pad they viewed earlier in the
+          // session via its body. On the next refresh (when re-opened
+          // or on a tab.open elsewhere), the cache entry will be
+          // overwritten with fresh content. The stale-content concern
+          // from the original report turned out to be the WebView's
+          // HTTP cache, addressed by `cache: 'no-store'` in
+          // pad-content-index.
           tabStore.close(input.tabId);
           return { ok: true } as const;
         }),
@@ -112,7 +138,12 @@ export function createCapacitorPlatform(): Platform {
         return ok;
       },
       setPadViewsHidden: () => ok,
-      setRailCollapsed: () => ok,
+      setRailCollapsed: (collapsed) => {
+        // Mobile persists rail-collapsed alongside the rest of windowState
+        // so reopening the app remembers focus mode.
+        tabStore.setRailCollapsed(collapsed);
+        return ok;
+      },
     },
     padHistory: {
       list: (input) => wrap(() => padHistoryStore.list(input)),
@@ -152,8 +183,30 @@ export function createCapacitorPlatform(): Platform {
       getState: () => Promise.resolve({ kind: 'unsupported', reason: 'mobile' }),
     },
     quickSwitcher: {
-      // Raw (not unwrapped) — return an array directly.
-      searchPadContent: () => Promise.resolve([]),
+      // Raw (not unwrapped) — return an array directly. Mobile maintains
+      // its own pad-content cache populated on tab.open and refreshed
+      // on every search for currently-open tabs (the user is actively
+      // editing those, so the cached text from tab.open went stale the
+      // moment they typed anything). Cross-origin fetches may be CORS-
+      // blocked at deploy-time; the index function swallows those
+      // errors silently so the user sees fewer hits rather than a
+      // thrown promise.
+      searchPadContent: async (input: { query: string }) => {
+        // Refresh every open tab in parallel — `force: true` bypasses
+        // the 5-min staleness window so live edits show up in search.
+        // Each tab's fetch is bounded by the network round-trip; we
+        // await so the search sees fresh content. The QuickSwitcher
+        // debounces input by 200ms so this latency hits at most every
+        // 200ms of typing per search.
+        const { workspaces } = await workspaceStore.list();
+        const wsById = new Map(workspaces.map((w) => [w.id, w]));
+        const refreshes = tabStore.listAll().flatMap((tab) => {
+          const ws = wsById.get(tab.workspaceId);
+          return ws ? [padContentIndex.index(tab.workspaceId, ws.serverUrl, tab.padName, { force: true })] : [];
+        });
+        await Promise.all(refreshes);
+        return padContentIndex.search(input.query);
+      },
     },
     events: {
       onWorkspacesChanged: (l) =>

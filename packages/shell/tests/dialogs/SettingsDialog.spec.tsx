@@ -106,6 +106,20 @@ describe('SettingsDialog', () => {
     );
   });
 
+  it('hides the minimise-to-tray checkbox when platform.capabilities.tray is false (mobile)', () => {
+    // Mobile has no system tray, so Settings should not show this
+    // checkbox at all. Pin both the absence of the visual control AND
+    // the underlying capability check.
+    window.etherpadDesktop = {
+      capabilities: { tray: false },
+    } as unknown as typeof window.etherpadDesktop;
+    useShellStore.setState({ settings: DEFAULT_SETTINGS });
+    render(<SettingsDialog />);
+    expect(
+      screen.queryByRole('checkbox', { name: /minimise to system tray/i }),
+    ).not.toBeInTheDocument();
+  });
+
   it('Save button closes the dialog', async () => {
     dialogActions.openDialog('settings');
     render(<SettingsDialog />);
@@ -121,10 +135,16 @@ describe('SettingsDialog', () => {
     expect(window.etherpadDesktop.settings.update).not.toHaveBeenCalled();
   });
 
-  it('Clear All History button calls padHistory.clearAll', async () => {
+  it('Clear All History button opens the confirmation dialog (does NOT clear directly)', async () => {
+    // Regression guard: this button used to call padHistory.clearAll
+    // synchronously, which deleted the entire Recent + Pinned list with
+    // no chance for the user to back out. It now opens a confirmation
+    // dialog (ClearAllHistoryDialog) instead, and clearAll only fires
+    // after the user confirms.
     render(<SettingsDialog />);
     await userEvent.click(screen.getByRole('button', { name: /clear all pad history/i }));
-    expect(window.etherpadDesktop.padHistory.clearAll).toHaveBeenCalled();
+    expect(window.etherpadDesktop.padHistory.clearAll).not.toHaveBeenCalled();
+    expect(useShellStore.getState().openDialog).toBe('clearAllHistory');
   });
 
   it('Remove button next to a workspace opens RemoveWorkspaceDialog with that workspaceId', async () => {

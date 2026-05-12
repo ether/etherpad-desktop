@@ -10,6 +10,7 @@ import { OpenPadDialog } from './dialogs/OpenPadDialog.js';
 import { OpenByUrlDialog } from './dialogs/OpenByUrlDialog.js';
 import { SettingsDialog } from './dialogs/SettingsDialog.js';
 import { RemoveWorkspaceDialog } from './dialogs/RemoveWorkspaceDialog.js';
+import { ClearAllHistoryDialog } from './dialogs/ClearAllHistoryDialog.js';
 import { HttpAuthDialog } from './dialogs/HttpAuthDialog.js';
 import { AboutDialog } from './dialogs/AboutDialog.js';
 import { QuickSwitcherDialog } from './dialogs/QuickSwitcherDialog.js';
@@ -61,6 +62,9 @@ export function App({ padView }: AppProps = {}): React.JSX.Element {
     void (async () => {
       const initial = await ipc.state.getInitial();
       useShellStore.getState().hydrate(initial);
+      // initial.railCollapsed is read by hydrate above; no further work
+      // needed here. It's optional in the contract — desktop omits it,
+      // mobile populates it from windowState.
       const { setLanguage } = await import('./i18n/index.js');
       setLanguage(initial.settings.language);
       applySettings(initial.settings);
@@ -208,23 +212,31 @@ export function App({ padView }: AppProps = {}): React.JSX.Element {
     void ipc.window.setPadViewsHidden(openDialog !== null);
   }, [openDialog]);
 
-  // Tell the main process when the rail collapses so it can re-position
-  // pad WebContentsViews to fill the freed space. Without this, the views
-  // stay anchored at x=304 and the user sees a black void where the rail
-  // and sidebar used to be.
-  useEffect(() => {
-    void ipc.window.setRailCollapsed(railCollapsed);
-  }, [railCollapsed]);
-
   const activeTabsForWs = activeWorkspaceId
     ? tabs.filter((t) => t.workspaceId === activeWorkspaceId)
     : [];
+  const hasActivePad = activeTabsForWs.length > 0;
+  // Focus mode is only useful when there's actually a pad to focus on.
+  // `railCollapsed` is the user's STORED intent (set when they tap the
+  // pad area or use the collapse handle), but if no pad is visible we
+  // override and always show the rail — otherwise the user faces a
+  // mostly-empty screen with nowhere to start a new pad from.
+  const effectiveCollapsed = railCollapsed && hasActivePad;
+
+  // Tell the main process the EFFECTIVE collapsed state so it can re-
+  // position pad WebContentsViews to fill the freed space (or restore
+  // the rail/sidebar gutters). Driven by the effective value, not the
+  // stored preference — when there's no pad to focus, "collapsed" has
+  // no meaning and main should keep the rail visible.
+  useEffect(() => {
+    void ipc.window.setRailCollapsed(effectiveCollapsed);
+  }, [effectiveCollapsed]);
 
   const toggleRailCollapsed = useShellStore((s) => s.toggleRailCollapsed);
 
   return (
     <ErrorBoundary onReload={() => void ipc.window.reloadShell()}>
-      <div className={`shell-root-wrapper${railCollapsed ? ' rail-collapsed' : ''}`}>
+      <div className={`shell-root-wrapper${effectiveCollapsed ? ' rail-collapsed' : ''}`}>
         <UpdaterBanner />
         <div className="shell-root">
           <div className="rail-cell" style={{ gridColumn: '1', gridRow: '1 / span 2' }}>
@@ -242,25 +254,31 @@ export function App({ padView }: AppProps = {}): React.JSX.Element {
             <TabErrorOverlay />
           </div>
         </div>
-        {/* Vertically-centred collapse/expand handle. When expanded it sits
-            on the right edge of the pad sidebar; when collapsed it sits on
-            the left edge of the (now full-width) pad area. CSS resolves the
-            position from the --rail-width / --sidebar-width vars below. */}
-        <button
-          type="button"
-          className="shell-collapse-handle"
-          aria-label={railCollapsed ? t.rail.expand : t.rail.collapse}
-          title={railCollapsed ? t.rail.expand : t.rail.collapse}
-          onClick={toggleRailCollapsed}
-        >
-          {railCollapsed ? '›' : '‹'}
-        </button>
+        {/* Vertically-centred collapse/expand handle. Only rendered when
+            there's an active pad — without one, "focus mode" has no
+            target and the handle would be a dead control. When expanded
+            it sits on the right edge of the pad sidebar; when collapsed
+            it sits on the left edge of the (now full-width) pad area.
+            CSS resolves the position from the --rail-width /
+            --sidebar-width vars below. */}
+        {hasActivePad && (
+          <button
+            type="button"
+            className="shell-collapse-handle"
+            aria-label={effectiveCollapsed ? t.rail.expand : t.rail.collapse}
+            title={effectiveCollapsed ? t.rail.expand : t.rail.collapse}
+            onClick={toggleRailCollapsed}
+          >
+            {effectiveCollapsed ? '›' : '‹'}
+          </button>
+        )}
       </div>
       {openDialog === 'addWorkspace' && <AddWorkspaceDialog dismissable={workspaces.length > 0} />}
       {openDialog === 'openPad' && <OpenPadDialog />}
       {openDialog === 'openByUrl' && <OpenByUrlDialog />}
       {openDialog === 'settings' && <SettingsDialog />}
       {openDialog === 'removeWorkspace' && <RemoveWorkspaceDialog />}
+      {openDialog === 'clearAllHistory' && <ClearAllHistoryDialog />}
       {openDialog === 'httpAuth' && <HttpAuthDialog />}
       {openDialog === 'about' && <AboutDialog />}
       {openDialog === 'quickSwitcher' && <QuickSwitcherDialog />}

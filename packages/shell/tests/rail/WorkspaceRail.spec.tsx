@@ -121,10 +121,16 @@ describe('WorkspaceRail', () => {
     expect(screen.queryByTitle(/show instances/i)).not.toBeInTheDocument();
   });
 
-  it('hides its content (icons, search, settings) when railCollapsed=true', () => {
+  it('hides its content (icons, search, settings) when railCollapsed=true AND there is an active pad', () => {
+    // Focus mode only applies when there's a pad to focus on. Seed both
+    // the stored preference AND an active tab — without the tab the
+    // rail re-shows (see next test).
     useShellStore.setState({
       workspaces: [{ id: 'a', name: 'Alpha', serverUrl: 'https://a', color: '#000', createdAt: 1 }],
       workspaceOrder: ['a'],
+      activeWorkspaceId: 'a',
+      tabs: [{ tabId: 'a::p', workspaceId: 'a', padName: 'p', title: 'p', state: 'loaded' }],
+      activeTabId: 'a::p',
       railCollapsed: true,
     });
     render(<WorkspaceRail />);
@@ -133,5 +139,22 @@ describe('WorkspaceRail', () => {
     // No search / settings cogs rendered
     expect(screen.queryByRole('button', { name: /^settings$/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /search instances and pads/i })).not.toBeInTheDocument();
+  });
+
+  it('ignores railCollapsed=true when there is NO active pad (focus mode has no target)', () => {
+    // The user's stored preference is "collapsed" but no pad is open.
+    // Rail must stay visible — otherwise the user faces an empty screen
+    // with no obvious way to start a new pad.
+    useShellStore.setState({
+      workspaces: [{ id: 'a', name: 'Alpha', serverUrl: 'https://a', color: '#000', createdAt: 1 }],
+      workspaceOrder: ['a'],
+      activeWorkspaceId: 'a',
+      tabs: [],
+      activeTabId: null,
+      railCollapsed: true,
+    });
+    render(<WorkspaceRail />);
+    expect(screen.getByRole('button', { name: /open instance alpha/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^settings$/i })).toBeInTheDocument();
   });
 });

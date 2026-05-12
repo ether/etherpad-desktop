@@ -10,16 +10,21 @@ export function OpenPadDialog(): React.JSX.Element {
   const wsId = useShellStore((s) => s.activeWorkspaceId);
   const history = useShellStore((s) => (wsId ? s.padHistory[wsId] ?? EMPTY_HISTORY : EMPTY_HISTORY));
   const [name, setName] = useState('');
-  const [createMode, setCreateMode] = useState(false);
 
   const matches = name
     ? history.filter((e) => e.padName.toLowerCase().includes(name.toLowerCase())).slice(0, 8)
     : [];
 
+  // Etherpad's `/p/<name>` URL is open-or-create: visiting it loads the
+  // pad if it exists or creates it on demand. There's no separate
+  // "create" path in the server, and tab-handlers/tab-store never read
+  // `mode`. The previous "Create new" checkbox was cosmetic; removing
+  // it. `mode` stays on the IPC payload (schema-level default 'open')
+  // so external callers don't break.
   const submit = async (override?: string) => {
     const padName = override ?? name;
     if (!wsId || !padName) return;
-    await ipc.tab.open({ workspaceId: wsId, padName, mode: createMode ? 'create' : 'open' });
+    await ipc.tab.open({ workspaceId: wsId, padName, mode: 'open' });
     dialogActions.closeDialog();
   };
 
@@ -41,10 +46,6 @@ export function OpenPadDialog(): React.JSX.Element {
           ))}
         </ul>
       )}
-      <label className="dialog-field-inline">
-        <input type="checkbox" checked={createMode} onChange={(e) => setCreateMode(e.target.checked)} />
-        <span>{t.openPad.create}</span>
-      </label>
       <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
         <button className="btn-primary" title={t.openPad.submit} onClick={() => void submit()} disabled={!name}>
           {t.openPad.submit}
