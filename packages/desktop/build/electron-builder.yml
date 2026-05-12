@@ -2,6 +2,19 @@ appId: org.etherpad.desktop
 productName: Etherpad Desktop
 copyright: Copyright (c) 2026 The Etherpad Foundation
 
+# Override the package.json#name (`@etherpad/desktop`) for build-time
+# artifact templating only. electron-builder uses `${name}` in
+# intermediate paths (deb, snap, the .nsis.7z that NSIS reads) and the
+# scoped name's `/` becomes a literal directory (deb/snap crash with
+# "Parent directory does not exist: release/@etherpad") while the `@`
+# prefix makes 7za interpret the .nsis.7z basename as a `@list-file`
+# argument ("Could not create destination file: No such file or
+# directory"). We can't drop the scope from package.json itself
+# without breaking `pnpm --filter @etherpad/desktop`, so override it
+# just for the build via extraMetadata.
+extraMetadata:
+  name: etherpad-desktop
+
 directories:
   buildResources: build
   output: release
