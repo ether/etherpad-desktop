@@ -330,6 +330,48 @@ test('closing the last open pad auto-restores the rail', async ({ page }) => {
   await expect(page.getByRole('button', { name: /open instance acme/i })).toBeVisible();
 });
 
+test('opening then closing a pad leaves it in the sidebar Recents list', async ({ page }) => {
+  // Regression: the user reported opening a pad, closing it, and seeing
+  // nothing in Recents. The localStorage write was happening (covered by
+  // the QuickSwitcher pad-history test) but the sidebar never re-rendered
+  // because the onPadHistoryChanged → fetch → setPadHistory chain wasn't
+  // round-tripping. This test exercises the full flow as the user sees
+  // it: pad opens, rail auto-collapses, pad closes, rail re-appears,
+  // sidebar should now show the closed pad in Recents.
+  await page.addInitScript(seedWorkspace);
+  await page.goto('/');
+  await expect(
+    page.getByRole('button', { name: /open instance acme/i }),
+  ).toBeVisible({ timeout: 15_000 });
+
+  await openPad(page, WS_ID, 'recents-after-close');
+  const tabId = `${WS_ID}::recents-after-close`;
+  await expect(page.locator(`iframe[data-pad-id="${tabId}"]`)).toBeAttached({ timeout: 5_000 });
+
+  // Close the tab via the platform API.
+  await page.evaluate((id) => {
+    const platform = (window as unknown as { __test_platform: {
+      tab: { close(input: { tabId: string }): Promise<unknown> };
+    } }).__test_platform;
+    return platform.tab.close({ tabId: id });
+  }, tabId);
+
+  // No tabs → rail re-appears (effective-collapsed flips to false). The
+  // sidebar should then render with "recents-after-close" in the Recents
+  // list. Asserting on the rendered DOM, not localStorage — this is what
+  // the user actually sees.
+  await expect(page.locator('.shell-root-wrapper')).not.toHaveClass(/rail-collapsed/, {
+    timeout: 5_000,
+  });
+  // Scope to the Recent section so we don't match the Pin button
+  // (which has the pad name in its aria-label). The pad's "open" button
+  // uses the pad name as its accessible text.
+  const recents = page.locator('section:has(h3:text("Recent"))');
+  await expect(
+    recents.getByRole('button', { name: 'recents-after-close', exact: true }),
+  ).toBeVisible({ timeout: 5_000 });
+});
+
 test('tapping the pad area collapses the rail (mobile drawer dismiss)', async ({ page }) => {
   // Mobile UX: when the rail is expanded AND a pad is showing, tapping
   // the pad area should collapse the rail (focus mode). The capture
