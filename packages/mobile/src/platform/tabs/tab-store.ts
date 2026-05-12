@@ -1,15 +1,18 @@
 import type { OpenTab } from '@shared/types/tab';
 import * as padHistoryStore from '../storage/pad-history-store.js';
+import * as tabPersistence from './tab-persistence.js';
 
 /**
- * In-memory mobile tab state + a thin per-event subscriber list. No
- * persistence: tab state is ephemeral on mobile (a refresh starts fresh).
- * Phase 5 only — Phase 7+ may persist `rememberOpenTabsOnQuit`'s effect
- * once we decide how that maps onto a backgrounded WebView.
+ * In-memory mobile tab state + a thin per-event subscriber list, persisted
+ * to `@capacitor/preferences` under `etherpad:windowState` so closing the
+ * app and reopening it restores the open pads + active tab.
  *
  * Events are intentionally synchronous: the shell subscribes once at mount
  * and expects `{ tabs, activeTabId }` payloads matching its own Zustand
  * `replaceTabs(...)` + `setActiveTabId(...)` API.
+ *
+ * Persistence is fire-and-forget — every mutation triggers a debounced
+ * save so rapid taps don't thrash Preferences.
  */
 
 type Listener<P> = (payload: P) => void;
@@ -50,13 +53,68 @@ type TabEvents = {
 const emitter = new Emitter<TabEvents>();
 const tabs = new Map<string, OpenTab>();
 let activeTabId: string | null = null;
+let activeWorkspaceId: string | null = null;
 
 function snapshot(): TabsChangedPayload {
   return { tabs: Array.from(tabs.values()), activeTabId };
 }
 
+function scheduleSave(): void {
+  // Write-through immediately on every mutation. A debounce here would
+  // lose writes when the user opens a pad and kills the app before the
+  // timer fires — Android's `am force-stop` doesn't drain pending JS
+  // microtasks. tab.open fires rarely (per user gesture), so writing
+  // on every mutation is cheap.
+  void tabPersistence
+    .save({
+      tabs: Array.from(tabs.values()).map((t) => ({
+        tabId: t.tabId,
+        workspaceId: t.workspaceId,
+        padName: t.padName,
+      })),
+      activeTabId,
+      activeWorkspaceId,
+    })
+    .catch((err: unknown) => {
+      console.warn('[mobile/tab-store] windowState save failed:', err);
+    });
+}
+
 function emitChanged(): void {
   emitter.emit('tabsChanged', snapshot());
+  scheduleSave();
+}
+
+/**
+ * Restore tabs from Preferences. Idempotent; called once at boot via
+ * `state.getInitial()`. Fires `tabsChanged` so any subscribers already
+ * mounted see the restored set.
+ */
+export async function loadFromStorage(): Promise<{ activeWorkspaceId: string | null }> {
+  const persisted = await tabPersistence.load();
+  tabs.clear();
+  for (const t of persisted.tabs) {
+    tabs.set(t.tabId, {
+      tabId: t.tabId,
+      workspaceId: t.workspaceId,
+      padName: t.padName,
+      title: t.padName,
+      state: 'loading',
+    });
+  }
+  activeTabId = persisted.activeTabId;
+  activeWorkspaceId = persisted.activeWorkspaceId;
+  // Don't scheduleSave here — we just loaded; saving would be a no-op
+  // but emit so anyone already subscribed picks up the restored state.
+  emitter.emit('tabsChanged', snapshot());
+  return { activeWorkspaceId };
+}
+
+/** Called when the user (or App.tsx boot) sets a new active workspace. */
+export function setActiveWorkspace(workspaceId: string | null): void {
+  if (activeWorkspaceId === workspaceId) return;
+  activeWorkspaceId = workspaceId;
+  scheduleSave();
 }
 
 function makeTabId(workspaceId: string, padName: string): string {

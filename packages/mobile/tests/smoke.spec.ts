@@ -179,6 +179,70 @@ test('settings.userName threads into the iframe src as ?userName=', async ({ pag
   await expect(iframe).toHaveAttribute('src', 'https://acme.example/p/who-am-i?lang=en&userName=Jose');
 });
 
+test('opening a pad then reloading restores the same pad (full write+read cycle)', async ({ page }) => {
+  // Simulates the device-side bug the user reported: open pad → kill app
+  // → reopen → expect to be back on the pad. The reload here is the
+  // closest in-browser analogue to "kill + relaunch" — same JS context
+  // boundary, same Preferences read on init.
+  await page.addInitScript(seedWorkspace);
+  await page.goto('/');
+  await expect(
+    page.getByRole('button', { name: /open instance acme/i }),
+  ).toBeVisible({ timeout: 15_000 });
+
+  await openPad(page, WS_ID, 'survives-reload');
+  const tabId = `${WS_ID}::survives-reload`;
+  await expect(page.locator(`iframe[data-pad-id="${tabId}"]`)).toBeAttached({ timeout: 5_000 });
+
+  // Reload the page — simulates app kill + relaunch. The persisted
+  // windowState should restore the tab.
+  await page.reload();
+
+  // After reload, no AddWorkspaceDialog (workspace persists) AND the
+  // pad iframe is back.
+  await expect(
+    page.getByRole('heading', { name: /add an etherpad instance/i }),
+  ).not.toBeVisible();
+  const restoredIframe = page.locator(`iframe[data-pad-id="${tabId}"]`);
+  await expect(restoredIframe).toBeAttached({ timeout: 15_000 });
+  await expect(restoredIframe).toHaveAttribute('src', /\/p\/survives-reload\?lang=/);
+});
+
+test('persisted windowState restores the active pad on reopen', async ({ page }) => {
+  // Seed BOTH a workspace AND a `windowState` entry simulating a prior
+  // session that had an open + active pad. On boot the Capacitor
+  // Platform's state.getInitial() should load this through, App.tsx
+  // should select the persisted workspace, and tabsChanged should fire
+  // with the persisted tab so PadIframeStack renders the iframe.
+  await page.addInitScript(seedWorkspace);
+  await page.addInitScript(() => {
+    const ws = '00000000-0000-4000-8000-000000000001';
+    const tabId = `${ws}::restored-pad`;
+    localStorage.setItem(
+      'CapacitorStorage.etherpad:windowState',
+      JSON.stringify({
+        schemaVersion: 1,
+        tabs: [{ tabId, workspaceId: ws, padName: 'restored-pad' }],
+        activeTabId: tabId,
+        activeWorkspaceId: ws,
+      }),
+    );
+  });
+  await page.goto('/');
+
+  // AddWorkspaceDialog must NOT appear — we have a workspace.
+  await expect(
+    page.getByRole('heading', { name: /add an etherpad instance/i }),
+  ).not.toBeVisible();
+
+  // The restored iframe should be mounted with the right src.
+  const tabId = `${WS_ID}::restored-pad`;
+  const iframe = page.locator(`iframe[data-pad-id="${tabId}"]`);
+  await expect(iframe).toBeAttached({ timeout: 15_000 });
+  await expect(iframe).toHaveAttribute('src', 'https://acme.example/p/restored-pad?lang=en');
+  await expect(iframe).toBeVisible();
+});
+
 // X-Frame-Options DENY / SAMEORIGIN detection from pure JS is unreliable
 // — Chromium fires `onLoad` for blocked iframes too. The robust escape hatch
 // lives in the native WebChromeClient hook scheduled for Phase 6b. No test

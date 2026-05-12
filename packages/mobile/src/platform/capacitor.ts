@@ -50,11 +50,21 @@ export function createCapacitorPlatform(): Platform {
           const { workspaces, order } = await workspaceStore.list();
           const settings = await settingsStore.get();
           const padHistory = await padHistoryStore.loadAll(order);
+          // Restore persisted tab state into the tab-store so the shell's
+          // first `onTabsChanged` subscription receives the prior session's
+          // tabs. Returns the last-active workspace id so App.tsx can
+          // prefer it over `workspaceOrder[0]`.
+          const restored = await tabStore.loadFromStorage();
+          const activeWorkspaceId =
+            restored.activeWorkspaceId && workspaces.some((w) => w.id === restored.activeWorkspaceId)
+              ? restored.activeWorkspaceId
+              : undefined;
           return {
             workspaces,
             workspaceOrder: order,
             settings,
             padHistory,
+            ...(activeWorkspaceId ? { activeWorkspaceId } : {}),
           };
         }),
     },
@@ -93,7 +103,10 @@ export function createCapacitorPlatform(): Platform {
         }),
     },
     window: {
-      setActiveWorkspace: () => ok,
+      setActiveWorkspace: (input) => {
+        tabStore.setActiveWorkspace(input.workspaceId);
+        return ok;
+      },
       reloadShell: () => {
         window.location.reload();
         return ok;
@@ -149,7 +162,8 @@ export function createCapacitorPlatform(): Platform {
         padHistoryStore.onChanged(l as Parameters<typeof padHistoryStore.onChanged>[0]),
       onTabsChanged: (l) => tabStore.onTabsChanged(l as Parameters<typeof tabStore.onTabsChanged>[0]),
       onTabState: (l) => tabStore.onTabState(l as Parameters<typeof tabStore.onTabState>[0]),
-      onSettingsChanged: noopUnsubscribe,
+      onSettingsChanged: (l) =>
+        settingsStore.onChanged(l as Parameters<typeof settingsStore.onChanged>[0]),
       onHttpLoginRequest: noopUnsubscribe,
       onUpdaterState: noopUnsubscribe,
       onPadFastSwitch: noopUnsubscribe,

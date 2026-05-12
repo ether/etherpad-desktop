@@ -80,6 +80,11 @@ export type InitialState = {
   /** Pad history per workspace, eagerly bundled so the sidebar can render
    *  Recent/Pinned on first paint without waiting for a touch event. */
   padHistory: Record<string, PadHistoryEntry[]>;
+  /** Workspace the user was on last time the app closed. When set, App.tsx
+   *  prefers it over `workspaceOrder[0]`. Used by mobile's
+   *  `rememberOpenTabsOnQuit` flow; desktop main can populate it too if
+   *  it persists window state. Omitted on first launch (no prior session). */
+  activeWorkspaceId?: string;
 };
 
 export type TabSummary = OpenTab & { tabId: string };

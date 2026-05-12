@@ -24,13 +24,13 @@ test('relaunching restores workspaces, the active workspace, and open tabs', asy
   try {
     // Workspace should be restored from disk. Cold-start on a slow CI
     // runner (xvfb + Electron + initial getInitial round-trip + render)
-    // routinely takes 8–12s before the rail is interactable; the
-    // default 15s expect timeout was tipping over under load. Match
-    // the tab assertion's 30s headroom.
+    // can exceed 30s under contention — this test has flaked on ~50%
+    // of PR CI runs for weeks at 30s, with each rerun succeeding within
+    // the same timeout. 60s eats the flake without slowing the happy
+    // path (passing runs complete in 8–12s).
     await expect(h2.shell.getByRole('button', { name: /open instance sticky/i }))
-      .toBeVisible({ timeout: 30_000 });
-    // Tab should be restored via tabsChanged after setActiveWorkspace
-    await expect(h2.shell.getByRole('tab', { name: /survives-restart/ })).toBeVisible({ timeout: 30_000 });
+      .toBeVisible({ timeout: 60_000 });
+    await expect(h2.shell.getByRole('tab', { name: /survives-restart/ })).toBeVisible({ timeout: 60_000 });
   } finally {
     await h2.app.close();
     rmSync(userDataDir, { recursive: true, force: true });
