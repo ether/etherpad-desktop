@@ -79,11 +79,24 @@ test('relaunching restores workspaces, the active workspace, and open tabs', asy
       await expect(h2.shell.getByRole('tab', { name: /survives-restart/ })).toBeVisible();
     } catch (err) {
       const diag = await h2.shell.evaluate(() => {
-        const store = (globalThis as { __test_useShellStore?: { getState: () => unknown } }).__test_useShellStore;
+        // page.evaluate runs in the browser, but the e2e tsconfig only
+        // ships ES2022 (no DOM lib). Cast through globalThis to reach
+        // browser-only globals.
+        const g = globalThis as {
+          __test_useShellStore?: { getState: () => unknown };
+          document?: {
+            body?: { innerText?: string };
+            querySelectorAll: (sel: string) => Array<{ getAttribute(name: string): string | null }>;
+          };
+        };
+        const store = g.__test_useShellStore;
+        const doc = g.document;
         return {
           storeState: store ? store.getState() : null,
-          bodyText: (document.body?.innerText ?? '').slice(0, 2000),
-          openDialogs: Array.from(document.querySelectorAll('[role="dialog"]')).map((d) => d.getAttribute('aria-labelledby')),
+          bodyText: (doc?.body?.innerText ?? '').slice(0, 2000),
+          openDialogs: doc
+            ? Array.from(doc.querySelectorAll('[role="dialog"]')).map((d) => d.getAttribute('aria-labelledby'))
+            : [],
         };
       }).catch(() => null);
       // eslint-disable-next-line no-console
