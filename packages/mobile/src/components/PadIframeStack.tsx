@@ -35,6 +35,7 @@ export function PadIframeStack(): React.JSX.Element {
   const workspaces = useShellStore((s) => s.workspaces);
   const openDialog = useShellStore((s) => s.openDialog);
   const settings = useShellStore((s) => s.settings);
+  const railCollapsed = useShellStore((s) => s.railCollapsed);
 
   const workspace = workspaces.find((w) => w.id === activeWorkspaceId);
   const lang = settings?.language ?? 'en';
@@ -70,6 +71,22 @@ export function PadIframeStack(): React.JSX.Element {
 
   if (!workspace) return <></>;
 
+  // Mobile drawer pattern: when the rail is expanded AND there's a pad
+  // visible, tapping anywhere in the pad area should collapse the rail
+  // (focus mode) rather than do nothing. We paint a transparent capture
+  // div above the iframes that consumes the first tap, collapses the
+  // rail, then unmounts itself so subsequent taps go through to the pad.
+  // Hidden when no active pad (no useful collapse target) or when a
+  // dialog is open (dialog handles its own backdrop).
+  const showCollapseScrim = !railCollapsed
+    && !dialogOpen
+    && visibleTabs.some((t) => t.tabId === activeTabId);
+  const collapseRailOnTap = (): void => {
+    // Store update only — App.tsx's useEffect on railCollapsed fires the
+    // IPC call which persists this through to windowState.
+    useShellStore.getState().setRailCollapsed(true);
+  };
+
   return (
     <div
       data-testid="pad-iframe-stack"
@@ -98,6 +115,24 @@ export function PadIframeStack(): React.JSX.Element {
           />
         );
       })}
+      {showCollapseScrim && (
+        <div
+          data-testid="rail-collapse-scrim"
+          aria-hidden="true"
+          onPointerDown={collapseRailOnTap}
+          style={{
+            position: 'absolute',
+            inset: 0,
+            // Transparent — purely a tap target. CSS makes it sit above the
+            // iframes (z-index) but below any dialog.
+            zIndex: 5,
+            background: 'transparent',
+            // touchAction prevents the browser's default scroll-on-touch so
+            // the gesture lands on this scrim, not the page below.
+            touchAction: 'none',
+          }}
+        />
+      )}
     </div>
   );
 }

@@ -11,6 +11,7 @@ export type DialogKind =
   | 'openByUrl'
   | 'settings'
   | 'removeWorkspace'
+  | 'clearAllHistory'
   | 'httpAuth'
   | 'about'
   | 'quickSwitcher'
@@ -35,12 +36,14 @@ export type ShellState = {
     workspaceOrder: string[];
     settings: Settings;
     padHistory?: Record<string, PadHistoryEntry[]>;
+    railCollapsed?: boolean;
   }): void;
   setActiveWorkspaceId(id: string | null): void;
   replaceTabs(tabs: OpenTab[]): void;
   setActiveTabId(id: string | null): void;
   setPadHistory(workspaceId: string, entries: PadHistoryEntry[]): void;
   toggleRailCollapsed(): void;
+  setRailCollapsed(value: boolean): void;
 };
 
 const initialState = {
@@ -66,6 +69,7 @@ export const useShellStore = create<ShellState>()((set) => ({
       workspaceOrder: input.workspaceOrder,
       settings: input.settings,
       ...(input.padHistory ? { padHistory: input.padHistory } : {}),
+      ...(input.railCollapsed !== undefined ? { railCollapsed: input.railCollapsed } : {}),
     }),
   setActiveWorkspaceId: (id) => set({ activeWorkspaceId: id }),
   replaceTabs: (tabs) => set({ tabs }),
@@ -73,6 +77,7 @@ export const useShellStore = create<ShellState>()((set) => ({
   setPadHistory: (workspaceId, entries) =>
     set((s) => ({ padHistory: { ...s.padHistory, [workspaceId]: entries } })),
   toggleRailCollapsed: () => set((s) => ({ railCollapsed: !s.railCollapsed })),
+  setRailCollapsed: (value) => set({ railCollapsed: value }),
 }));
 
 // Allow tests to reset the store to its initial state

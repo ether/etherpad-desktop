@@ -53,7 +53,9 @@ export function createCapacitorPlatform(): Platform {
           // Restore persisted tab state into the tab-store so the shell's
           // first `onTabsChanged` subscription receives the prior session's
           // tabs. Returns the last-active workspace id so App.tsx can
-          // prefer it over `workspaceOrder[0]`.
+          // prefer it over `workspaceOrder[0]`, plus the rail-collapsed
+          // state so reopening the app keeps focus mode if the user was
+          // in it.
           const restored = await tabStore.loadFromStorage();
           const activeWorkspaceId =
             restored.activeWorkspaceId && workspaces.some((w) => w.id === restored.activeWorkspaceId)
@@ -65,6 +67,7 @@ export function createCapacitorPlatform(): Platform {
             settings,
             padHistory,
             ...(activeWorkspaceId ? { activeWorkspaceId } : {}),
+            railCollapsed: restored.railCollapsed,
           };
         }),
     },
@@ -112,7 +115,12 @@ export function createCapacitorPlatform(): Platform {
         return ok;
       },
       setPadViewsHidden: () => ok,
-      setRailCollapsed: () => ok,
+      setRailCollapsed: (collapsed) => {
+        // Mobile persists rail-collapsed alongside the rest of windowState
+        // so reopening the app remembers focus mode.
+        tabStore.setRailCollapsed(collapsed);
+        return ok;
+      },
     },
     padHistory: {
       list: (input) => wrap(() => padHistoryStore.list(input)),

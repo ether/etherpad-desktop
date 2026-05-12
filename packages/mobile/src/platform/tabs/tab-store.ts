@@ -54,6 +54,7 @@ const emitter = new Emitter<TabEvents>();
 const tabs = new Map<string, OpenTab>();
 let activeTabId: string | null = null;
 let activeWorkspaceId: string | null = null;
+let railCollapsed = false;
 
 function snapshot(): TabsChangedPayload {
   return { tabs: Array.from(tabs.values()), activeTabId };
@@ -74,6 +75,7 @@ function scheduleSave(): void {
       })),
       activeTabId,
       activeWorkspaceId,
+      railCollapsed,
     })
     .catch((err: unknown) => {
       console.warn('[mobile/tab-store] windowState save failed:', err);
@@ -90,7 +92,10 @@ function emitChanged(): void {
  * `state.getInitial()`. Fires `tabsChanged` so any subscribers already
  * mounted see the restored set.
  */
-export async function loadFromStorage(): Promise<{ activeWorkspaceId: string | null }> {
+export async function loadFromStorage(): Promise<{
+  activeWorkspaceId: string | null;
+  railCollapsed: boolean;
+}> {
   const persisted = await tabPersistence.load();
   tabs.clear();
   for (const t of persisted.tabs) {
@@ -104,16 +109,24 @@ export async function loadFromStorage(): Promise<{ activeWorkspaceId: string | n
   }
   activeTabId = persisted.activeTabId;
   activeWorkspaceId = persisted.activeWorkspaceId;
+  railCollapsed = persisted.railCollapsed;
   // Don't scheduleSave here — we just loaded; saving would be a no-op
   // but emit so anyone already subscribed picks up the restored state.
   emitter.emit('tabsChanged', snapshot());
-  return { activeWorkspaceId };
+  return { activeWorkspaceId, railCollapsed };
 }
 
 /** Called when the user (or App.tsx boot) sets a new active workspace. */
 export function setActiveWorkspace(workspaceId: string | null): void {
   if (activeWorkspaceId === workspaceId) return;
   activeWorkspaceId = workspaceId;
+  scheduleSave();
+}
+
+/** Persist the rail-collapsed state so the shell remembers it across kills. */
+export function setRailCollapsed(value: boolean): void {
+  if (railCollapsed === value) return;
+  railCollapsed = value;
   scheduleSave();
 }
 

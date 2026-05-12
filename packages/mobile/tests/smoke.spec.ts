@@ -243,6 +243,62 @@ test('persisted windowState restores the active pad on reopen', async ({ page })
   await expect(iframe).toBeVisible();
 });
 
+test('persisted railCollapsed restores focus mode on reopen', async ({ page }) => {
+  // The "tapping pad collapses rail" UX wires through windowState — when
+  // the user collapses the rail, we persist the boolean alongside open
+  // tabs. On boot, getInitial returns it, App.tsx's hydrate copies it
+  // into the store, and the wrapper picks up the `rail-collapsed` class.
+  await page.addInitScript(seedWorkspace);
+  await page.addInitScript(() => {
+    const ws = '00000000-0000-4000-8000-000000000001';
+    const tabId = `${ws}::focus-mode`;
+    localStorage.setItem(
+      'CapacitorStorage.etherpad:windowState',
+      JSON.stringify({
+        schemaVersion: 1,
+        tabs: [{ tabId, workspaceId: ws, padName: 'focus-mode' }],
+        activeTabId: tabId,
+        activeWorkspaceId: ws,
+        railCollapsed: true,
+      }),
+    );
+  });
+  await page.goto('/');
+  // App.tsx applies the rail-collapsed class on hydrate.
+  await expect(page.locator('.shell-root-wrapper')).toHaveClass(/rail-collapsed/, {
+    timeout: 5_000,
+  });
+});
+
+test('tapping the pad area collapses the rail (mobile drawer dismiss)', async ({ page }) => {
+  // Mobile UX: when the rail is expanded AND a pad is showing, tapping
+  // the pad area should collapse the rail (focus mode). The capture
+  // scrim is a transparent div above the iframes that consumes the
+  // first pointer event.
+  await page.addInitScript(seedWorkspace);
+  await page.goto('/');
+  await expect(
+    page.getByRole('button', { name: /open instance acme/i }),
+  ).toBeVisible({ timeout: 15_000 });
+
+  // Open a pad. The Phase 7 auto-collapse fires here, so we explicitly
+  // re-expand the rail to exercise the tap-to-collapse path.
+  await openPad(page, WS_ID, 'tap-to-collapse');
+  await expect(page.locator('.shell-root-wrapper')).toHaveClass(/rail-collapsed/);
+  await page.getByRole('button', { name: /show instances/i }).click();
+  await expect(page.locator('.shell-root-wrapper')).not.toHaveClass(/rail-collapsed/);
+
+  // The capture scrim should now be present (rail expanded + pad active).
+  const scrim = page.getByTestId('rail-collapse-scrim');
+  await expect(scrim).toBeAttached({ timeout: 5_000 });
+
+  // Tap it. The pointer-down handler should collapse the rail and the
+  // scrim should unmount itself (it's gated on railCollapsed === false).
+  await scrim.click();
+  await expect(page.locator('.shell-root-wrapper')).toHaveClass(/rail-collapsed/);
+  await expect(scrim).not.toBeAttached();
+});
+
 // X-Frame-Options DENY / SAMEORIGIN detection from pure JS is unreliable
 // — Chromium fires `onLoad` for blocked iframes too. The robust escape hatch
 // lives in the native WebChromeClient hook scheduled for Phase 6b. No test

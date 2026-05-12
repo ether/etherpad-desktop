@@ -85,6 +85,11 @@ export type InitialState = {
    *  `rememberOpenTabsOnQuit` flow; desktop main can populate it too if
    *  it persists window state. Omitted on first launch (no prior session). */
   activeWorkspaceId?: string;
+  /** Whether the workspace rail was collapsed when the app last closed.
+   *  Mobile persists this so reopening the app keeps focus mode. Desktop
+   *  doesn't persist it (yet) — the field is optional so omitting it on
+   *  desktop is fine; App.tsx defaults to `false`. */
+  railCollapsed?: boolean;
 };
 
 export type TabSummary = OpenTab & { tabId: string };

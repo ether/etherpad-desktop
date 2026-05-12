@@ -189,7 +189,7 @@ export function SettingsDialog(): React.JSX.Element | null {
         />
         <span className="settings-label" style={{ color: 'var(--text)' }}>{t.settings.minimizeToTray}</span>
       </label>
-      <button onClick={() => void ipc.padHistory.clearAll()}>{t.settings.clearAllHistory}</button>
+      <button onClick={() => dialogActions.openDialog('clearAllHistory')}>{t.settings.clearAllHistory}</button>
       <section>
         <h3>{t.workspaceRow.sectionHeading}</h3>
         {workspaces.map((ws) => (

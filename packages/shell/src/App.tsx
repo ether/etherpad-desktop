@@ -10,6 +10,7 @@ import { OpenPadDialog } from './dialogs/OpenPadDialog.js';
 import { OpenByUrlDialog } from './dialogs/OpenByUrlDialog.js';
 import { SettingsDialog } from './dialogs/SettingsDialog.js';
 import { RemoveWorkspaceDialog } from './dialogs/RemoveWorkspaceDialog.js';
+import { ClearAllHistoryDialog } from './dialogs/ClearAllHistoryDialog.js';
 import { HttpAuthDialog } from './dialogs/HttpAuthDialog.js';
 import { AboutDialog } from './dialogs/AboutDialog.js';
 import { QuickSwitcherDialog } from './dialogs/QuickSwitcherDialog.js';
@@ -61,6 +62,9 @@ export function App({ padView }: AppProps = {}): React.JSX.Element {
     void (async () => {
       const initial = await ipc.state.getInitial();
       useShellStore.getState().hydrate(initial);
+      // initial.railCollapsed is read by hydrate above; no further work
+      // needed here. It's optional in the contract — desktop omits it,
+      // mobile populates it from windowState.
       const { setLanguage } = await import('./i18n/index.js');
       setLanguage(initial.settings.language);
       applySettings(initial.settings);
@@ -261,6 +265,7 @@ export function App({ padView }: AppProps = {}): React.JSX.Element {
       {openDialog === 'openByUrl' && <OpenByUrlDialog />}
       {openDialog === 'settings' && <SettingsDialog />}
       {openDialog === 'removeWorkspace' && <RemoveWorkspaceDialog />}
+      {openDialog === 'clearAllHistory' && <ClearAllHistoryDialog />}
       {openDialog === 'httpAuth' && <HttpAuthDialog />}
       {openDialog === 'about' && <AboutDialog />}
       {openDialog === 'quickSwitcher' && <QuickSwitcherDialog />}

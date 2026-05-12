@@ -17,6 +17,7 @@ describe('i18n: en dictionary shape', () => {
       [
         'addWorkspace',
         'app',
+        'clearAllHistory',
         'emptyState',
         'errorBoundary',
         'httpAuth',
