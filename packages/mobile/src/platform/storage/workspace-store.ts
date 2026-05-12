@@ -10,6 +10,24 @@ export interface WorkspacesFile {
   order: string[];
 }
 
+export interface WorkspacesChangedPayload {
+  workspaces: Workspace[];
+  order: string[];
+}
+
+const listeners = new Set<(payload: WorkspacesChangedPayload) => void>();
+
+function emitChanged(payload: WorkspacesChangedPayload): void {
+  for (const l of listeners) l(payload);
+}
+
+export function onChanged(l: (payload: WorkspacesChangedPayload) => void): () => void {
+  listeners.add(l);
+  return () => {
+    listeners.delete(l);
+  };
+}
+
 async function load(): Promise<WorkspacesFile> {
   const file = await loadJson(KEY, workspacesFileSchema);
   return file ?? { schemaVersion: 1, workspaces: [], order: [] };
@@ -17,6 +35,7 @@ async function load(): Promise<WorkspacesFile> {
 
 async function save(file: WorkspacesFile): Promise<void> {
   await saveJson(KEY, workspacesFileSchema, file);
+  emitChanged({ workspaces: file.workspaces, order: file.order });
 }
 
 export async function list(): Promise<{ workspaces: Workspace[]; order: string[] }> {

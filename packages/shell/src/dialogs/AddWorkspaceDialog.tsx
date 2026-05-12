@@ -24,9 +24,21 @@ export function AddWorkspaceDialog({ dismissable }: { dismissable: boolean }): R
     setBusy(true);
     setError(null);
     try {
-      const ws = embedded
-        ? await ipc.workspace.add({ name, color, kind: 'embedded' })
-        : await ipc.workspace.add({ name, serverUrl, color });
+      let ws;
+      if (embedded) {
+        // Embedded workspaces skip the URL probe; the local Etherpad
+        // assigns its own URL once the server boots.
+        ws = await ipc.workspace.add({ name, color, kind: 'embedded' });
+      } else {
+        // Auto-prefix `https://` when the user types a bare hostname.
+        // The probe rejects URLs without a scheme as UrlValidationError,
+        // and typing `https://` on every workspace add is friction —
+        // especially on mobile.
+        const normalisedUrl = /^[a-z]+:\/\//i.test(serverUrl.trim())
+          ? serverUrl.trim()
+          : `https://${serverUrl.trim()}`;
+        ws = await ipc.workspace.add({ name, serverUrl: normalisedUrl, color });
+      }
       useShellStore.getState().setActiveWorkspaceId(ws.id);
       await ipc.window.setActiveWorkspace(ws.id);
       dialogActions.closeDialog();

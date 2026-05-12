@@ -103,15 +103,11 @@ describe('DialogShell', () => {
     expect(dialog).toHaveAttribute('aria-labelledby', 'my-label');
   });
 
-  it('applies custom width via style', () => {
-    render(
-      <DialogShell labelledBy="test-title" width={600}>
-        <h2 id="test-title">Wide</h2>
-      </DialogShell>,
-    );
-    const panel = screen.getByRole('dialog');
-    expect(panel).toHaveStyle({ width: '600px' });
-  });
+  // Width-as-style is now `min(${width}px, calc(100vw - 16px))` so the panel
+  // shrinks on narrow viewports. jsdom drops `min()` while parsing CSS so
+  // a unit assertion isn't meaningful; the behaviour is exercised in
+  // mobile's Playwright smoke tests where a real Chromium handles the
+  // viewport math.
 
   // REGRESSION: 2026-05-05 — without a focus trap, Tab/Shift+Tab inside an
   // open dialog could escape into the embedded WebContentsView (the pad) or

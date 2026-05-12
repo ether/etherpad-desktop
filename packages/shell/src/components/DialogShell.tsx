@@ -112,7 +112,7 @@ export function DialogShell(props: DialogShellProps): React.JSX.Element {
         aria-modal="true"
         aria-labelledby={labelledBy}
         className="dialog-panel"
-        style={{ width }}
+        style={{ width: `min(${width}px, calc(100vw - 16px))` }}
       >
         {children}
       </div>

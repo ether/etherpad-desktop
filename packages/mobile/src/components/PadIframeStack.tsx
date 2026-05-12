@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { useShellStore } from '@etherpad/shell/state';
 import { padUrl } from '@shared/url';
 import { onReload, markLoaded, markError } from '../platform/tabs/tab-store.js';
-import { PadActionsOverlay } from './PadActionsOverlay.js';
 
 /**
  * Mobile pad rendering: one DOM `<iframe>` per open tab, exactly one visible
@@ -21,9 +20,13 @@ import { PadActionsOverlay } from './PadActionsOverlay.js';
  * Language switching reloads the iframe via a `?lang=<code>` query param
  * in the src — mirrors desktop's `webContents.loadURL` rule.
  *
- * X-Frame-Options DENY isn't handled here yet — Phase 6 adds an
- * `@capacitor/browser` fallback that opens the pad in the system in-app
- * browser when embedding is refused.
+ * X-Frame-Options DENY / SAMEORIGIN: Chromium fires `onLoad` for blocked
+ * iframes too (with about:blank content), so we can't reliably detect
+ * blocked embedding from JS. The robust path is a native
+ * WebChromeClient.onReceivedHttpError hook, which lands with the
+ * permissions plugin in Phase 6b. Until then the user's escape hatch is
+ * "Open in browser" — exposed via a long-press / overflow menu (TODO),
+ * not a forced top-right button.
  */
 export function PadIframeStack(): React.JSX.Element {
   const tabs = useShellStore((s) => s.tabs);
@@ -35,6 +38,20 @@ export function PadIframeStack(): React.JSX.Element {
 
   const workspace = workspaces.find((w) => w.id === activeWorkspaceId);
   const lang = settings?.language ?? 'en';
+  const userName = settings?.userName ?? '';
+
+  /**
+   * Build the iframe src for a pad. Includes `?lang=` always; appends
+   * `&userName=` when the user has set a display name in Settings —
+   * Etherpad reads this query param to populate the guest user's name
+   * without requiring the user to set it inside the pad UI every time.
+   */
+  const buildSrc = (padName: string): string => {
+    const base = padUrl(workspace!.serverUrl, padName);
+    const params = new URLSearchParams({ lang });
+    if (userName) params.set('userName', userName);
+    return `${base}?${params.toString()}`;
+  };
 
   // Per-tab reload counter so platform.tab.reload() forces the iframe to
   // remount (changing the src isn't enough if the URL is identical).
@@ -53,20 +70,13 @@ export function PadIframeStack(): React.JSX.Element {
 
   if (!workspace) return <></>;
 
-  const activeTab = visibleTabs.find((t) => t.tabId === activeTabId);
-  const activePadUrl = activeTab
-    ? `${padUrl(workspace.serverUrl, activeTab.padName)}?lang=${encodeURIComponent(lang)}`
-    : null;
-  const showActions = activeTab !== undefined && !dialogOpen;
-
   return (
     <div
       data-testid="pad-iframe-stack"
       style={{ position: 'absolute', inset: 0 }}
     >
       {visibleTabs.map((tab) => {
-        const baseSrc = padUrl(workspace.serverUrl, tab.padName);
-        const src = `${baseSrc}?lang=${encodeURIComponent(lang)}`;
+        const src = buildSrc(tab.padName);
         const isActive = tab.tabId === activeTabId && !dialogOpen;
         const reloadKey = reloadKeys[tab.tabId] ?? 0;
         return (
@@ -88,9 +98,6 @@ export function PadIframeStack(): React.JSX.Element {
           />
         );
       })}
-      {showActions && activeTab && activePadUrl ? (
-        <PadActionsOverlay url={activePadUrl} title={activeTab.title ?? activeTab.padName} />
-      ) : null}
     </div>
   );
 }
