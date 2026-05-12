@@ -270,6 +270,66 @@ test('persisted railCollapsed restores focus mode on reopen', async ({ page }) =
   });
 });
 
+test('stored railCollapsed is ignored when there are no open pads', async ({ page }) => {
+  // The stored preference is the user's intent, but "focus mode" only
+  // makes sense when there's a pad to focus on. On boot with rail-
+  // collapsed=true and no tabs, the rail should still render — otherwise
+  // the user lands on a mostly-empty screen with no obvious way to add
+  // a pad. Seed BOTH the workspace and a stored railCollapsed=true with
+  // ZERO persisted tabs.
+  await page.addInitScript(seedWorkspace);
+  await page.addInitScript(() => {
+    localStorage.setItem(
+      'CapacitorStorage.etherpad:windowState',
+      JSON.stringify({
+        schemaVersion: 1,
+        tabs: [],
+        activeTabId: null,
+        activeWorkspaceId: '00000000-0000-4000-8000-000000000001',
+        railCollapsed: true,
+      }),
+    );
+  });
+  await page.goto('/');
+  // Workspace button is in the rail — must be visible.
+  await expect(
+    page.getByRole('button', { name: /open instance acme/i }),
+  ).toBeVisible({ timeout: 15_000 });
+  // Wrapper does NOT pick up the collapsed class.
+  await expect(page.locator('.shell-root-wrapper')).not.toHaveClass(/rail-collapsed/);
+});
+
+test('closing the last open pad auto-restores the rail', async ({ page }) => {
+  // Open pad → rail auto-collapses (Phase 7 UX). Close the pad → rail
+  // should come back, since "focus mode" has no target. The stored
+  // railCollapsed value can stay true; the effective render flips.
+  await page.addInitScript(seedWorkspace);
+  await page.goto('/');
+  await expect(
+    page.getByRole('button', { name: /open instance acme/i }),
+  ).toBeVisible({ timeout: 15_000 });
+
+  await openPad(page, WS_ID, 'collapse-then-close');
+  await expect(page.locator('.shell-root-wrapper')).toHaveClass(/rail-collapsed/);
+
+  // Close the tab via the platform API (matches what the tab-strip x
+  // button does — close last open pad).
+  const tabId = `${WS_ID}::collapse-then-close`;
+  await page.evaluate((id) => {
+    const platform = (window as unknown as { __test_platform: {
+      tab: { close(input: { tabId: string }): Promise<unknown> };
+    } }).__test_platform;
+    return platform.tab.close({ tabId: id });
+  }, tabId);
+
+  // No tabs → effective collapsed flips to false even though stored
+  // preference is still true. Rail visible, workspace button hittable.
+  await expect(page.locator('.shell-root-wrapper')).not.toHaveClass(/rail-collapsed/, {
+    timeout: 5_000,
+  });
+  await expect(page.getByRole('button', { name: /open instance acme/i })).toBeVisible();
+});
+
 test('tapping the pad area collapses the rail (mobile drawer dismiss)', async ({ page }) => {
   // Mobile UX: when the rail is expanded AND a pad is showing, tapping
   // the pad area should collapse the rail (focus mode). The capture

@@ -551,10 +551,26 @@ input[type="checkbox"] {
 .shell-root-wrapper {
   --rail-width: 64px;
   --sidebar-width: 240px;
+  --shell-collapse-duration: 240ms;
+  --shell-collapse-ease: cubic-bezier(0.4, 0, 0.2, 1);
   position: relative; /* anchors the absolute-positioned collapse handle */
 }
 .shell-root {
   grid-template-columns: var(--rail-width) var(--sidebar-width) 1fr;
+  /* Animate the column collapse so users see the rail+sidebar slide out
+     rather than vanishing instantly. Modern Chromium/Safari/Firefox all
+     transition `grid-template-columns` natively with explicit length
+     values (and the values here resolve from CSS vars to lengths). */
+  transition: grid-template-columns var(--shell-collapse-duration) var(--shell-collapse-ease);
+}
+
+/* Clip overflow on the rail/sidebar cells so their contents are bounded
+   by the animating column width — without this, children paint outside
+   the column while it shrinks past their own width. Replaces the old
+   `display: none` rule, which would skip the transition entirely. */
+.rail-cell,
+.sidebar-cell {
+  overflow: hidden;
 }
 
 /* ── "Focus mode" — both rail AND sidebar hidden, only the pad shows ── */
@@ -569,21 +585,17 @@ input[type="checkbox"] {
      handle button. */
   background: var(--rail-bg);
 }
-/* Hide the wrappers and their children. We had a bug where, with grid
-   columns sized to 0fr, children inside were technically clipped but in
-   some flex/overflow combinations the buttons inside the sidebar (the
-   "+ New Pad" CTA) could still paint. Hiding the wrappers themselves
-   guarantees nothing renders. */
-.shell-root-wrapper.rail-collapsed .rail-cell,
-.shell-root-wrapper.rail-collapsed .sidebar-cell,
-.shell-root-wrapper.rail-collapsed .workspace-rail,
-.shell-root-wrapper.rail-collapsed aside[aria-label] {
-  display: none;
-}
 /* Match the tab strip area in collapsed mode so it doesn't look like a
    different surface from the pad. */
 .shell-root-wrapper.rail-collapsed .shell-root {
   background: var(--rail-bg);
+}
+/* Stop the collapsed cell contents from intercepting clicks during the
+   shrink — `overflow: hidden` clips visually but pointer events on the
+   hidden children still fire in some browsers. Belt-and-braces. */
+.shell-root-wrapper.rail-collapsed .rail-cell,
+.shell-root-wrapper.rail-collapsed .sidebar-cell {
+  pointer-events: none;
 }
 
 /* ── Collapse / expand handle ──
@@ -612,7 +624,7 @@ input[type="checkbox"] {
   line-height: 1;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.22);
   z-index: 5;
-  transition: left 0.15s ease, background-color 0.12s ease, color 0.12s ease;
+  transition: left var(--shell-collapse-duration) var(--shell-collapse-ease), background-color 0.12s ease, color 0.12s ease;
 }
 .shell-collapse-handle:hover {
   background: var(--accent);
