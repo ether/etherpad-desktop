@@ -16,7 +16,7 @@ import { registerIpc } from '../ipc/handlers.js';
 import { serializeWindowsForQuit } from './quit-state.js';
 import { createUpdater } from './updater.js';
 import type { UpdaterController } from './updater.js';
-import { createEmbeddedServer } from '../embedded/embedded-server.js';
+import { createEmbeddedServer, findBundledEtherpadDir } from '../embedded/embedded-server.js';
 import type { EmbeddedServerController } from '../embedded/embedded-server.js';
 import { createPadContentIndex } from '../pads/pad-content-index.js';
 import type { PadContentIndex } from '../pads/pad-content-index.js';
@@ -134,9 +134,26 @@ export async function boot(): Promise<void> {
     },
   });
 
+  // Find the bundled Etherpad source — dev: `packages/desktop/resources/etherpad/`;
+  // packaged: `<resourcesPath>/etherpad/` (electron-builder extraResources).
+  // app.getAppPath() gives the asar/dev root; resourcesPath the packaged location.
+  const etherpadDir = findBundledEtherpadDir({
+    resourcesPath: process.resourcesPath,
+    appRoot: app.getAppPath(),
+  });
+  log.info('embedded etherpad source resolution', {
+    resourcesPath: process.resourcesPath,
+    appRoot: app.getAppPath(),
+    resolved: etherpadDir,
+  });
+  if (!etherpadDir) {
+    log.warn('embedded Etherpad source not bundled; `Use a local server` will fail until ' +
+      '`pnpm --filter @etherpad/desktop fetch:etherpad` is run');
+  }
   const embeddedServer = createEmbeddedServer({
     log,
     userDataDir: userData,
+    ...(etherpadDir ? { etherpadDir } : {}),
   });
 
   // If any persisted workspace is `kind: 'embedded'`, eagerly start the

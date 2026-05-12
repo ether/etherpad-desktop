@@ -1,5 +1,5 @@
 import { spawn, type ChildProcess } from 'node:child_process';
-import { mkdirSync, writeFileSync, createWriteStream } from 'node:fs';
+import { existsSync, mkdirSync, writeFileSync, createWriteStream } from 'node:fs';
 import { join } from 'node:path';
 import type { Logger } from '../logging/logger.js';
 
@@ -17,16 +17,71 @@ export type EmbeddedServerController = {
 };
 
 /**
+ * The path to a Node-runnable executable. In production the Electron
+ * binary doubles as Node when `ELECTRON_RUN_AS_NODE=1` is set, which is
+ * the canonical way Electron apps ship a Node runtime without bundling
+ * a separate copy. Tests inject a plain `node` path.
+ */
+export interface NodeRuntime {
+  execPath: string;
+  /** Extra env vars needed (e.g. `ELECTRON_RUN_AS_NODE=1` for Electron). */
+  env: Record<string, string>;
+}
+
+/** Reasonable default for production Electron apps. */
+export const electronAsNode: NodeRuntime = {
+  execPath: process.execPath,
+  env: { ELECTRON_RUN_AS_NODE: '1' },
+};
+
+/**
+ * Resolve where the bundled Etherpad source lives. In dev (`pnpm dev`) the
+ * fetch script drops it at `packages/desktop/resources/etherpad/`. In a
+ * packaged Electron app electron-builder copies the same tree into
+ * `<resourcesPath>/etherpad/` via `extraResources`.
+ *
+ * Returns `null` when neither location has a `src/node/server.ts` — the
+ * caller surfaces a friendly error rather than asphyxiating on a spawn
+ * failure inside `npx`.
+ */
+export function findBundledEtherpadDir(opts: { resourcesPath?: string; appRoot?: string }): string | null {
+  const candidates: string[] = [];
+  // Packaged app: electron-builder extraResources copies to resourcesPath.
+  if (opts.resourcesPath) candidates.push(join(opts.resourcesPath, 'etherpad'));
+  // Dev/test layouts where main runs from various depths:
+  if (opts.appRoot) {
+    candidates.push(join(opts.appRoot, 'resources', 'etherpad'));
+    // electron-vite's out/main → appRoot may resolve to out/main; resources is at ../../resources
+    candidates.push(join(opts.appRoot, '..', '..', 'resources', 'etherpad'));
+    candidates.push(join(opts.appRoot, '..', 'resources', 'etherpad'));
+  }
+  for (const dir of candidates) {
+    if (existsSync(join(dir, 'src', 'node', 'server.ts'))) return dir;
+  }
+  return null;
+}
+
+/**
  * Singleton-only for v1. Creates an isolated dirty.db settings file under
- * userData/embedded-etherpad/ and spawns `npx etherpad-lite@latest` against
- * it on a random localhost port.
+ * userData/embedded-etherpad/ and spawns the bundled Etherpad source
+ * (`scripts/fetch-etherpad.mjs` is the dev prereq; CI will pre-bundle).
  *
  * Pure function shape — accepts a `spawnFn` and `findFreePortFn` injection
- * so tests can substitute fakes without mocking node:child_process.
+ * so tests can substitute fakes without mocking node:child_process. The
+ * `etherpadDir` is also injectable for tests; in production it's resolved
+ * via `findBundledEtherpadDir` at call sites.
  */
 export function createEmbeddedServer(opts: {
   log: Logger;
   userDataDir: string;
+  /** Path containing `src/node/server.ts`. When omitted, `start()` throws. */
+  etherpadDir?: string;
+  /**
+   * Node runtime to spawn (defaults to Electron-as-Node so production
+   * doesn't need system node installed). Tests pass `{ execPath: 'node',
+   * env: {} }` to keep spawn args simple.
+   */
+  nodeRuntime?: NodeRuntime;
   spawnFn?: typeof spawn;
   findFreePortFn?: () => Promise<number>;
 }): EmbeddedServerController {
@@ -94,28 +149,53 @@ export function createEmbeddedServer(opts: {
       // on EPD_LOG_EMBEDDED which nobody knew to set.
       const logPath = join(logsDir, 'embedded-etherpad.log');
       const logStream = createWriteStream(logPath, { flags: 'a' });
-      logStream.write(`\n--- embedded etherpad start @ ${new Date().toISOString()} (port ${port}) ---\n`);
+      // Also copy to a stable /tmp path so e2e failure diagnostics survive
+      // the test runner's cleanup of userDataDir. EPD_EMBEDDED_DEBUG=1 enables.
+      const debugPath = process.env.EPD_EMBEDDED_DEBUG ? '/tmp/epd-embedded-debug.log' : null;
+      const debugStream = debugPath ? createWriteStream(debugPath, { flags: 'w' }) : null;
+      const teeAll = (s: string | Buffer): void => {
+        logStream.write(s);
+        debugStream?.write(s);
+      };
+      teeAll(`\n--- embedded etherpad start @ ${new Date().toISOString()} (port ${port}) ---\n`);
       opts.log.info('starting embedded etherpad', { port, logPath });
 
+      if (!opts.etherpadDir) {
+        throw new Error(
+          'Etherpad source not bundled. Run `pnpm fetch:etherpad` in packages/desktop ' +
+            'to install it locally, or wait for the CI-bundled release.',
+        );
+      }
+      const etherpadSrc = join(opts.etherpadDir, 'src');
+      const node = opts.nodeRuntime ?? electronAsNode;
+      const spawnMeta = `--- spawn cwd=${etherpadSrc} exec=${node.execPath} env+=${JSON.stringify(node.env)} ---\n`;
+      teeAll(spawnMeta);
+      opts.log.info('spawning embedded etherpad', { execPath: node.execPath, cwd: etherpadSrc });
       proc = spawnImpl(
-        'npx',
-        ['--yes', 'etherpad-lite@latest', '--settings', settingsPath],
+        node.execPath,
+        ['--require', 'tsx/cjs', 'node/server.ts', '--settings', settingsPath],
         {
-          cwd: dataDir,
+          cwd: etherpadSrc,
           stdio: ['ignore', 'pipe', 'pipe'],
-          env: { ...process.env, NODE_ENV: 'production' },
+          env: { ...process.env, ...node.env, NODE_ENV: 'production' },
         },
       );
-      proc.stdout?.on('data', (b: Buffer) => { logStream.write(b); });
+      proc.on('error', (err) => {
+        teeAll(`--- spawn error: ${err.message} ---\n`);
+        opts.log.error('embedded spawn error', { message: err.message });
+      });
+      proc.stdout?.on('data', (b: Buffer) => { teeAll(b); });
       proc.stderr?.on('data', (b: Buffer) => {
-        logStream.write(b);
+        teeAll(b);
         const chunk = b.toString();
         stderrTail = (stderrTail + chunk).slice(-stderrTailLimit);
         if (process.env.EPD_LOG_EMBEDDED) process.stderr.write(`[embedded] ${chunk}`);
       });
       proc.on('exit', (code, signal) => {
         opts.log.warn('embedded etherpad exited', { code, signal });
-        logStream.end(`--- exited code=${code} signal=${signal} ---\n`);
+        const exitMsg = `--- exited code=${code} signal=${signal} ---\n`;
+        logStream.end(exitMsg);
+        debugStream?.end(exitMsg);
         if (s.kind === 'starting') {
           // Exit before readiness — record so waitForReachable can fail fast
           // instead of polling for the full timeout.
@@ -128,11 +208,12 @@ export function createEmbeddedServer(opts: {
       });
 
       const url = `http://127.0.0.1:${port}`;
-      // 8 minutes: cold-start `npx etherpad-lite@latest` downloads a multi-
-      // hundred-MB tarball before the server even begins booting. 240s was
-      // not enough on slower connections — users saw the "Starting…" dialog
-      // hang and gave up.
-      await waitForReachable(url, 480_000, () => exitedEarly, () => stderrTail);
+      // 120 seconds: bundled-source spawn skips the npx download but
+      // Etherpad's own boot does tsx-compile of every TS file on first
+      // run (~30-60s cold, much faster warm). Slow disks / busy CPU
+      // can push that further. Previously 480s when we did the npx
+      // download; 90s was too tight under e2e jitter.
+      await waitForReachable(url, 120_000, () => exitedEarly, () => stderrTail);
       serverUrl = url;
       s = { kind: 'running', url };
       return url;

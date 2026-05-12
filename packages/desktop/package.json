@@ -22,6 +22,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "node scripts/run-e2e.mjs",
+    "fetch:etherpad": "node scripts/fetch-etherpad.mjs",
     "package": "electron-vite build && electron-builder --linux --config build/electron-builder.yml",
     "package:win": "electron-vite build && electron-builder --win --config build/electron-builder.yml",
     "package:linux": "electron-vite build && electron-builder --linux --config build/electron-builder.yml",

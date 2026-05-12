@@ -18,6 +18,8 @@ jobs:
           cache: pnpm
       - name: Install
         run: pnpm install --frozen-lockfile
+      - name: Fetch + install bundled Etherpad source (embedded server)
+        run: pnpm --filter @etherpad/desktop fetch:etherpad
       - name: Build
         run: pnpm build
       - name: Package
@@ -53,6 +55,8 @@ jobs:
           cache: pnpm
       - name: Install
         run: pnpm install --frozen-lockfile
+      - name: Fetch + install bundled Etherpad source (embedded server)
+        run: pnpm --filter @etherpad/desktop fetch:etherpad
       - name: Build
         run: pnpm build
       - name: Package
@@ -89,6 +93,8 @@ jobs:
           cache: pnpm
       - name: Install
         run: pnpm install --frozen-lockfile
+      - name: Fetch + install bundled Etherpad source (embedded server)
+        run: pnpm --filter @etherpad/desktop fetch:etherpad
       - name: Build
         run: pnpm build
       - name: Package
