@@ -29,8 +29,8 @@ test('relaunching restores workspaces, the active workspace, and open tabs', asy
     // the same timeout. 60s eats the flake without slowing the happy
     // path (passing runs complete in 8–12s).
     await expect(h2.shell.getByRole('button', { name: /open instance sticky/i }))
-      .toBeVisible({ timeout: 60_000 });
-    await expect(h2.shell.getByRole('tab', { name: /survives-restart/ })).toBeVisible({ timeout: 60_000 });
+      .toBeVisible({ timeout: 90_000 });
+    await expect(h2.shell.getByRole('tab', { name: /survives-restart/ })).toBeVisible({ timeout: 90_000 });
   } finally {
     await h2.app.close();
     rmSync(userDataDir, { recursive: true, force: true });

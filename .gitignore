@@ -12,3 +12,8 @@ playwright-report/
 test-results/
 .broken-*.json
 *.tsbuildinfo
+
+# White-label brand config: forks copy brand.example.json → brand.json
+# and edit; the result stays local so a fork's identity doesn't leak
+# into upstream PRs.
+brand.json

@@ -108,8 +108,14 @@ test('Clear All History wipes pad history in the sidebar', async () => {
 
     await h.shell.getByRole('button', { name: /clear all pad history/i }).click();
 
-    // Close settings
-    await h.shell.getByRole('button', { name: /^cancel$/i }).click();
+    // The button now opens a confirmation dialog (the action is
+    // destructive — wiping every pinned + recent pad across all
+    // instances). Confirm to actually clear.
+    await expect(h.shell.getByRole('heading', { name: /clear all pad history\?/i })).toBeVisible();
+    await h.shell.getByRole('button', { name: /^clear all history$/i }).click();
+
+    // Confirmation closes itself + the Settings dialog underneath was
+    // already replaced by it. No dialogs remain.
     await expect(h.shell.getByRole('dialog')).toHaveCount(0);
 
     // Sidebar should no longer show the pad in recent (neither open nor pin button)
