@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.2](https://github.com/ether/etherpad-desktop/compare/v0.4.1...v0.4.2) (2026-05-12)
+
+
+### Bug Fixes
+
+* **release:** override package name via extraMetadata for build templates ([#49](https://github.com/ether/etherpad-desktop/issues/49)) ([6216aed](https://github.com/ether/etherpad-desktop/commit/6216aed5381cc3120b269964692a6e5d2e2bf738))
+
 ## [0.4.1](https://github.com/ether/etherpad-desktop/compare/v0.4.0...v0.4.1) (2026-05-12)
 
 
