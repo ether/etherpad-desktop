@@ -1,7 +1,7 @@
 {
   "name": "@etherpad/desktop",
   "private": true,
-  "version": "0.4.3",
+  "version": "0.4.4",
   "description": "Native desktop client for Etherpad",
   "license": "Apache-2.0",
   "author": "Etherpad Foundation",

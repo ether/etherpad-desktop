@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.4](https://github.com/ether/etherpad-desktop/compare/v0.4.3...v0.4.4) (2026-05-12)
+
+
+### Bug Fixes
+
+* **release:** use pnpm hoisted node-linker for etherpad bundle (Windows) ([#54](https://github.com/ether/etherpad-desktop/issues/54)) ([39a96be](https://github.com/ether/etherpad-desktop/commit/39a96bee99835284038c8805d9c63a06c97106d7))
+
 ## [0.4.3](https://github.com/ether/etherpad-desktop/compare/v0.4.2...v0.4.3) (2026-05-12)
 
 
