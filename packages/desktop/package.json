@@ -31,7 +31,7 @@
   },
   "dependencies": {
     "@etherpad/shell": "workspace:*",
-    "electron-log": "^5.4.3",
+    "electron-log": "^5.4.4",
     "electron-store": "^11.0.2",
     "electron-updater": "^6.8.3",
     "react": "^19.2.0",
