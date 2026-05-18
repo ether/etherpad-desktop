@@ -25,7 +25,7 @@
     "@capacitor/preferences": "^8.0.1",
     "@capacitor/share": "^8.0.1",
     "@etherpad/shell": "workspace:*",
-    "react": "^19.2.0",
+    "react": "^19.2.6",
     "react-dom": "^19.2.0",
     "zod": "^4.4.3"
   },
