@@ -82,7 +82,11 @@ describe('live server smoke (shell HTTP contract)', () => {
 
       const got = await api<{ text: string }>('getText', { padID });
       expect(got.code, got.message).toBe(0);
-      expect(got.data.text).toBe(text);
+      // Etherpad guarantees a pad's text ends with exactly one trailing
+      // newline, so setting "X\n" reads back as "X\n\n". Normalize the
+      // trailing newline(s) on both sides before comparing.
+      const trimTrailing = (s: string) => s.replace(/\n*$/, '\n');
+      expect(trimTrailing(got.data.text)).toBe(trimTrailing(text));
     } finally {
       // Guaranteed cleanup even if an assertion above throws; swallow delete
       // errors so cleanup never masks the real failure.
