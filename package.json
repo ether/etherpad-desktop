@@ -26,6 +26,8 @@
     "lint": "pnpm -r --workspace-concurrency=1 lint",
     "format": "pnpm --filter @etherpad/desktop format",
     "test": "pnpm -r --workspace-concurrency=1 test",
+    "test:vectors": "pnpm --filter @etherpad/shell exec vitest run tests/wire/vectors.spec.ts",
+    "test:smoke": "pnpm --filter @etherpad/shell exec vitest run tests/wire/smoke.spec.ts",
     "test:watch": "pnpm --filter @etherpad/desktop test:watch",
     "test:e2e": "pnpm --filter @etherpad/desktop test:e2e",
     "mobile:dev": "pnpm --filter @etherpad/mobile dev",
