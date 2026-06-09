@@ -51,13 +51,15 @@ async function api<T>(fn: string, params: Record<string, string>): Promise<ApiRe
 let serverUp = false;
 
 beforeAll(async () => {
-  serverUp = await reachable();
+  // No key means the smoke can't run, so don't waste a network call + timeout
+  // probing reachability — it can't change the (skip) outcome.
+  if (APIKEY) serverUp = await reachable();
 });
 
 describe('live server smoke (shell HTTP contract)', () => {
   it('completes a create -> fetch /p/<pad> -> getText roundtrip', async () => {
     if (!serverUp || !APIKEY) {
-      const why = !serverUp ? `no Etherpad reachable at ${BASE}` : `ETHERPAD_SMOKE_APIKEY not set`;
+      const why = !APIKEY ? `ETHERPAD_SMOKE_APIKEY not set` : `no Etherpad reachable at ${BASE}`;
       console.warn(
         `[smoke] ${why} — skipping live smoke test. ` +
           `Set ETHERPAD_SMOKE_URL + ETHERPAD_SMOKE_APIKEY to run it.`,
@@ -71,16 +73,20 @@ describe('live server smoke (shell HTTP contract)', () => {
     const created = await api<null>('createPad', { padID, text });
     expect(created.code, created.message).toBe(0);
 
-    // The exact URL the shell loads in its webview.
-    const padRes = await fetch(`${BASE}/p/${encodeURIComponent(padID)}`, {
-      signal: AbortSignal.timeout(5000),
-    });
-    expect(padRes.status).toBe(200);
+    try {
+      // The exact URL the shell loads in its webview.
+      const padRes = await fetch(`${BASE}/p/${encodeURIComponent(padID)}`, {
+        signal: AbortSignal.timeout(5000),
+      });
+      expect(padRes.status).toBe(200);
 
-    const got = await api<{ text: string }>('getText', { padID });
-    expect(got.code, got.message).toBe(0);
-    expect(got.data.text).toBe(text);
-
-    await api<null>('deletePad', { padID });
+      const got = await api<{ text: string }>('getText', { padID });
+      expect(got.code, got.message).toBe(0);
+      expect(got.data.text).toBe(text);
+    } finally {
+      // Guaranteed cleanup even if an assertion above throws; swallow delete
+      // errors so cleanup never masks the real failure.
+      await api<null>('deletePad', { padID }).catch(() => {});
+    }
   });
 });
