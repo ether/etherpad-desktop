@@ -124,22 +124,22 @@ importers:
     dependencies:
       '@capacitor/android':
         specifier: ^8.4.2
-        version: 8.4.2(@capacitor/core@8.4.2)
+        version: 8.4.2(@capacitor/core@8.5.0)
       '@capacitor/app':
         specifier: ^8.1.1
-        version: 8.1.1(@capacitor/core@8.4.2)
+        version: 8.1.1(@capacitor/core@8.5.0)
       '@capacitor/browser':
         specifier: ^8.0.4
-        version: 8.0.4(@capacitor/core@8.4.2)
+        version: 8.0.4(@capacitor/core@8.5.0)
       '@capacitor/core':
-        specifier: ^8.4.2
-        version: 8.4.2
+        specifier: ^8.5.0
+        version: 8.5.0
       '@capacitor/preferences':
         specifier: ^8.0.1
-        version: 8.0.1(@capacitor/core@8.4.2)
+        version: 8.0.1(@capacitor/core@8.5.0)
       '@capacitor/share':
         specifier: ^8.0.1
-        version: 8.0.1(@capacitor/core@8.4.2)
+        version: 8.0.1(@capacitor/core@8.5.0)
       '@etherpad/shell':
         specifier: workspace:*
         version: link:../shell
@@ -417,8 +417,8 @@ packages:
     engines: {node: '>=22.0.0'}
     hasBin: true
 
-  '@capacitor/core@8.4.2':
-    resolution: {integrity: sha512-fQPRb3JXRaU2pnufDUvqOjhsrYxDQeFRZyaj/sHydIUxD2NxOGHKMpmKUdI+U4OOmKuGZyvRpi7TSJU+7Bjbmg==}
+  '@capacitor/core@8.5.0':
+    resolution: {integrity: sha512-Ca4krtqH1hothjtBIwf2J2TW7IhYq1ujp8QeItTiJohNsqij8ja2DYYH3DU0l8RmxCWaBAFTGA2TgOgOMCSNsQ==}
 
   '@capacitor/preferences@8.0.1':
     resolution: {integrity: sha512-T6no3ebi79XJCk91U3Jp/liJUwgBdvHR+s6vhvPkPxSuch7z3zx5Rv1bdWM6sWruNx+pViuEGqZvbfCdyBvcHQ==}
@@ -3659,17 +3659,17 @@ snapshots:
     dependencies:
       css-tree: 3.2.1
 
-  '@capacitor/android@8.4.2(@capacitor/core@8.4.2)':
+  '@capacitor/android@8.4.2(@capacitor/core@8.5.0)':
     dependencies:
-      '@capacitor/core': 8.4.2
+      '@capacitor/core': 8.5.0
 
-  '@capacitor/app@8.1.1(@capacitor/core@8.4.2)':
+  '@capacitor/app@8.1.1(@capacitor/core@8.5.0)':
     dependencies:
-      '@capacitor/core': 8.4.2
+      '@capacitor/core': 8.5.0
 
-  '@capacitor/browser@8.0.4(@capacitor/core@8.4.2)':
+  '@capacitor/browser@8.0.4(@capacitor/core@8.5.0)':
     dependencies:
-      '@capacitor/core': 8.4.2
+      '@capacitor/core': 8.5.0
 
   '@capacitor/cli@8.4.1':
     dependencies:
@@ -3693,17 +3693,17 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@capacitor/core@8.4.2':
+  '@capacitor/core@8.5.0':
     dependencies:
       tslib: 2.8.1
 
-  '@capacitor/preferences@8.0.1(@capacitor/core@8.4.2)':
+  '@capacitor/preferences@8.0.1(@capacitor/core@8.5.0)':
     dependencies:
-      '@capacitor/core': 8.4.2
+      '@capacitor/core': 8.5.0
 
-  '@capacitor/share@8.0.1(@capacitor/core@8.4.2)':
+  '@capacitor/share@8.0.1(@capacitor/core@8.5.0)':
     dependencies:
-      '@capacitor/core': 8.4.2
+      '@capacitor/core': 8.5.0
 
   '@csstools/color-helpers@6.0.2': {}
 
