@@ -35,7 +35,7 @@
     "electron-store": "^11.0.2",
     "electron-updater": "^6.8.9",
     "react": "^19.2.0",
-    "react-dom": "^19.2.0",
+    "react-dom": "^19.2.8",
     "zod": "^4.0.0",
     "zustand": "^5.0.15"
   },
@@ -47,7 +47,7 @@
     "@testing-library/user-event": "^14.6.1",
     "@types/node": "^26.1.0",
     "@types/react": "^19.0.0",
-    "@types/react-dom": "^19.0.0",
+    "@types/react-dom": "^19.2.4",
     "@types/tmp": "^0.2.6",
     "@typescript-eslint/eslint-plugin": "^8.63.0",
     "@typescript-eslint/parser": "^8.63.0",
