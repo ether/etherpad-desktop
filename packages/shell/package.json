@@ -46,7 +46,7 @@
     "react-dom": "^19.2.0",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.63.0",
-    "vitest": "^4.1.10",
+    "vitest": "^4.1.11",
     "zod": "^4.5.4",
     "zustand": "^5.0.15"
   }
