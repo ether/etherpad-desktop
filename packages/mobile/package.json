@@ -27,7 +27,7 @@
     "@etherpad/shell": "workspace:*",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "zod": "^4.6.2"
+    "zod": "^4.6.4"
   },
   "devDependencies": {
     "@capacitor/cli": "^8.4.1",
