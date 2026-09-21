@@ -23,7 +23,7 @@
     "@capacitor/browser": "^8.0.4",
     "@capacitor/core": "^8.5.2",
     "@capacitor/preferences": "^8.0.1",
-    "@capacitor/share": "^8.0.1",
+    "@capacitor/share": "^8.0.2",
     "@etherpad/shell": "workspace:*",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
