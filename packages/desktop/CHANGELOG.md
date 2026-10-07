@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.5.0](https://github.com/ether/etherpad-desktop/compare/v0.4.4...v0.5.0) (2026-05-12)
+
+
+### Features
+
+* **embedded-server:** switch from npx to bundled Etherpad source ([#38](https://github.com/ether/etherpad-desktop/issues/38)) ([3c13426](https://github.com/ether/etherpad-desktop/commit/3c13426c1bfde6620212bc861c14b5fb6c3ffb7c))
+* **mobile:** persist + restore open tabs, fix language change + flaky relaunch test ([#42](https://github.com/ether/etherpad-desktop/issues/42)) ([51d392a](https://github.com/ether/etherpad-desktop/commit/51d392ae8f10bbbc3dca88efaa02c4820b410253))
+
+
+### Bug Fixes
+
+* **mobile/shell:** rail-state persistence + tap-to-collapse + B&W icon + clear-all confirm + 5 translations ([#43](https://github.com/ether/etherpad-desktop/issues/43)) ([49cc76d](https://github.com/ether/etherpad-desktop/commit/49cc76d97ac64ddd105337704d4ce9f72a8c505d))
+* **release:** exclude etherpad/bin/ from extraResources to unbreak Win ([#51](https://github.com/ether/etherpad-desktop/issues/51)) ([eb55314](https://github.com/ether/etherpad-desktop/commit/eb553149a62836734f0a142d396e0e45ab7d970e))
+* **release:** override package name via extraMetadata for build templates ([#49](https://github.com/ether/etherpad-desktop/issues/49)) ([6216aed](https://github.com/ether/etherpad-desktop/commit/6216aed5381cc3120b269964692a6e5d2e2bf738))
+* **release:** unbreak Linux deb + Snap + Windows builds post-monorepo ([#47](https://github.com/ether/etherpad-desktop/issues/47)) ([599520c](https://github.com/ether/etherpad-desktop/commit/599520c6e812baf56d027aff9bfd73f41c446687))
+* **release:** use pnpm hoisted node-linker for etherpad bundle (Windows) ([#54](https://github.com/ether/etherpad-desktop/issues/54)) ([39a96be](https://github.com/ether/etherpad-desktop/commit/39a96bee99835284038c8805d9c63a06c97106d7))
+
 ## [0.4.4](https://github.com/ether/etherpad-desktop/compare/v0.4.3...v0.4.4) (2026-05-12)
 
 
