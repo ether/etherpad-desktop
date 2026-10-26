@@ -48,6 +48,6 @@
     "typescript-eslint": "^8.63.0",
     "vitest": "^4.1.11",
     "zod": "^4.6.7",
-    "zustand": "^5.0.15"
+    "zustand": "^5.0.16"
   }
 }
