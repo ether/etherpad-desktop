@@ -124,22 +124,22 @@ importers:
     dependencies:
       '@capacitor/android':
         specifier: ^8.6.2
-        version: 8.6.2(@capacitor/core@8.6.0)
+        version: 8.6.2(@capacitor/core@8.6.2)
       '@capacitor/app':
         specifier: ^8.1.2
-        version: 8.1.2(@capacitor/core@8.6.0)
+        version: 8.1.2(@capacitor/core@8.6.2)
       '@capacitor/browser':
         specifier: ^8.0.5
-        version: 8.0.5(@capacitor/core@8.6.0)
+        version: 8.0.5(@capacitor/core@8.6.2)
       '@capacitor/core':
-        specifier: ^8.6.0
-        version: 8.6.0
+        specifier: ^8.6.2
+        version: 8.6.2
       '@capacitor/preferences':
         specifier: ^8.0.1
-        version: 8.0.1(@capacitor/core@8.6.0)
+        version: 8.0.1(@capacitor/core@8.6.2)
       '@capacitor/share':
         specifier: ^8.0.3
-        version: 8.0.3(@capacitor/core@8.6.0)
+        version: 8.0.3(@capacitor/core@8.6.2)
       '@etherpad/shell':
         specifier: workspace:*
         version: link:../shell
@@ -417,8 +417,8 @@ packages:
     engines: {node: '>=22.0.0'}
     hasBin: true
 
-  '@capacitor/core@8.6.0':
-    resolution: {integrity: sha512-9F2zzuGYTJu+wqmQSEmqnFBfGrhC/njjMCfmxbvg9mq8xJT4wNh5pxbMFZxvW/yDhYJWPEBFQxeqzfo1gKrvxg==}
+  '@capacitor/core@8.6.2':
+    resolution: {integrity: sha512-UEb9crRuqEAe2Iu2eGOEuQ8rLQxpwg7ZZIpl17UJoytEpnV1e4oXXW0K7yYS2NsCOGmJjyLeKjNlgG7tkAoX8g==}
 
   '@capacitor/preferences@8.0.1':
     resolution: {integrity: sha512-T6no3ebi79XJCk91U3Jp/liJUwgBdvHR+s6vhvPkPxSuch7z3zx5Rv1bdWM6sWruNx+pViuEGqZvbfCdyBvcHQ==}
@@ -3203,6 +3203,9 @@ packages:
   tslib@2.8.1:
     resolution: {integrity: sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w==}
 
+  tslib@2.9.1:
+    resolution: {integrity: sha512-a4Ux9VKuIMHsOS7ENbEq6hK2ZGYIT27Rtl0E4eD9KqwxhKiQeMZE/9xb3IdYwWaSOyIBQLExhQgXDTYoiCxnWA==}
+
   type-check@0.4.0:
     resolution: {integrity: sha512-XleUoc9uwGXqjWwXaUTZAmzMcFZ5858QA2vvx1Ur5xIcixXIP+8LnFDgRplU30us6teqdlskFfu+ae4K79Ooew==}
     engines: {node: '>= 0.8.0'}
@@ -3677,17 +3680,17 @@ snapshots:
     dependencies:
       css-tree: 3.2.1
 
-  '@capacitor/android@8.6.2(@capacitor/core@8.6.0)':
+  '@capacitor/android@8.6.2(@capacitor/core@8.6.2)':
     dependencies:
-      '@capacitor/core': 8.6.0
+      '@capacitor/core': 8.6.2
 
-  '@capacitor/app@8.1.2(@capacitor/core@8.6.0)':
+  '@capacitor/app@8.1.2(@capacitor/core@8.6.2)':
     dependencies:
-      '@capacitor/core': 8.6.0
+      '@capacitor/core': 8.6.2
 
-  '@capacitor/browser@8.0.5(@capacitor/core@8.6.0)':
+  '@capacitor/browser@8.0.5(@capacitor/core@8.6.2)':
     dependencies:
-      '@capacitor/core': 8.6.0
+      '@capacitor/core': 8.6.2
 
   '@capacitor/cli@8.4.1':
     dependencies:
@@ -3711,17 +3714,17 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@capacitor/core@8.6.0':
+  '@capacitor/core@8.6.2':
     dependencies:
-      tslib: 2.8.1
+      tslib: 2.9.1
 
-  '@capacitor/preferences@8.0.1(@capacitor/core@8.6.0)':
+  '@capacitor/preferences@8.0.1(@capacitor/core@8.6.2)':
     dependencies:
-      '@capacitor/core': 8.6.0
+      '@capacitor/core': 8.6.2
 
-  '@capacitor/share@8.0.3(@capacitor/core@8.6.0)':
+  '@capacitor/share@8.0.3(@capacitor/core@8.6.2)':
     dependencies:
-      '@capacitor/core': 8.6.0
+      '@capacitor/core': 8.6.2
 
   '@csstools/color-helpers@6.0.2': {}
 
@@ -3844,17 +3847,17 @@ snapshots:
   '@emnapi/core@1.11.1':
     dependencies:
       '@emnapi/wasi-threads': 1.2.2
-      tslib: 2.8.1
+      tslib: 2.9.1
     optional: true
 
   '@emnapi/runtime@1.11.1':
     dependencies:
-      tslib: 2.8.1
+      tslib: 2.9.1
     optional: true
 
   '@emnapi/wasi-threads@1.2.2':
     dependencies:
-      tslib: 2.8.1
+      tslib: 2.9.1
     optional: true
 
   '@esbuild/aix-ppc64@0.25.12':
@@ -4071,14 +4074,14 @@ snapshots:
     dependencies:
       '@ionic/utils-terminal': 2.3.5
       debug: 4.4.3
-      tslib: 2.8.1
+      tslib: 2.9.1
     transitivePeerDependencies:
       - supports-color
 
   '@ionic/utils-array@2.1.6':
     dependencies:
       debug: 4.4.3
-      tslib: 2.8.1
+      tslib: 2.9.1
     transitivePeerDependencies:
       - supports-color
 
@@ -4087,14 +4090,14 @@ snapshots:
       '@types/fs-extra': 8.1.5
       debug: 4.4.3
       fs-extra: 9.1.0
-      tslib: 2.8.1
+      tslib: 2.9.1
     transitivePeerDependencies:
       - supports-color
 
   '@ionic/utils-object@2.1.6':
     dependencies:
       debug: 4.4.3
-      tslib: 2.8.1
+      tslib: 2.9.1
     transitivePeerDependencies:
       - supports-color
 
@@ -4105,14 +4108,14 @@ snapshots:
       debug: 4.4.3
       signal-exit: 3.0.7
       tree-kill: 1.2.2
-      tslib: 2.8.1
+      tslib: 2.9.1
     transitivePeerDependencies:
       - supports-color
 
   '@ionic/utils-stream@3.1.7':
     dependencies:
       debug: 4.4.3
-      tslib: 2.8.1
+      tslib: 2.9.1
     transitivePeerDependencies:
       - supports-color
 
@@ -4125,7 +4128,7 @@ snapshots:
       '@ionic/utils-terminal': 2.3.5
       cross-spawn: 7.0.6
       debug: 4.4.3
-      tslib: 2.8.1
+      tslib: 2.9.1
     transitivePeerDependencies:
       - supports-color
 
@@ -4137,7 +4140,7 @@ snapshots:
       slice-ansi: 4.0.0
       string-width: 4.2.3
       strip-ansi: 6.0.1
-      tslib: 2.8.1
+      tslib: 2.9.1
       untildify: 4.0.0
       wrap-ansi: 7.0.0
     transitivePeerDependencies:
@@ -4196,22 +4199,22 @@ snapshots:
     dependencies:
       '@peculiar/utils': 2.0.3
       asn1js: 3.0.10
-      tslib: 2.8.1
+      tslib: 2.9.1
 
   '@peculiar/json-schema@1.1.12':
     dependencies:
-      tslib: 2.8.1
+      tslib: 2.9.1
 
   '@peculiar/utils@2.0.3':
     dependencies:
-      tslib: 2.8.1
+      tslib: 2.9.1
 
   '@peculiar/webcrypto@1.7.1':
     dependencies:
       '@peculiar/asn1-schema': 2.8.0
       '@peculiar/json-schema': 1.1.12
       '@peculiar/utils': 2.0.3
-      tslib: 2.8.1
+      tslib: 2.9.1
       webcrypto-core: 1.9.2
 
   '@playwright/test@1.61.1':
@@ -4313,7 +4316,7 @@ snapshots:
 
   '@tybys/wasm-util@0.10.4':
     dependencies:
-      tslib: 2.8.1
+      tslib: 2.9.1
     optional: true
 
   '@types/aria-query@5.0.4': {}
@@ -4685,7 +4688,7 @@ snapshots:
     dependencies:
       pvtsutils: 1.3.6
       pvutils: 1.1.5
-      tslib: 2.8.1
+      tslib: 2.9.1
 
   assertion-error@2.0.1: {}
 
@@ -6066,7 +6069,7 @@ snapshots:
       plist: 3.1.1
       split2: 4.2.0
       through2: 4.0.2
-      tslib: 2.8.1
+      tslib: 2.9.1
       yauzl: 2.10.0
     transitivePeerDependencies:
       - supports-color
@@ -6220,7 +6223,7 @@ snapshots:
       bytestreamjs: 2.0.1
       pvtsutils: 1.3.6
       pvutils: 1.1.5
-      tslib: 2.8.1
+      tslib: 2.9.1
 
   playwright-core@1.61.1: {}
 
@@ -6302,7 +6305,7 @@ snapshots:
 
   pvtsutils@1.3.6:
     dependencies:
-      tslib: 2.8.1
+      tslib: 2.9.1
 
   pvutils@1.1.5: {}
 
@@ -6744,6 +6747,8 @@ snapshots:
 
   tslib@2.8.1: {}
 
+  tslib@2.9.1: {}
+
   type-check@0.4.0:
     dependencies:
       prelude-ls: 1.2.1
@@ -6915,7 +6920,7 @@ snapshots:
       '@peculiar/json-schema': 1.1.12
       '@peculiar/utils': 2.0.3
       asn1js: 3.0.10
-      tslib: 2.8.1
+      tslib: 2.9.1
 
   webidl-conversions@8.0.1: {}
 
